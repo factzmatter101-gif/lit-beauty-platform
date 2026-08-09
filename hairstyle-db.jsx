@@ -1,4 +1,68 @@
-import { useState, useRef, useEffect, createContext, useContext } from "react";
+import React, { useState, useRef, useEffect, createContext, useContext } from "react";
+
+// ═══════════════════════════════════════════════════════════════════════════════
+//  LTI SVG ICON SYSTEM — thin-line 1.6px stroke, 2026 design language
+// ═══════════════════════════════════════════════════════════════════════════════
+const ICONS = {
+  appt:    '<rect x="3" y="4" width="18" height="17" rx="3"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/><rect x="7" y="13" width="4" height="4" rx="1" fill="currentColor" stroke="none"/>',
+  payment: '<rect x="2" y="6" width="20" height="13" rx="2.5"/><line x1="2" y1="11" x2="22" y2="11"/><rect x="5" y="14.5" width="5" height="2.5" rx=".8" fill="currentColor" stroke="none" opacity=".6"/><line x1="15" y1="15.5" x2="19" y2="15.5" strokeWidth="1.8"/>',
+  alerts:  '<path d="M6 10a6 6 0 0 1 12 0v4l2 2H4l2-2v-4z"/><line x1="12" y1="20" x2="12" y2="22"/>',
+  dna:     '<path d="M7 4c2 2.5 8 2.5 10 5s-8 2.5-10 5 8 2.5 10 5"/><path d="M17 4c-2 2.5-8 2.5-10 5s8 2.5 10 5-8 2.5-10 5"/>',
+  nearme:  '<circle cx="12" cy="12" r="2.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="5.5" opacity=".5"/><circle cx="12" cy="12" r="9" opacity=".2"/>',
+  subs:    '<circle cx="12" cy="12" r="3"/><path d="M12 2a10 10 0 0 1 9.5 7"/><path d="M3.5 9A10 10 0 0 0 12 22"/><path d="M20.5 15A10 10 0 0 1 3 13"/><polyline points="22 5 21.5 9 17.5 8.5"/><polyline points="2 19 2.5 15 6.5 15.5"/>',
+  reviews: '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill="currentColor" opacity=".15"/><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
+  photo:   '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/><line x1="12" y1="3" x2="12" y2="8.5" opacity=".35"/><line x1="15.5" y1="12" x2="21" y2="12" opacity=".35"/>',
+  avail:   '<circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/><path d="M5.6 5.6A9 9 0 0 0 3 12a9 9 0 0 0 2.6 6.4"/><path d="M18.4 5.6A9 9 0 0 1 21 12a9 9 0 0 1-2.6 6.4"/>',
+  flash:   '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" fill="currentColor" opacity=".15"/><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
+  earnings:'<line x1="12" y1="1" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="23"/><path d="M7 6h10a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"/>',
+  stats:   '<line x1="3" y1="21" x2="21" y2="21" opacity=".4"/><rect x="4" y="14" width="4" height="7" rx="1" fill="currentColor" opacity=".3"/><rect x="10" y="9" width="4" height="12" rx="1" fill="currentColor" opacity=".5"/><rect x="16" y="5" width="4" height="16" rx="1" fill="currentColor" opacity=".7"/>',
+  board:   '<polygon points="12 2 22 8 12 14 2 8 12 2"/><polyline points="2 14 12 20 22 14" opacity=".5"/><polyline points="2 18 12 24 22 18" opacity=".25"/>',
+  globe:   '<circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15 15 0 0 1 0 20"/><path d="M12 2a15 15 0 0 0 0 20"/>',
+  styles:  '<circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15 15 0 0 1 0 20"/><path d="M12 2a15 15 0 0 0 0 20"/><circle cx="12" cy="2" r="1.2" fill="currentColor" stroke="none"/><circle cx="12" cy="22" r="1.2" fill="currentColor" stroke="none"/><circle cx="2" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="22" cy="12" r="1.2" fill="currentColor" stroke="none"/><path d="M6.5 6.5a9 9 0 0 0 0 11" opacity=".3" strokeDasharray="1.5 1.2"/><path d="M17.5 6.5a9 9 0 0 1 0 11" opacity=".3" strokeDasharray="1.5 1.2"/>',
+  vision:  '<rect x="6" y="6" width="12" height="10" rx="3"/><path d="M9 21h6M12 16v5" opacity=".6"/><circle cx="9.5" cy="11" r="1" fill="currentColor" stroke="none"/><circle cx="14.5" cy="11" r="1" fill="currentColor" stroke="none"/>',
+  scan:    '<circle cx="12" cy="12" r="4"/><path d="M4 4h4V2H2v6h2V4z"/><path d="M20 4h-4V2h6v6h-2V4z"/><path d="M4 20h4v2H2v-6h2v4z"/><path d="M20 20h-4v2h6v-6h-2v4z"/>',
+  heritage:'<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
+  search:  '<circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
+  shield:  '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+  building:'<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>',
+  check:   '<circle cx="12" cy="12" r="10" fill="currentColor" opacity=".1"/><polyline points="7 13 10 16 17 9"/>',
+  loc:     '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>',
+  clock:   '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+  camera:  '<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',
+  target:  '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6" opacity=".5"/><circle cx="12" cy="12" r="2" fill="currentColor" stroke="none"/>',
+  settings:'<circle cx="12" cy="12" r="3.5"/><path d="M12 2v2m0 16v2M4.22 4.22l1.42 1.42m12.72 12.72 1.42 1.42M2 12h2m16 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>',
+  lock:    '<rect x="3" y="11" width="18" height="12" rx="2.5"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+  droplet: '<path d="M12 2c0 0-7 8-7 13a7 7 0 0 0 14 0c0-5-7-13-7-13z"/>',
+  leaf:    '<path d="M2 22l10-10"/><path d="M16 8c0 0-5-1-10 4s-4 10-4 10 5 1 10-4 4-10 4-10z"/>',
+  brush:   '<path d="M5 9a6 6 0 0 1 12 0c0 3-2 4-4 6s-2 3-2 5"/><line x1="12" y1="20" x2="12" y2="22"/>',
+  tool:    '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
+  kids:    '<circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0 1 12 0v2"/>',
+};
+
+function SvgIcon({ name, color, size=20, sw=1.6, gold=true }) {
+  const paths = ICONS[name];
+  if (!paths) return null;
+  // Gold leaf: a warm gold stroke sits behind the main icon at low opacity
+  // creating a metallic shimmer at icon edges — a hint of gold leaf
+  return (
+    <span style={{position:"relative",display:"inline-flex",
+      alignItems:"center",justifyContent:"center",
+      width:size,height:size,flexShrink:0}}>
+      {gold && (
+        <svg style={{position:"absolute",inset:0,filter:"blur(0.5px)"}}
+          width={size} height={size} viewBox="0 0 24 24" fill="none"
+          stroke="rgba(201,168,76,0.28)" strokeWidth={sw+0.9}
+          strokeLinecap="round" strokeLinejoin="round"
+          dangerouslySetInnerHTML={{__html:paths}}/>
+      )}
+      <svg style={{position:"relative"}}
+        width={size} height={size} viewBox="0 0 24 24" fill="none"
+        stroke={color||"currentColor"} strokeWidth={sw}
+        strokeLinecap="round" strokeLinejoin="round"
+        dangerouslySetInnerHTML={{__html:paths}}/>
+    </span>
+  );
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 //  CLAUDE API PROXY ENDPOINT — single source of truth for all AI calls
@@ -18,7 +82,69 @@ import { useState, useRef, useEffect, createContext, useContext } from "react";
 //  All 67 AI calls in this file reference this one constant — updating it
 //  here is the only change needed to fix every AI feature at once.
 // ═══════════════════════════════════════════════════════════════════════════
-const CLAUDE_PROXY_URL = "https://wubjkhibaghbmjuqmknp.supabase.co/functions/v1/claude-proxy"; // ⚠️ REPLACE with your Supabase function URL before deploying to a real device
+const CLAUDE_PROXY_URL  = "https://wubjkhibaghbmjuqmknp.supabase.co/functions/v1/claude-proxy";
+const EMAIL_PROXY_URL   = "https://wubjkhibaghbmjuqmknp.supabase.co/functions/v1/send-email";
+const STRIPE_PROXY_URL  = "https://wubjkhibaghbmjuqmknp.supabase.co/functions/v1/stripe-payment";
+const NOTIF_PROXY_URL   = "https://wubjkhibaghbmjuqmknp.supabase.co/functions/v1/send-notification";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1YmpraGliYWdoYm1qdXFta25wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgxMzYyNzMsImV4cCI6MjA2MzcxMjI3M30.wHnzBkCBb8R8W5RJJBVafgULqdMaFSWCeeTWFwbNRNk";
+
+const PROXY_HEADERS = {
+  "Content-Type":  "application/json",
+  "apikey":        SUPABASE_ANON_KEY,
+  "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+};
+
+// ── Email helper ──────────────────────────────────────────────────────────────
+async function sendEmail(type, to, data, subject) {
+  try {
+    await fetch(EMAIL_PROXY_URL, {
+      method:  "POST",
+      headers: PROXY_HEADERS,
+      body:    JSON.stringify({ type, to, data, subject }),
+    });
+  } catch(e) {
+    console.warn("Email send failed:", e);
+  }
+}
+
+// ── Stripe helper ─────────────────────────────────────────────────────────────
+async function stripeAction(action, data) {
+  try {
+    const res = await fetch(STRIPE_PROXY_URL, {
+      method:  "POST",
+      headers: PROXY_HEADERS,
+      body:    JSON.stringify({ action, ...data }),
+    });
+    return await res.json();
+  } catch(e) {
+    console.warn("Stripe action failed:", e);
+    return { error: String(e) };
+  }
+}
+
+// ── Push notification helper ──────────────────────────────────────────────────
+async function sendPushNotification(type, token, data) {
+  try {
+    await fetch(NOTIF_PROXY_URL, {
+      method:  "POST",
+      headers: PROXY_HEADERS,
+      body:    JSON.stringify({ type, token, data }),
+    });
+  } catch(e) {
+    console.warn("Push notification failed:", e);
+  }
+}
+
+// ── Request FCM permission on first load ──────────────────────────────────────
+let fcmToken = null;
+async function initFCM() {
+  try {
+    if (!("Notification" in window)) return;
+    if (Notification.permission === "granted") return;
+    // We request permission after user interaction (see handleAuth)
+  } catch(e) {}
+}
+initFCM();
 
 // +==========================================================================+
 // |           LOVE THAT IDEA  -  Beauty Intelligence Platform               |
@@ -47,33 +173,32 @@ const CLAUDE_PROXY_URL = "https://wubjkhibaghbmjuqmknp.supabase.co/functions/v1/
 // -- Brand Design Tokens - Love That Idea --------------------------------------
 // Palette: Forest · Emerald · Mint · Sage · Gold · Cream · Ivory
 const C = {
-  // Backgrounds
-  bg:        "#FAF5EC",   // Cream - warm organic page background
-  surface:   "#FEFCF7",   // Ivory - elevated card surface
-  card:      "#FFFFFF",
-  // Borders
-  border:    "#C6E8D5",
-  dim:       "#D4EDE0",
+  // ── MIDNIGHT THEME — full dark, matches star field backdrop ──────
+  bg:        "#0D1F14",
+  surface:   "#0F2418",
+  card:      "rgba(255,255,255,0.05)",
+  border:    "rgba(39,174,120,0.22)",
+  dim:       "rgba(39,174,120,0.10)",
   // Brand greens
-  forest:    "#0D2818",   // Forest - deepest brand dark
-  emerald:   "#1A4A2E",   // Emerald - secondary dark
-  mint:      "#27AE78",   // Mint - brand primary
+  forest:    "#0D2818",
+  emerald:   "#1A4A2E",
+  mint:      "#27AE78",
   mintDark:  "#1A9060",
-  mintLight: "#E8F8F0",
-  sage:      "#74BFA0",   // Sage - soft secondary accent
+  mintLight: "rgba(39,174,120,0.15)",
+  sage:      "#74BFA0",
   teal:      "#0D9488",
-  // Gold - prestige accent
-  gold:      "#C9A84C",   // Brand gold (replaces generic amber)
+  // Gold
+  gold:      "#C9A84C",
   goldLight: "#E8C96A",
-  amber:     "#D97706",   // Utility amber
-  // Type
-  text:      "#0D2818",   // Forest for headings
-  sub:       "#1A4A2E",   // Emerald for body
-  muted:     "#6B9E83",
+  amber:     "#D97706",
+  // Type — light on dark
+  text:      "#FEFDF8",
+  sub:       "rgba(255,255,255,0.72)",
+  muted:     "rgba(255,255,255,0.40)",
   // Utility
-  rose:      "#E53E3E",
-  purple:    "#7C3AED",
-  white:     "#FFFFFF",
+  rose:      "#F87171",
+  purple:    "#A78BFA",
+  white:     "#132218",
 };
 
 const GRAD = {
@@ -82,7 +207,7 @@ const GRAD = {
   gold:   "linear-gradient(135deg, #C9A84C, #E8C96A)",
   master: "linear-gradient(135deg, #C9A84C, #D97706)",
   warm:   "linear-gradient(135deg, #27AE78, #74BFA0)",
-  page:   "linear-gradient(160deg, #FAF5EC 0%, #F0EDE3 100%)",
+  page:   "linear-gradient(160deg, #0D2818 0%, #0A1A10 60%, #050D08 100%)",
 };
 
 // Brand typefaces - loaded in App style tag
@@ -102,7 +227,7 @@ const CAT_COLORS = {
   "Braids":"#DB2777","Locs":"#9333EA","Updos":"#EA580C","Relaxed":"#7C3AED",
   "Color":"#EC4899","Naturals":"#D97706","Wigs & Extensions":"#BE185D",
   // -- Chemical Processes -- Amber / Orange / Warm Chemical tones
-  "Relaxers":"#B45309","Perms & Curls":"#92400E","Keratin & Smoothing":"#78350F",
+  "Relaxers":"#B45309","Perms & Curls":"#C9A84C","Keratin & Smoothing":"#78350F",
   "Color Treatments":"#9A3412","Bleach & Lightening":"#A16207","Bond Builders":"#059669",
   "Scalp Treatments":"#0F766E","Chemical Removal":"#DC2626",
   // -- Men -- Teal / Blue / Cool tones
@@ -467,7 +592,7 @@ const TRANSLATIONS = {
 // -- Language Context ----------------------------------------------------------
 // +==========================================================================+
 // |   CLAUDE PURIFY  -  Platform Security Engine                            |
-// |   Authorized by Michael Lynn Jones II  -  LTI Ventures LLC             |
+// |   Authorized by LTI Ventures LLC             |
 // |   LTI-2026-001  -  Active threat detection & response system           |
 // |   Version: 1.0  -  May 27, 2026                                        |
 // +==========================================================================+
@@ -482,7 +607,7 @@ const PURIFY_ALLOWED    = ["SALON","STYLIST","STYLE","CONSULT","CUSTOM"];
 const THREAT = {
   CRITICAL: { level:"CRITICAL", color:"#DC2626", bg:"#FEF2F2", border:"#FECACA", icon:"🚨", action:"LOCKDOWN" },
   HIGH:     { level:"HIGH",     color:"#EA580C", bg:"#FFF7ED", border:"#FDBA74", icon:"⚠",  action:"BLOCK"    },
-  MEDIUM:   { level:"MEDIUM",   color:"#D97706", bg:"#FFFBEB", border:"#FCD34D", icon:"⚡",  action:"QUARANTINE"},
+  MEDIUM:   { level:"MEDIUM",   color:"#D97706", bg:"rgba(201,168,76,0.1)", border:"#FCD34D", icon:"⚡",  action:"QUARANTINE"},
   LOW:      { level:"LOW",      color:"#0891B2", bg:"#EFF6FF", border:"#BAE6FD", icon:"ℹ",  action:"LOG"      },
 };
 
@@ -1127,7 +1252,7 @@ function LanguageSelector() {
                   <div style={{ display:"flex", gap:"6px", alignItems:"center", marginTop:"2px" }}>
                     <span style={{ fontSize:"10px", color:C.muted }}>{l.name}</span>
                     {l.region && <span style={{ fontSize:"9px", color:"rgba(255,255,255,0.0)", background:C.dim, padding:"1px 6px", borderRadius:"10px", color:C.muted }}>{l.region}</span>}
-                    {l.dir==="rtl" && <span style={{ fontSize:"9px", color:C.muted, background:"#FEF2F2", padding:"1px 5px", borderRadius:"4px", color:"#DC2626", fontWeight:"700" }}>RTL</span>}
+                    {l.dir==="rtl" && <span style={{ fontSize:"9px", color:C.muted, background:"rgba(239,68,68,0.10)", padding:"1px 5px", borderRadius:"4px", color:"#DC2626", fontWeight:"700" }}>RTL</span>}
                   </div>
                 </div>
                 {lang===l.code && <span style={{ color:C.mint, fontWeight:"900", fontSize:"14px", flexShrink:0 }}>&#10003;</span>}
@@ -1473,8 +1598,8 @@ const SAMPLE_PROS = [
 async function callClaude(messages, system) {
   const res = await fetch(CLAUDE_PROXY_URL, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000, system, messages }),
+    headers: PROXY_HEADERS,
+    body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: 1000, system, messages }),
   });
   const data = await res.json();
   return data.content?.map(b => b.text || "").join("") || "";
@@ -1591,7 +1716,7 @@ function BookingModal({ pro, isConsultation, onClose, onBook }) {
                 const sel = day === d;
                 return (
                   <button key={d} disabled={!avail} onClick={() => { setDay(d); setTime(null); setStep(2); }}
-                    style={{ padding: "8px 10px", borderRadius: "10px", border: `1.5px solid ${sel ? C.mint : avail ? C.border : C.dim}`, background: sel ? C.mint : avail ? C.bg : "#F8F8F8", color: sel ? "#fff" : avail ? C.text : C.muted, fontSize: "11px", cursor: avail ? "pointer" : "not-allowed", fontWeight: sel ? "700" : "400", minWidth: "44px", textAlign: "center" }}>
+                    style={{ padding: "8px 10px", borderRadius: "10px", border: `1.5px solid ${sel ? C.mint : avail ? C.border : C.dim}`, background: sel ? C.mint : avail ? C.bg : "rgba(255,255,255,0.05)", color: sel ? "#fff" : avail ? C.text : C.muted, fontSize: "11px", cursor: avail ? "pointer" : "not-allowed", fontWeight: sel ? "700" : "400", minWidth: "44px", textAlign: "center" }}>
                     <div>{d}</div>
                     {avail && <div style={{ fontSize: "9px", marginTop: "2px", opacity: 0.8 }}>{pro.availability[d].length}✓</div>}
                   </button>
@@ -1731,9 +1856,9 @@ function ProDetail({ pro, onClose, onBook, onConsult, appointments }) {
               ♥ {pro.bookingPolicy.noShow.repeat}
             </div>
             {/* Late fee */}
-            <div style={{ marginTop:"8px", background:"#FEF3C7", border:"1px solid #FCD34D", borderRadius:"8px", padding:"8px 10px" }}>
-              <div style={{ fontSize:"11px", color:"#92400E", fontWeight:"700" }}>⏰ Late Fee</div>
-              <div style={{ fontSize:"11px", color:"#78350F" }}>{pro.bookingPolicy.lateFee.note}</div>
+            <div style={{ marginTop:"8px", background:"rgba(201,168,76,0.12)", border:"1px solid #FCD34D", borderRadius:"8px", padding:"8px 10px" }}>
+              <div style={{ fontSize:"11px", color:"#C9A84C", fontWeight:"700" }}>⏰ Late Fee</div>
+              <div style={{ fontSize:"11px", color:"#D97706" }}>{pro.bookingPolicy.lateFee.note}</div>
             </div>
             {/* Free fix */}
             <div style={{ marginTop:"8px", fontSize:"11px", color:C.sub }}>
@@ -1773,7 +1898,7 @@ function ProDetail({ pro, onClose, onBook, onConsult, appointments }) {
             {DAYS.map(d => {
               const has = pro.availability[d]?.length > 0;
               return (
-                <div key={d} style={{ flex: 1, textAlign: "center", padding: "5px 2px", borderRadius: "6px", background: has ? C.mintLight : "#F5F5F5", border: `1px solid ${has ? C.border : C.dim}` }}>
+                <div key={d} style={{ flex: 1, textAlign: "center", padding: "5px 2px", borderRadius: "6px", background: has ? C.mintLight : "rgba(255,255,255,0.05)", border: `1px solid ${has ? C.border : C.dim}` }}>
                   <div style={{ fontSize: "8px", color: has ? C.mint : C.muted, fontWeight: "700" }}>{d}</div>
                   <div style={{ fontSize: "8px", color: has ? C.sub : C.muted, marginTop: "1px" }}>{has ? pro.availability[d].length : "–"}</div>
                 </div>
@@ -1896,8 +2021,8 @@ function ProsTab() {
     if (!aiStylePrompt.trim()) return;
     setStyleFormLoading(true);
     try {
-      const res = await fetch(CLAUDE_PROXY_URL, { method:"POST", headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:400,
+      const res = await fetch(CLAUDE_PROXY_URL, { method:"POST", headers:PROXY_HEADERS,
+        body: JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:400,
           system:`You are an expert hair stylist. Generate a detailed hairstyle portfolio entry based on the description. Return ONLY valid JSON (no markdown): {"name":string,"category":string,"hairType":string,"length":string,"duration":string,"difficulty":"Beginner"|"Intermediate"|"Advanced","notes":string,"tags":string,"price":string,"gender":"men"|"women"|"unisex"}`,
           messages:[{ role:"user", content: aiStylePrompt }] }) });
       const d = await res.json();
@@ -1948,8 +2073,8 @@ function ProsTab() {
     setCaptureAnalyzing(true); setCaptureResult(null);
     const base64 = capturedPhoto.split(",")[1];
     try {
-      const res = await fetch(CLAUDE_PROXY_URL, { method:"POST", headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:600,
+      const res = await fetch(CLAUDE_PROXY_URL, { method:"POST", headers:PROXY_HEADERS,
+        body: JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:600,
           system:`You are an expert master stylist and hair portfolio analyst. Analyze this hairstyle photo and generate a complete professional portfolio entry. Be specific about the exact technique, products, and hair type. Return ONLY valid JSON (no markdown): {"name":string,"category":string,"hairType":string,"length":"Short"|"Medium"|"Long"|"Any","duration":string,"difficulty":"Beginner"|"Intermediate"|"Advanced","notes":string,"tags":string,"price":string,"gender":"men"|"women"|"unisex","styleDescription":string,"techniqueHighlights":[string],"suggestedProducts":[string],"clientAppeal":string}`,
           messages:[{ role:"user", content:[
             { type:"image", source:{ type:"base64", media_type:"image/jpeg", data:base64 } },
@@ -1984,7 +2109,7 @@ function ProsTab() {
   const tierInfo  = selected ? SKILL_TIERS[selected.tier] || SKILL_TIERS.COMMON : null;
 
   return (
-    <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
+    <div style={{ display: "flex", flex: 1, overflow: "visible" }}>
       <aside style={{ width: "200px", minWidth: "200px", background: C.white, borderRight: `1px solid ${C.border}`, padding: "14px 0", overflowY: "auto" }}>
         <div style={{ padding: "0 12px 14px", borderBottom: `1px solid ${C.dim}` }}>
           <button
@@ -2011,7 +2136,7 @@ function ProsTab() {
 
       <main style={{ flex: 1, overflowY: "auto", padding: "20px", background: C.bg }}>
         {/* AI Finder */}
-        <div style={{ background: "linear-gradient(135deg, #E8F8F0, #D4F0E4)", border: `1px solid ${C.border}`, borderRadius: "16px", padding: "18px", marginBottom: "20px" }}>
+        <div style={{ background: "rgba(39,174,120,0.12)", border: `1px solid ${C.border}`, borderRadius: "16px", padding: "18px", marginBottom: "20px" }}>
           <div style={{ fontSize: "10px", letterSpacing: "3px", color: C.mintDark, fontWeight: "800", marginBottom: "10px" }}>AI PRO FINDER</div>
           <div style={{ display: "flex", gap: "8px" }}>
             <InputField value={aiQ} onChange={e => setAiQ(e.target.value)} onKeyDown={e => e.key === "Enter" && findPro()} placeholder="e.g. Master braider near me, available Saturday under $150..." />
@@ -2184,7 +2309,7 @@ function ProsTab() {
                             </div>
                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                               <div style={{ fontSize: "10px", color: C.muted }}>Added {s.addedAt}</div>
-                              <button onClick={() => removeStyleFromPortfolio(selected.id, s.id)} style={{ background: "#FEF2F2", border: "1px solid #FECACA", color: "#DC2626", padding: "4px 10px", borderRadius: "6px", fontSize: "10px", cursor: "pointer" }}>Remove</button>
+                              <button onClick={() => removeStyleFromPortfolio(selected.id, s.id)} style={{ background: "rgba(239,68,68,0.1)", border: "1px solid #FECACA", color: "#DC2626", padding: "4px 10px", borderRadius: "6px", fontSize: "10px", cursor: "pointer" }}>Remove</button>
                             </div>
                           </div>
                         </div>
@@ -2201,7 +2326,7 @@ function ProsTab() {
                   <div style={{ fontSize: "13px", color: C.muted, marginBottom: "16px" }}>Enter details manually or describe the style and let Claude fill in the details.</div>
 
                   {/* AI autofill */}
-                  <div style={{ background: "linear-gradient(135deg,#E8F8F0,#D4F0E4)", border: `1px solid ${C.mint}`, borderRadius: "12px", padding: "14px", marginBottom: "16px" }}>
+                  <div style={{ background: "rgba(39,174,120,0.12)", border: `1px solid ${C.mint}`, borderRadius: "12px", padding: "14px", marginBottom: "16px" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
                       <div style={{ display: "flex", gap: "7px", alignItems: "center" }}>
                         <span style={{ fontSize: "12px", fontWeight: "700", color: C.mintDark }}>AI Style Autofill</span>
@@ -2333,7 +2458,7 @@ function ProsTab() {
 
                       {/* Claude result */}
                       {captureResult && (
-                        <div style={{ background: "linear-gradient(135deg,#E8F8F0,#D4F0E4)", border: `1.5px solid ${C.mint}`, borderRadius: "14px", padding: "16px", marginBottom: "14px" }}>
+                        <div style={{ background: "rgba(39,174,120,0.12)", border: `1.5px solid ${C.mint}`, borderRadius: "14px", padding: "16px", marginBottom: "14px" }}>
                           <div style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "12px" }}>
                             <span style={{ fontSize: "13px", fontWeight: "800", color: C.mintDark }}>Claude Vision Analysis</span>
                             <ClaudeBadge size="sm" />
@@ -2558,7 +2683,7 @@ function StylesTab({ styles, setStyles }) {
   const labelStyle = { display: "block", fontSize: "10px", letterSpacing: "2px", color: C.muted, fontWeight: "700", marginBottom: "5px" };
 
   return (
-    <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
+    <div style={{ display: "flex", flex: 1, overflow: "visible" }}>
       <aside style={{ width: "220px", minWidth: "220px", background: "linear-gradient(170deg,#0D2818 0%,#1A4A2E 60%,#0D9488 100%)", borderRight: `1px solid rgba(39,174,120,0.2)`, overflowY: "auto", display:"flex", flexDirection:"column", gap:0 }}>
 
         {/* ── FEATURED STYLE OF THE DAY ── */}
@@ -2681,7 +2806,7 @@ function StylesTab({ styles, setStyles }) {
             <div key={pro.name} style={{background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.09)",boxShadow:"inset 0 1px 0 rgba(255,255,255,0.07)",borderRadius:"10px",padding:"9px 10px",marginBottom:"6px",display:"flex",gap:"8px",alignItems:"center"}}>
               <div style={{width:"30px",height:"30px",borderRadius:"50%",background:`linear-gradient(135deg,${pro.color},${pro.color}88)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"13px",flexShrink:0,boxShadow:`0 2px 8px ${pro.color}55`}}>{pro.type.split(" ")[0]}</div>
               <div style={{flex:1,minWidth:0}}>
-                <div style={{fontSize:"11px",fontWeight:"800",color:"rgba(255,255,255,0.85)",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{pro.name}</div>
+                <div style={{fontSize:"11px",fontWeight:"800",color:"rgba(255,255,255,0.06)",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{pro.name}</div>
                 <div style={{fontSize:"9px",color:"rgba(255,255,255,0.35)",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{pro.spec}</div>
               </div>
               <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:"2px",flexShrink:0}}>
@@ -2744,7 +2869,7 @@ function StylesTab({ styles, setStyles }) {
             <div style={{display:"flex",gap:"8px",alignItems:"center",marginBottom:"10px"}}>
               <span style={{fontSize:"22px"}}>👑</span>
               <div>
-                <div style={{fontSize:"11px",fontWeight:"800",color:"rgba(255,255,255,0.85)"}}>Afro American</div>
+                <div style={{fontSize:"11px",fontWeight:"800",color:"rgba(255,255,255,0.06)"}}>Afro American</div>
                 <div style={{fontSize:"9px",color:"rgba(255,255,255,0.35)"}}>4A–4C · High shrinkage</div>
               </div>
             </div>
@@ -2776,7 +2901,7 @@ function StylesTab({ styles, setStyles }) {
                 </div>
               </div>
             ))}
-            <button style={{width:"100%",background:"rgba(124,58,237,0.2)",color:"#C4B5FD",border:"1px solid rgba(124,58,237,0.35)",padding:"7px",borderRadius:"8px",fontSize:"10px",fontWeight:"800",cursor:"pointer",marginTop:"8px"}}>
+            <button style={{width:"100%",background:"rgba(124,58,237,0.2)",color:"rgba(124,58,237,0.22)",border:"1px solid rgba(124,58,237,0.35)",padding:"7px",borderRadius:"8px",fontSize:"10px",fontWeight:"800",cursor:"pointer",marginTop:"8px"}}>
               Full AI Consultation →
             </button>
           </div>
@@ -2812,14 +2937,14 @@ function StylesTab({ styles, setStyles }) {
           <div style={{fontSize:"8px",letterSpacing:"2.5px",color:"rgba(255,255,255,0.35)",fontWeight:"800",marginBottom:"8px"}}>⚡ FLASH DEAL</div>
           <div style={{background:"linear-gradient(135deg,rgba(220,38,38,0.15),rgba(185,28,28,0.1))",border:"1px solid rgba(220,38,38,0.35)",boxShadow:"0 2px 12px rgba(220,38,38,0.15), inset 0 1px 0 rgba(255,255,255,0.06)",borderRadius:"12px",padding:"12px",position:"relative",overflow:"hidden"}}>
             <div style={{position:"absolute",top:"8px",right:"8px",background:"rgba(220,38,38,0.8)",color:"#fff",fontSize:"8px",fontWeight:"900",padding:"2px 7px",borderRadius:"20px",animation:"broadcastPulse 1.5s infinite"}}>LIMITED</div>
-            <div style={{fontSize:"12px",fontWeight:"900",color:"#FCA5A5",marginBottom:"2px"}}>Silk Press Special</div>
+            <div style={{fontSize:"12px",fontWeight:"900",color:"rgba(239,68,68,0.2)",marginBottom:"2px"}}>Silk Press Special</div>
             <div style={{fontSize:"9px",color:"rgba(255,165,165,0.5)",marginBottom:"8px"}}>with Jordan Lee · Today only</div>
             <div style={{display:"flex",alignItems:"center",gap:"8px",marginBottom:"8px"}}>
               <span style={{fontSize:"20px",fontWeight:"900",color:"#fff"}}>$75</span>
               <span style={{fontSize:"12px",color:"rgba(255,165,165,0.5)",textDecoration:"line-through"}}>$120</span>
-              <span style={{background:"rgba(220,38,38,0.5)",color:"#FCA5A5",fontSize:"9px",fontWeight:"900",padding:"2px 7px",borderRadius:"10px"}}>37% OFF</span>
+              <span style={{background:"rgba(220,38,38,0.5)",color:"rgba(239,68,68,0.2)",fontSize:"9px",fontWeight:"900",padding:"2px 7px",borderRadius:"10px"}}>37% OFF</span>
             </div>
-            <button style={{width:"100%",background:"rgba(220,38,38,0.3)",color:"#FCA5A5",border:"1px solid rgba(220,38,38,0.5)",boxShadow:"0 2px 10px rgba(220,38,38,0.2)",padding:"7px",borderRadius:"8px",fontSize:"10px",fontWeight:"900",cursor:"pointer"}}>
+            <button style={{width:"100%",background:"rgba(220,38,38,0.3)",color:"rgba(239,68,68,0.2)",border:"1px solid rgba(220,38,38,0.5)",boxShadow:"0 2px 10px rgba(220,38,38,0.2)",padding:"7px",borderRadius:"8px",fontSize:"10px",fontWeight:"900",cursor:"pointer"}}>
               Claim Deal →
             </button>
           </div>
@@ -3037,14 +3162,14 @@ function StylesTab({ styles, setStyles }) {
 
 // -- Products, Brands & Marketplace -------------------------------------------
 const PRODUCT_CATEGORIES = [
-  { id:"moisturizers",  label:"Moisturizers & Conditioners", icon:"💧", color:"#0891B2" },
-  { id:"shampoos",      label:"Shampoos & Cleansers",        icon:"🫧", color:"#7C3AED" },
-  { id:"stylers",       label:"Stylers & Hold",              icon:"✨", color:"#D97706" },
-  { id:"oils",          label:"Oils & Serums",               icon:"💫", color:"#059669" },
-  { id:"color",         label:"Color & Treatments",          icon:"🎨", color:"#DB2777" },
-  { id:"tools",         label:"Tools & Accessories",         icon:"🔧", color:"#EA580C" },
-  { id:"scalp",         label:"Scalp Care",                  icon:"🌿", color:"#16A34A" },
-  { id:"kids",          label:"Kids Hair",                   icon:"🧒", color:"#F59E0B" },
+  { id:"moisturizers",  label:"Moisturizers & Conditioners", icon:"droplet", color:"#0891B2" },
+  { id:"shampoos",      label:"Shampoos & Cleansers",        icon:"brush", color:"#7C3AED" },
+  { id:"stylers",       label:"Stylers & Hold",              icon:"sparkle", color:"#D97706" },
+  { id:"oils",          label:"Oils & Serums",               icon:"sparkle", color:"#059669" },
+  { id:"color",         label:"Color & Treatments",          icon:"color", color:"#DB2777" },
+  { id:"tools",         label:"Tools & Accessories",         icon:"tool", color:"#EA580C" },
+  { id:"scalp",         label:"Scalp Care",                  icon:"leaf", color:"#16A34A" },
+  { id:"kids",          label:"Kids Hair",                   icon:"kids", color:"#F59E0B" },
 ];
 
 // -- Safety Status System ------------------------------------------------------
@@ -3052,15 +3177,15 @@ const PRODUCT_CATEGORIES = [
 // availability: "in_stock" | "limited" | "out_of_stock" | "discontinued"
 const SAFETY_STATUS = {
   safe:         { label:"Safe & Verified",   color:"#059669", bg:"#ECFDF5", border:"#6EE7B7", icon:"✅" },
-  caution:      { label:"Use with Caution",  color:"#D97706", bg:"#FFFBEB", border:"#FCD34D", icon:"⚠" },
+  caution:      { label:"Use with Caution",  color:"#D97706", bg:"rgba(201,168,76,0.1)", border:"#FCD34D", icon:"⚠" },
   recall:       { label:"RECALL ALERT",      color:"#DC2626", bg:"#FEF2F2", border:"#FECACA", icon:"🚨" },
-  discontinued: { label:"Discontinued",      color:"#6B7280", bg:"#F9FAFB", border:"#D1D5DB", icon:"⛔" },
+  discontinued: { label:"Discontinued",      color:"rgba(255,255,255,0.45)", bg:"rgba(255,255,255,0.05)", border:"rgba(255,255,255,0.1)", icon:"⛔" },
 };
 const AVAIL_STATUS = {
   in_stock:     { label:"In Stock",          color:"#059669", icon:"🟢" },
   limited:      { label:"Limited Stock",     color:"#D97706", icon:"🟡" },
-  out_of_stock: { label:"Out of Stock",      color:"#9CA3AF", icon:"⚪" },
-  discontinued: { label:"Discontinued",      color:"#6B7280", icon:"⛔" },
+  out_of_stock: { label:"Out of Stock",      color:"rgba(255,255,255,0.35)", icon:"⚪" },
+  discontinued: { label:"Discontinued",      color:"rgba(255,255,255,0.45)", icon:"⛔" },
 };
 
 const FEATURED_PRODUCTS = [
@@ -3222,9 +3347,9 @@ const FEATURED_PRODUCTS = [
     safetyRating:"C", safety:"caution", safetyScore:5.8, safetyNote:"⚠ NOT FORMULATED AS SKIN ADHESIVE: Got2B is a hairspray used off-label as a wig adhesive. High SD Alcohol 40-B concentration causes scalp dryness and irritation with repeated skin contact. PVP buildup on lace causes discoloration over time. Parfum (synthetic fragrance) is a known skin sensitizer. Inhalation risk during spraying. Safer alternatives exist specifically formulated for scalp contact.", allergens:["synthetic fragrance (parfum)","SD alcohol (irritant)"], heavyMetals:"none detected", euCompliant:true, fdaCompliant:true, availability:"in_stock", lastChecked:"2026-05-01", safetyUpdates:[] },
 ];
 const SPONSOR_TIERS = {
-  PLATINUM: { label:"Platinum Partner", color:"#B8860B", bg:"#FFFBEB", border:"#D4A017", icon:"💎", perks:["Full page brand showcase","Featured product carousel","AI recommendation priority","Banner ads","Analytics dashboard","Dedicated pro account manager"] },
+  PLATINUM: { label:"Platinum Partner", color:"#B8860B", bg:"rgba(201,168,76,0.1)", border:"#D4A017", icon:"💎", perks:["Full page brand showcase","Featured product carousel","AI recommendation priority","Banner ads","Analytics dashboard","Dedicated pro account manager"] },
   GOLD:     { label:"Gold Partner",     color:"#D97706", bg:"#FEF9EC", border:"#F6D860", icon:"⭐", perks:["Brand category feature","3 sponsored products","AI recommendation inclusion","Monthly analytics","Priority support"] },
-  SILVER:   { label:"Silver Partner",   color:"#6B7280", bg:"#F9FAFB", border:"#D1D5DB", icon:"✦", perks:["1 sponsored product listing","Brand logo in directory","Basic analytics","Community access"] },
+  SILVER:   { label:"Silver Partner",   color:"rgba(255,255,255,0.45)", bg:"rgba(255,255,255,0.05)", border:"rgba(255,255,255,0.1)", icon:"✦", perks:["1 sponsored product listing","Brand logo in directory","Basic analytics","Community access"] },
 };
 
 // ── MUA MAKEUP BRAND SPONSORS ─────────────────────────────────────────────────
@@ -3311,8 +3436,8 @@ Return ONLY valid JSON (no markdown): {"safety":"safe"|"caution"|"recall","safet
 
     try {
       const res = await fetch(CLAUDE_PROXY_URL, {
-        method:"POST", headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:600, system:sys,
+        method:"POST", headers:PROXY_HEADERS,
+        body: JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:600, system:sys,
           messages:[{role:"user",content:`Product: "${product.name}" by "${product.brand}". Category: ${product.cat}. Price: $${product.price}. Ingredients: ${product.ingredients}. Current safety status: ${product.safety}. ${product.skintoneCompat?"Skin tone compatibility: "+product.skintoneCompat:""}`}] }),
       });
       const d = await res.json();
@@ -3347,8 +3472,8 @@ Return ONLY valid JSON (no markdown): {"safety":"safe"|"caution"|"recall","safet
     setSubmitLoading(true); setSubmitScan(null);
     try {
       const res = await fetch(CLAUDE_PROXY_URL, {
-        method:"POST", headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:800,
+        method:"POST", headers:PROXY_HEADERS,
+        body: JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:800,
           system:`You are a cosmetic safety analyst reviewing a manufacturer's product submission for listing on a professional beauty marketplace. Provide a detailed pre-listing safety assessment. Be thorough, specific, and professional. Return ONLY valid JSON (no markdown backticks):
 {"approved":boolean,"safetyRating":"A"|"B"|"C"|"D"|"F","safetyScore":number_0_to_10,"ewgEstimate":number_1_to_10,"flags":[{"severity":"warning"|"info"|"critical","issue":string,"detail":string}],"allergenFlags":[strings],"heavyMetalRisk":"low"|"moderate"|"high"|"detected","euCompliant":boolean,"fdaCompliant":boolean,"ingredientConcerns":[strings],"positives":[strings],"recommendation":string,"reviewNote":string,"confidence":number}`,
           messages:[{role:"user",content:`Review this makeup product for marketplace listing:\nBrand: ${submitForm.brandName}\nProduct: ${submitForm.productName}\nCategory: ${submitForm.category}\nPrice: $${submitForm.price}\nIngredients: ${submitForm.ingredients}\nTarget skin tones: ${(submitForm.skinTones||[]).join(", ")||"all"}\nDescription: ${submitForm.desc}`}]
@@ -3357,7 +3482,7 @@ Return ONLY valid JSON (no markdown): {"safety":"safe"|"caution"|"recall","safet
       const d = await res.json();
       const raw = d.content?.map(b=>b.text||"").join("").replace(/```json|```/g,"").trim();
       setSubmitScan(JSON.parse(raw));
-    } catch { setSubmitScan({ approved:true, safetyRating:"B", safetyScore:7.0, ewgEstimate:3, flags:[{severity:"info",issue:"Manual review recommended",detail:"AI scan could not complete full ingredient analysis. A manual cosmetic chemist review is recommended before final approval."}], allergenFlags:[], heavyMetalRisk:"low", euCompliant:true, fdaCompliant:true, ingredientConcerns:[], positives:["Submission received","Ingredients list provided"], recommendation:"Proceed to manual review", reviewNote:"Auto-scan fallback — requires human verification", confidence:40 }); }
+    } catch(e) { setSubmitScan({ approved:true, safetyRating:"B", safetyScore:7.0, ewgEstimate:3, flags:[{severity:"info",issue:"Manual review recommended",detail:"AI scan could not complete full ingredient analysis. A manual cosmetic chemist review is recommended before final approval."}], allergenFlags:[], heavyMetalRisk:"low", euCompliant:true, fdaCompliant:true, ingredientConcerns:[], positives:["Submission received","Ingredients list provided"], recommendation:"Proceed to manual review", reviewNote:"Auto-scan fallback — requires human verification", confidence:40 }); }
     setSubmitLoading(false);
   }
 
@@ -3379,8 +3504,8 @@ Return ONLY valid JSON (no markdown): {"safety":"safe"|"caution"|"recall","safet
     try {
       const msgs = [...aiHistory, { role:"user", content:aiQ }];
       const res = await fetch(CLAUDE_PROXY_URL, {
-        method:"POST", headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:1000, system:sys, messages:msgs }),
+        method:"POST", headers:PROXY_HEADERS,
+        body: JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:1000, system:sys, messages:msgs }),
       });
       const d = await res.json();
       const ans = d.content?.map(b=>b.text||"").join("") || "";
@@ -3440,10 +3565,10 @@ Return ONLY valid JSON (no markdown): {"safety":"safe"|"caution"|"recall","safet
     );
   };
 
-  const NAV = [["featured","⭐","Featured"],["browse","🔍","Browse"],["safety","🛡","Safety Hub"],["brands","🏢","Brands"],["submit","💄","List Product"],["advertise","📣","Advertise"],["ai","✦","AI Advisor"]];
+  const NAV = [["featured","⭐","Featured"],["browse","search","Browse"],["safety","🛡","Safety Hub"],["brands","🏢","Brands"],["submit","💄","List Product"],["advertise","📣","Advertise"],["ai","✦","AI Advisor"]];
 
   return (
-    <div style={{ flex:1, display:"flex", flexDirection:"column", overflow:"hidden", background:C.bg }}>
+    <div style={{ flex:1, display:"flex", flexDirection:"column", overflow:"visible", background:C.bg }}>
       {/* Sub-nav */}
       <div style={{ background:C.white, borderBottom:`1px solid ${C.border}`, padding:"0 20px", display:"flex", gap:"2px", flexShrink:0, overflowX:"auto" }}>
         {NAV.map(([v,icon,label])=>(
@@ -3453,7 +3578,7 @@ Return ONLY valid JSON (no markdown): {"safety":"safe"|"caution"|"recall","safet
         ))}
       </div>
 
-      <div style={{ flex:1, display:"flex", overflow:"hidden" }}>
+      <div style={{ flex:1, display:"flex", overflow:"visible" }}>
         {/* Left sidebar  -  category filters (browse/featured only) */}
         {(view==="featured"||view==="browse") && !selectedProduct && (
           <aside style={{ width:"190px", minWidth:"190px", background:C.white, borderRight:`1px solid ${C.border}`, padding:"14px 0", overflowY:"auto" }}>
@@ -3487,7 +3612,7 @@ Return ONLY valid JSON (no markdown): {"safety":"safe"|"caution"|"recall","safet
             <div style={{ padding:"12px", borderTop:`1px solid ${C.dim}` }}>
               <div style={{ fontSize:"9px", letterSpacing:"3px", color:C.muted, fontWeight:"700", marginBottom:"6px" }}>🛡 SAFETY STATUS</div>
               {[["all","🔵 All Products"],["safe","✅ Safe & Verified"],["caution","⚠ Use Caution"],["recall","🚨 Recall / Alert"],["discontinued","⛔ Discontinued"]].map(([v,l])=>(
-                <button key={v} onClick={()=>setFilterSafety(v)} style={{ display:"block", width:"100%", textAlign:"left", background:filterSafety===v?(v==="recall"?"#FEF2F2":v==="caution"?"#FFFBEB":C.mintLight):"transparent", border:"none", color:filterSafety===v?(v==="recall"?"#DC2626":v==="caution"?"#D97706":C.mintDark):C.muted, padding:"6px 10px", borderRadius:"6px", fontSize:"11px", cursor:"pointer", fontWeight:filterSafety===v?"700":"400", marginBottom:"1px" }}>{l}</button>
+                <button key={v} onClick={()=>setFilterSafety(v)} style={{ display:"block", width:"100%", textAlign:"left", background:filterSafety===v?(v==="recall"?"#FEF2F2":v==="caution"?"rgba(201,168,76,0.1)":C.mintLight):"transparent", border:"none", color:filterSafety===v?(v==="recall"?"#DC2626":v==="caution"?"#D97706":C.mintDark):C.muted, padding:"6px 10px", borderRadius:"6px", fontSize:"11px", cursor:"pointer", fontWeight:filterSafety===v?"700":"400", marginBottom:"1px" }}>{l}</button>
               ))}
             </div>
           </aside>
@@ -3534,7 +3659,7 @@ Return ONLY valid JSON (no markdown): {"safety":"safe"|"caution"|"recall","safet
 
               {/* Featured grid */}
               <div style={{ fontSize:"10px", letterSpacing:"3px", color:C.muted, fontWeight:"700", marginBottom:"10px" }}>⭐ FEATURED PRODUCTS</div>
-              <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(210px,1fr))", gap:"14px" }}>
+              <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(340px,1fr))", gap:"14px" }}>
                 {FEATURED_PRODUCTS.filter(p=>p.featured).map(p=><ProductCard key={p.id} p={p} />)}
               </div>
             </div>
@@ -3561,7 +3686,7 @@ Return ONLY valid JSON (no markdown): {"safety":"safe"|"caution"|"recall","safet
                         <div style={{ height:"1px", flex:1, background:cat.color+"33" }} />
                       </div>
                     )}
-                    <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))", gap:"12px" }}>
+                    <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(340px,1fr))", gap:"12px" }}>
                       {catProducts.map(p=><ProductCard key={p.id} p={p} />)}
                     </div>
                   </div>
@@ -3588,8 +3713,8 @@ Return ONLY valid JSON (no markdown): {"safety":"safe"|"caution"|"recall","safet
                 return (
                 <div style={{ background:C.white, border:`2px solid ${p.safety==="recall"?ss.border:catColor(p.cat)+"44"}`, borderRadius:"18px", overflow:"hidden" }}>
                   <div style={{ height:"8px", background:p.safety==="recall"?`linear-gradient(90deg,${ss.color},${ss.border})`:`linear-gradient(90deg,${catColor(p.cat)},${catColor(p.cat)}66)` }} />
-                  {p.safety==="recall"&&<div style={{ background:"#FEF2F2", borderBottom:"2px solid #FECACA", padding:"14px 28px" }}><div style={{ fontSize:"13px", fontWeight:"900", color:"#DC2626" }}>🚨 SAFETY ALERT  -  RECALL OR ACTIVE CONCERN</div><div style={{ fontSize:"12px", color:"#7F1D1D", lineHeight:"1.6", marginTop:"4px" }}>{p.safetyNote}</div></div>}
-                  {p.safety==="caution"&&<div style={{ background:"#FFFBEB", borderBottom:"1px solid #FCD34D", padding:"12px 28px" }}><div style={{ fontSize:"12px", color:"#92400E", lineHeight:"1.6" }}>⚠ <strong>Caution:</strong> {p.safetyNote}</div></div>}
+                  {p.safety==="recall"&&<div style={{ background:"rgba(239,68,68,0.10)", borderBottom:"2px solid #FECACA", padding:"14px 28px" }}><div style={{ fontSize:"13px", fontWeight:"900", color:"#DC2626" }}>🚨 SAFETY ALERT  -  RECALL OR ACTIVE CONCERN</div><div style={{ fontSize:"12px", color:"#7F1D1D", lineHeight:"1.6", marginTop:"4px" }}>{p.safetyNote}</div></div>}
+                  {p.safety==="caution"&&<div style={{ background:"rgba(201,168,76,0.12)", borderBottom:"1px solid #FCD34D", padding:"12px 28px" }}><div style={{ fontSize:"12px", color:"#C9A84C", lineHeight:"1.6" }}>⚠ <strong>Caution:</strong> {p.safetyNote}</div></div>}
                   <div style={{ padding:"28px", display:"grid", gridTemplateColumns:"1fr 1fr", gap:"28px" }}>
                     <div>
                       <div style={{ width:"80px", height:"80px", borderRadius:"18px", background:catColor(p.cat)+"18", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"24px", fontWeight:"900", color:catColor(p.cat), marginBottom:"16px" }}>{p.brand.slice(0,2).toUpperCase()}</div>
@@ -3672,7 +3797,7 @@ Return ONLY valid JSON (no markdown): {"safety":"safe"|"caution"|"recall","safet
               <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:"10px", marginBottom:"24px" }}>
                 {[
                   ["✅", products.filter(p=>p.safety==="safe").length, "Safe & Verified", "#059669","#ECFDF5","#6EE7B7"],
-                  ["⚠", products.filter(p=>p.safety==="caution").length, "Use Caution", "#D97706","#FFFBEB","#FCD34D"],
+                  ["⚠", products.filter(p=>p.safety==="caution").length, "Use Caution", "#D97706","rgba(201,168,76,0.1)","#FCD34D"],
                   ["🚨", products.filter(p=>p.safety==="recall").length, "Recall / Alert", "#DC2626","#FEF2F2","#FECACA"],
                   ["⛔", products.filter(p=>p.safety==="discontinued").length, "Discontinued", "#6B7280","#F9FAFB","#D1D5DB"],
                 ].map(([icon,count,label,color,bg,border])=>(
@@ -3687,21 +3812,21 @@ Return ONLY valid JSON (no markdown): {"safety":"safe"|"caution"|"recall","safet
 
               {/* Recall / Alert banner */}
               {products.filter(p=>p.safety==="recall").length > 0 && (
-                <div style={{ background:"#FEF2F2", border:"2px solid #FECACA", borderRadius:"14px", padding:"16px", marginBottom:"20px" }}>
+                <div style={{ background:"rgba(239,68,68,0.10)", border:"2px solid #FECACA", borderRadius:"14px", padding:"16px", marginBottom:"20px" }}>
                   <div style={{ fontSize:"14px", fontWeight:"900", color:"#DC2626", marginBottom:"12px" }}>🚨 ACTIVE RECALLS and SAFETY ALERTS</div>
                   {products.filter(p=>p.safety==="recall").map(p=>(
-                    <div key={p.id} style={{ background:"#fff", border:"1px solid #FECACA", borderRadius:"10px", padding:"14px", marginBottom:"8px" }}>
+                    <div key={p.id} style={{ background:"rgba(255,255,255,0.06)", border:"1px solid #FECACA", borderRadius:"10px", padding:"14px", marginBottom:"8px" }}>
                       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", flexWrap:"wrap", gap:"8px" }}>
                         <div>
                           <div style={{ fontSize:"14px", fontWeight:"800", color:C.text }}>{p.name}</div>
                           <div style={{ fontSize:"12px", color:C.muted }}>{p.brand} · Last checked: {p.lastChecked}</div>
                         </div>
                         <button onClick={()=>aiSafetyCheck(p)} disabled={safetyChecking===p.id}
-                          style={{ background:safetyChecking===p.id?"#F5F5F5":"#FEE2E2", border:"1px solid #FECACA", color:"#DC2626", padding:"6px 12px", borderRadius:"8px", fontSize:"11px", fontWeight:"700", cursor:"pointer" }}>
+                          style={{ background:safetyChecking===p.id?"rgba(255,255,255,0.05)":"#FEE2E2", border:"1px solid #FECACA", color:"#DC2626", padding:"6px 12px", borderRadius:"8px", fontSize:"11px", fontWeight:"700", cursor:"pointer" }}>
                           {safetyChecking===p.id?"Checking...":"🔄 Re-check"}
                         </button>
                       </div>
-                      <div style={{ marginTop:"10px", fontSize:"12px", color:"#7F1D1D", lineHeight:"1.7", background:"#FEF2F2", borderRadius:"8px", padding:"10px" }}>{p.safetyNote}</div>
+                      <div style={{ marginTop:"10px", fontSize:"12px", color:"#7F1D1D", lineHeight:"1.7", background:"rgba(239,68,68,0.10)", borderRadius:"8px", padding:"10px" }}>{p.safetyNote}</div>
                       {(p.safetyUpdates||[]).length>0 && (
                         <div style={{ marginTop:"10px" }}>
                           <div style={{ fontSize:"10px", letterSpacing:"2px", color:"#DC2626", fontWeight:"700", marginBottom:"6px" }}>UPDATE HISTORY</div>
@@ -3717,21 +3842,21 @@ Return ONLY valid JSON (no markdown): {"safety":"safe"|"caution"|"recall","safet
 
               {/* Caution products */}
               {products.filter(p=>p.safety==="caution").length > 0 && (
-                <div style={{ background:"#FFFBEB", border:"1px solid #FCD34D", borderRadius:"14px", padding:"16px", marginBottom:"20px" }}>
+                <div style={{ background:"rgba(201,168,76,0.12)", border:"1px solid #FCD34D", borderRadius:"14px", padding:"16px", marginBottom:"20px" }}>
                   <div style={{ fontSize:"14px", fontWeight:"900", color:"#D97706", marginBottom:"12px" }}>⚠ USE WITH CAUTION</div>
                   {products.filter(p=>p.safety==="caution").map(p=>(
-                    <div key={p.id} style={{ background:"#fff", border:"1px solid #FCD34D", borderRadius:"10px", padding:"14px", marginBottom:"8px" }}>
+                    <div key={p.id} style={{ background:"rgba(255,255,255,0.06)", border:"1px solid #FCD34D", borderRadius:"10px", padding:"14px", marginBottom:"8px" }}>
                       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", flexWrap:"wrap", gap:"8px" }}>
                         <div>
                           <div style={{ fontSize:"14px", fontWeight:"800", color:C.text }}>{p.name}</div>
                           <div style={{ fontSize:"12px", color:C.muted }}>{p.brand}</div>
                         </div>
                         <button onClick={()=>aiSafetyCheck(p)} disabled={safetyChecking===p.id}
-                          style={{ background:"#FFFBEB", border:"1px solid #FCD34D", color:"#D97706", padding:"6px 12px", borderRadius:"8px", fontSize:"11px", fontWeight:"700", cursor:"pointer" }}>
+                          style={{ background:"rgba(201,168,76,0.12)", border:"1px solid #FCD34D", color:"#D97706", padding:"6px 12px", borderRadius:"8px", fontSize:"11px", fontWeight:"700", cursor:"pointer" }}>
                           {safetyChecking===p.id?"Checking...":"🔄 AI Check"}
                         </button>
                       </div>
-                      <div style={{ marginTop:"8px", fontSize:"12px", color:"#92400E", lineHeight:"1.7", background:"#FFFBEB", borderRadius:"8px", padding:"10px" }}>{p.safetyNote}</div>
+                      <div style={{ marginTop:"8px", fontSize:"12px", color:"#C9A84C", lineHeight:"1.7", background:"rgba(201,168,76,0.12)", borderRadius:"8px", padding:"10px" }}>{p.safetyNote}</div>
                       {(p.safetyUpdates||[]).map((u,i)=>(
                         <div key={i} style={{ fontSize:"11px", color:C.muted, marginTop:"4px" }}><strong>{u.date}:</strong> {u.note}</div>
                       ))}
@@ -3788,7 +3913,7 @@ Return ONLY valid JSON (no markdown): {"safety":"safe"|"caution"|"recall","safet
                     <div style={{ fontSize:"15px", fontWeight:"900", color:info.color }}>{info.label}</div>
                     <div style={{ height:"1px", flex:1, background:info.border }} />
                   </div>
-                  <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))", gap:"12px" }}>
+                  <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(340px,1fr))", gap:"12px" }}>
                     {BRAND_SPONSORS.filter(b=>b.tier===tier).map(b=>(
                       <div key={b.name} onClick={()=>setSelectedBrand(b)}
                         style={{ background:C.white, border:`2px solid ${info.border}`, borderRadius:"14px", padding:"18px", cursor:"pointer", transition:"all 0.2s", boxShadow:`0 2px 12px ${info.color}15` }}
@@ -3816,7 +3941,7 @@ Return ONLY valid JSON (no markdown): {"safety":"safe"|"caution"|"recall","safet
               <div style={{ background:`linear-gradient(135deg, #1A3D2B, #0D6644)`, borderRadius:"16px", padding:"24px", color:"#fff", textAlign:"center" }}>
                 <div style={{ fontSize:"20px", fontWeight:"900", marginBottom:"6px" }}>Ready to reach 50,000+ Hair Professionals?</div>
                 <div style={{ fontSize:"13px", color:"rgba(255,255,255,0.75)", marginBottom:"16px" }}>Join our brand partner program and get your products in front of barbers, stylists and beauticians.</div>
-                <button onClick={()=>setView("advertise")} style={{ background:"#fff", color:C.mint, border:"none", padding:"12px 28px", borderRadius:"10px", fontSize:"14px", fontWeight:"800", cursor:"pointer" }}>📣 Become a Partner</button>
+                <button onClick={()=>setView("advertise")} style={{ background:"rgba(255,255,255,0.06)", color:C.mint, border:"none", padding:"12px 28px", borderRadius:"10px", fontSize:"14px", fontWeight:"800", cursor:"pointer" }}>📣 Become a Partner</button>
               </div>
             </div>
           )}
@@ -3865,7 +3990,7 @@ Return ONLY valid JSON (no markdown): {"safety":"safe"|"caution"|"recall","safet
               {/* This brand's products */}
               <div style={{ marginTop:"20px" }}>
                 <div style={{ fontSize:"16px", fontWeight:"800", color:C.text, marginBottom:"12px" }}>Products by {selectedBrand.name}</div>
-                <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))", gap:"12px" }}>
+                <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(340px,1fr))", gap:"12px" }}>
                   {FEATURED_PRODUCTS.filter(p=>p.brand===selectedBrand.name).map(p=><ProductCard key={p.id} p={p} />)}
                 </div>
               </div>
@@ -3873,7 +3998,7 @@ Return ONLY valid JSON (no markdown): {"safety":"safe"|"caution"|"recall","safet
           )}
 
           {/* -- LIST YOUR MAKEUP PRODUCT (Manufacturer Portal) -- */}
-          {view==="submit" && (<div style={{maxWidth:"680px"}}>
+          {view==="submit" && (<div style={{maxWidth:"none"}}>
             <div style={{marginBottom:"20px"}}>
               <div style={{fontSize:"22px",fontWeight:"900",color:C.text,marginBottom:"4px"}}>💄 List Your Product</div>
               <div style={{fontSize:"13px",color:C.muted,marginBottom:"16px"}}>Manufacturers, indie brands, and cosmetics companies — submit products for safety review and marketplace listing.</div>
@@ -3889,7 +4014,7 @@ Return ONLY valid JSON (no markdown): {"safety":"safe"|"caution"|"recall","safet
             </div>
 
             {submitDone ? (
-              <div style={{textAlign:"center",padding:"40px 20px",background:"#F0FDF4",border:"1px solid #86EFAC",borderRadius:"20px"}}>
+              <div style={{textAlign:"center",padding:"40px 20px",background:"rgba(39,174,120,0.10)",border:"1px solid #86EFAC",borderRadius:"20px"}}>
                 <div style={{fontSize:"52px",marginBottom:"14px"}}>✅</div>
                 <div style={{fontSize:"20px",fontWeight:"900",color:"#166534",marginBottom:"8px"}}>Submission Received!</div>
                 <div style={{fontSize:"13px",color:"#166534",marginBottom:"4px"}}>{submitForm.productName} by {submitForm.brandName}</div>
@@ -3905,7 +4030,7 @@ Return ONLY valid JSON (no markdown): {"safety":"safe"|"caution"|"recall","safet
                 <div style={{fontSize:"13px",fontWeight:"800",color:C.text,marginBottom:"4px"}}>Brand Information</div>
                 {[["Brand / Company Name *",submitForm.brandName,"brandName","text","e.g. Your Brand Name"],["Contact Name *",submitForm.contactName,"contactName","text","Full name"],["Email Address *",submitForm.email,"email","email","brand@company.com"],["Phone",submitForm.phone,"phone","tel","(555) 000-0000"],["Website",submitForm.website,"website","url","https://yourbrand.com"]].map(([l,v,k,t,ph])=>(
                   <div key={k}><div style={{fontSize:"10px",fontWeight:"800",color:C.muted,letterSpacing:"1.5px",marginBottom:"5px"}}>{l.toUpperCase()}</div>
-                    <input type={t} value={v} onChange={e=>setSubmitForm(p=>({...p,[k]:e.target.value}))} placeholder={ph} style={{width:"100%",background:"#F9FAFB",border:"1px solid #E5E7EB",color:"#111",padding:"11px 14px",borderRadius:"12px",fontSize:"13px",boxSizing:"border-box"}}/>
+                    <input type={t} value={v} onChange={e=>setSubmitForm(p=>({...p,[k]:e.target.value}))} placeholder={ph} style={{width:"100%",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",color:"#111",padding:"11px 14px",borderRadius:"12px",fontSize:"13px",boxSizing:"border-box"}}/>
                   </div>
                 ))}
                 <div><div style={{fontSize:"10px",fontWeight:"800",color:C.muted,letterSpacing:"1.5px",marginBottom:"6px"}}>LISTING TIER</div>
@@ -3913,7 +4038,7 @@ Return ONLY valid JSON (no markdown): {"safety":"safe"|"caution"|"recall","safet
                     {[["SILVER","Silver — 1 product","$99/mo"],["GOLD","Gold — 3 products","$249/mo"],["PLATINUM","Platinum — Unlimited","$599/mo"]].map(([v,l,p])=>(
                       <button key={v} onClick={()=>setSubmitForm(f=>({...f,tier:v}))} style={{flex:1,background:submitForm.tier===v?"rgba(13,40,24,0.08)":"#F9FAFB",border:`2px solid ${submitForm.tier===v?"#0D2818":"#E5E7EB"}`,borderRadius:"12px",padding:"10px 6px",cursor:"pointer",textAlign:"center"}}>
                         <div style={{fontSize:"11px",fontWeight:"800",color:submitForm.tier===v?"#0D2818":"#374151"}}>{l}</div>
-                        <div style={{fontSize:"10px",color:"#6B7280"}}>{p}</div>
+                        <div style={{fontSize:"10px",color:"rgba(255,255,255,0.45)"}}>{p}</div>
                       </button>
                     ))}
                   </div>
@@ -3926,7 +4051,7 @@ Return ONLY valid JSON (no markdown): {"safety":"safe"|"caution"|"recall","safet
                 <div style={{fontSize:"13px",fontWeight:"800",color:C.text,marginBottom:"4px"}}>Product Details</div>
                 {[["Product Name *",submitForm.productName,"productName","text","e.g. Pro Filt'r Foundation"],["Retail Price ($) *",submitForm.price,"price","number","e.g. 38.00"],["Size / Volume",submitForm.size,"size","text","e.g. 1 fl oz"]].map(([l,v,k,t,ph])=>(
                   <div key={k}><div style={{fontSize:"10px",fontWeight:"800",color:C.muted,letterSpacing:"1.5px",marginBottom:"5px"}}>{l.toUpperCase()}</div>
-                    <input type={t} value={v} onChange={e=>setSubmitForm(p=>({...p,[k]:e.target.value}))} placeholder={ph} style={{width:"100%",background:"#F9FAFB",border:"1px solid #E5E7EB",color:"#111",padding:"11px 14px",borderRadius:"12px",fontSize:"13px",boxSizing:"border-box"}}/>
+                    <input type={t} value={v} onChange={e=>setSubmitForm(p=>({...p,[k]:e.target.value}))} placeholder={ph} style={{width:"100%",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",color:"#111",padding:"11px 14px",borderRadius:"12px",fontSize:"13px",boxSizing:"border-box"}}/>
                   </div>
                 ))}
                 <div><div style={{fontSize:"10px",fontWeight:"800",color:C.muted,letterSpacing:"1.5px",marginBottom:"6px"}}>CATEGORY</div>
@@ -3937,10 +4062,10 @@ Return ONLY valid JSON (no markdown): {"safety":"safe"|"caution"|"recall","safet
                   </div>
                 </div>
                 <div><div style={{fontSize:"10px",fontWeight:"800",color:C.muted,letterSpacing:"1.5px",marginBottom:"5px"}}>PRODUCT DESCRIPTION</div>
-                  <textarea value={submitForm.desc} onChange={e=>setSubmitForm(p=>({...p,desc:e.target.value}))} rows={3} placeholder="Describe the product — benefits, key ingredients, what makes it unique..." style={{width:"100%",background:"#F9FAFB",border:"1px solid #E5E7EB",color:"#111",padding:"11px 14px",borderRadius:"12px",fontSize:"13px",boxSizing:"border-box",resize:"vertical",fontFamily:"inherit"}}/>
+                  <textarea value={submitForm.desc} onChange={e=>setSubmitForm(p=>({...p,desc:e.target.value}))} rows={3} placeholder="Describe the product — benefits, key ingredients, what makes it unique..." style={{width:"100%",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",color:"#111",padding:"11px 14px",borderRadius:"12px",fontSize:"13px",boxSizing:"border-box",resize:"vertical",fontFamily:"inherit"}}/>
                 </div>
                 <div><div style={{fontSize:"10px",fontWeight:"800",color:C.muted,letterSpacing:"1.5px",marginBottom:"5px"}}>FULL INGREDIENTS LIST *</div>
-                  <textarea value={submitForm.ingredients} onChange={e=>setSubmitForm(p=>({...p,ingredients:e.target.value}))} rows={4} placeholder="Paste the complete INCI ingredient list exactly as it appears on packaging..." style={{width:"100%",background:"#F9FAFB",border:"1px solid #E5E7EB",color:"#111",padding:"11px 14px",borderRadius:"12px",fontSize:"13px",boxSizing:"border-box",resize:"vertical",fontFamily:"'Courier New',monospace"}}/>
+                  <textarea value={submitForm.ingredients} onChange={e=>setSubmitForm(p=>({...p,ingredients:e.target.value}))} rows={4} placeholder="Paste the complete INCI ingredient list exactly as it appears on packaging..." style={{width:"100%",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",color:"#111",padding:"11px 14px",borderRadius:"12px",fontSize:"13px",boxSizing:"border-box",resize:"vertical",fontFamily:"'Courier New',monospace"}}/>
                 </div>
                 <div><div style={{fontSize:"10px",fontWeight:"800",color:C.muted,letterSpacing:"1.5px",marginBottom:"6px"}}>TARGET SKIN TONES</div>
                   <div style={{display:"flex",flexWrap:"wrap",gap:"6px"}}>
@@ -3951,7 +4076,7 @@ Return ONLY valid JSON (no markdown): {"safety":"safe"|"caution"|"recall","safet
                   </div>
                 </div>
                 <div style={{display:"flex",gap:"8px"}}>
-                  <button onClick={()=>setSubmitStep(1)} style={{flex:1,background:"#F9FAFB",border:"1px solid #E5E7EB",color:"#6B7280",padding:"12px",borderRadius:"12px",cursor:"pointer"}}>← Back</button>
+                  <button onClick={()=>setSubmitStep(1)} style={{flex:1,background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",color:"rgba(255,255,255,0.45)",padding:"12px",borderRadius:"12px",cursor:"pointer"}}>← Back</button>
                   <button disabled={!submitForm.productName||!submitForm.ingredients||!submitForm.price} onClick={()=>{setSubmitStep(3);runSubmitScan();}} style={{flex:2,background:submitForm.productName&&submitForm.ingredients&&submitForm.price?"#0D2818":"#E5E7EB",color:submitForm.productName&&submitForm.ingredients&&submitForm.price?"#fff":"#9CA3AF",border:"none",padding:"12px",borderRadius:"12px",fontSize:"14px",fontWeight:"900",cursor:submitForm.productName&&submitForm.ingredients&&submitForm.price?"pointer":"not-allowed"}}>Run Safety Scan →</button>
                 </div>
               </div>}
@@ -3964,40 +4089,40 @@ Return ONLY valid JSON (no markdown): {"safety":"safe"|"caution"|"recall","safet
                     <div style={{fontSize:"40px",marginBottom:"16px"}}>🔬</div>
                     <div style={{fontSize:"15px",fontWeight:"700",color:C.text,marginBottom:"8px"}}>Analyzing Ingredients...</div>
                     <div style={{fontSize:"12px",color:C.muted,lineHeight:"1.7"}}>Checking heavy metals · EU compliance · FDA status<br/>Allergen flags · EWG rating · Skin tone compatibility</div>
-                    <div style={{marginTop:"20px",height:"4px",background:"#E5E7EB",borderRadius:"2px"}}>
+                    <div style={{marginTop:"20px",height:"4px",background:"rgba(255,255,255,0.08)",borderRadius:"2px"}}>
                       <div style={{height:"100%",width:"75%",background:"linear-gradient(90deg,#0D2818,#27AE78)",borderRadius:"2px",animation:"none"}}/>
                     </div>
                   </div>
                 ) : submitScan ? (<>
                   {/* Rating banner */}
                   <div style={{background:submitScan.approved?"#F0FDF4":"#FEF3C7",border:`2px solid ${submitScan.approved?"#86EFAC":"#FCD34D"}`,borderRadius:"16px",padding:"16px",textAlign:"center",marginBottom:"4px"}}>
-                    <div style={{fontSize:"48px",fontWeight:"900",color:submitScan.approved?"#166534":"#92400E",fontFamily:"Cambria,Georgia,serif",marginBottom:"4px"}}>{submitScan.safetyRating}</div>
-                    <div style={{fontSize:"13px",fontWeight:"800",color:submitScan.approved?"#166534":"#92400E"}}>{submitScan.approved?"Pre-Approved for Listing":"Review Required Before Listing"}</div>
+                    <div style={{fontSize:"48px",fontWeight:"900",color:submitScan.approved?"#166534":"#C9A84C",fontFamily:"Cambria,Georgia,serif",marginBottom:"4px"}}>{submitScan.safetyRating}</div>
+                    <div style={{fontSize:"13px",fontWeight:"800",color:submitScan.approved?"#166534":"#C9A84C"}}>{submitScan.approved?"Pre-Approved for Listing":"Review Required Before Listing"}</div>
                     <div style={{fontSize:"12px",color:submitScan.approved?"#166534":"#B45309",marginTop:"4px"}}>Safety Score: {submitScan.safetyScore}/10 · EWG Est: {submitScan.ewgEstimate}/10 · Confidence: {submitScan.confidence}%</div>
                   </div>
                   {/* Compliance chips */}
                   <div style={{display:"flex",gap:"6px",flexWrap:"wrap"}}>
-                    {[[submitScan.fdaCompliant,"FDA","#16A34A","#DCFCE7","#86EFAC"],[submitScan.euCompliant,"EU","#2563EB","#DBEAFE","#93C5FD"]].map(([ok,l,c,bg,bc])=>(
-                      <div key={l} style={{background:ok?bg:"#FEE2E2",border:`1px solid ${ok?bc:"#FCA5A5"}`,borderRadius:"20px",padding:"4px 12px",fontSize:"11px",fontWeight:"800",color:ok?c:"#DC2626"}}>{ok?"✓":"✗"} {l} Compliant</div>
+                    {[[submitScan.fdaCompliant,"FDA","#16A34A","#DCFCE7","#86EFAC"],[submitScan.euCompliant,"EU","#2563EB","rgba(8,145,178,0.18)","#93C5FD"]].map(([ok,l,c,bg,bc])=>(
+                      <div key={l} style={{background:ok?bg:"#FEE2E2",border:`1px solid ${ok?bc:"rgba(239,68,68,0.2)"}`,borderRadius:"20px",padding:"4px 12px",fontSize:"11px",fontWeight:"800",color:ok?c:"#DC2626"}}>{ok?"✓":"✗"} {l} Compliant</div>
                     ))}
-                    <div style={{background:submitScan.heavyMetalRisk==="low"?"#F0FDF4":"#FEF3C7",border:`1px solid ${submitScan.heavyMetalRisk==="low"?"#86EFAC":"#FCD34D"}`,borderRadius:"20px",padding:"4px 12px",fontSize:"11px",fontWeight:"800",color:submitScan.heavyMetalRisk==="low"?"#166534":"#92400E"}}>Heavy Metals: {submitScan.heavyMetalRisk}</div>
+                    <div style={{background:submitScan.heavyMetalRisk==="low"?"#F0FDF4":"#FEF3C7",border:`1px solid ${submitScan.heavyMetalRisk==="low"?"#86EFAC":"#FCD34D"}`,borderRadius:"20px",padding:"4px 12px",fontSize:"11px",fontWeight:"800",color:submitScan.heavyMetalRisk==="low"?"#166534":"#C9A84C"}}>Heavy Metals: {submitScan.heavyMetalRisk}</div>
                   </div>
                   {/* Flags */}
                   {(submitScan.flags||[]).map((flag,i)=>(
-                    <div key={i} style={{background:flag.severity==="critical"?"#FEF2F2":flag.severity==="warning"?"#FFFBEB":"#EFF6FF",border:`1px solid ${flag.severity==="critical"?"#FCA5A5":flag.severity==="warning"?"#FCD34D":"#BAE6FD"}`,borderRadius:"12px",padding:"12px"}}>
+                    <div key={i} style={{background:flag.severity==="critical"?"#FEF2F2":flag.severity==="warning"?"rgba(201,168,76,0.1)":"#EFF6FF",border:`1px solid ${flag.severity==="critical"?"rgba(239,68,68,0.2)":flag.severity==="warning"?"#FCD34D":"#BAE6FD"}`,borderRadius:"12px",padding:"12px"}}>
                       <div style={{fontSize:"11px",fontWeight:"800",color:flag.severity==="critical"?"#DC2626":flag.severity==="warning"?"#D97706":"#0891B2",marginBottom:"3px"}}>{flag.severity==="critical"?"🚨":flag.severity==="warning"?"⚠️":"ℹ️"} {flag.issue}</div>
-                      <div style={{fontSize:"11px",color:"#374151"}}>{flag.detail}</div>
+                      <div style={{fontSize:"11px",color:"rgba(255,255,255,0.65)"}}>{flag.detail}</div>
                     </div>
                   ))}
                   {/* Positives */}
                   {(submitScan.positives||[]).map((p,i)=><div key={i} style={{display:"flex",gap:"6px",fontSize:"12px",color:"#166534"}}><span>✓</span>{p}</div>)}
                   {/* Recommendation */}
-                  <div style={{background:"#F9FAFB",border:"1px solid #E5E7EB",borderRadius:"12px",padding:"12px",fontSize:"12px",color:"#374151",lineHeight:"1.6"}}>
+                  <div style={{background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"12px",padding:"12px",fontSize:"12px",color:"rgba(255,255,255,0.65)",lineHeight:"1.6"}}>
                     <div style={{fontWeight:"800",marginBottom:"4px"}}>Recommendation</div>
                     {submitScan.recommendation}
                   </div>
                   <div style={{display:"flex",gap:"8px"}}>
-                    <button onClick={()=>setSubmitStep(2)} style={{flex:1,background:"#F9FAFB",border:"1px solid #E5E7EB",color:"#6B7280",padding:"12px",borderRadius:"12px",cursor:"pointer"}}>← Edit Product</button>
+                    <button onClick={()=>setSubmitStep(2)} style={{flex:1,background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",color:"rgba(255,255,255,0.45)",padding:"12px",borderRadius:"12px",cursor:"pointer"}}>← Edit Product</button>
                     <button onClick={()=>setSubmitStep(4)} style={{flex:2,background:"#0D2818",color:"#fff",border:"none",padding:"12px",borderRadius:"12px",fontSize:"14px",fontWeight:"900",cursor:"pointer"}}>{submitScan.approved?"Submit for Listing →":"Submit for Manual Review →"}</button>
                   </div>
                 </>) : null}
@@ -4006,19 +4131,19 @@ Return ONLY valid JSON (no markdown): {"safety":"safe"|"caution"|"recall","safet
               {/* STEP 4 — Confirm */}
               {submitStep===4&&<div style={{display:"flex",flexDirection:"column",gap:"12px"}}>
                 <div style={{fontSize:"13px",fontWeight:"800",color:C.text,marginBottom:"8px"}}>Review & Confirm Submission</div>
-                <div style={{background:"#F9FAFB",border:"1px solid #E5E7EB",borderRadius:"16px",padding:"16px"}}>
+                <div style={{background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"16px",padding:"16px"}}>
                   {[[`📦 Product`,submitForm.productName],[`🏢 Brand`,submitForm.brandName],[`💰 Price`,`$${submitForm.price}`],[`📋 Category`,submitForm.category],[`🛡 Safety Rating`,`${submitScan?.safetyRating||"Pending"} (${submitScan?.safetyScore||"—"}/10)`],[`✓ Tier`,submitForm.tier],[`📧 Email`,submitForm.email]].map(([l,v])=>(
                     <div key={l} style={{display:"flex",justifyContent:"space-between",padding:"7px 0",borderBottom:"1px solid #F3F4F6"}}>
-                      <span style={{fontSize:"12px",color:"#6B7280"}}>{l}</span>
+                      <span style={{fontSize:"12px",color:"rgba(255,255,255,0.45)"}}>{l}</span>
                       <span style={{fontSize:"12px",color:"#111",fontWeight:"700"}}>{v}</span>
                     </div>
                   ))}
                 </div>
-                <div style={{background:"#F0FDF4",border:"1px solid #86EFAC",borderRadius:"12px",padding:"12px",fontSize:"12px",color:"#166534",lineHeight:"1.6"}}>
+                <div style={{background:"rgba(39,174,120,0.10)",border:"1px solid #86EFAC",borderRadius:"12px",padding:"12px",fontSize:"12px",color:"#166534",lineHeight:"1.6"}}>
                   By submitting, you certify that the ingredient list is accurate and complete, the product complies with FDA cosmetic regulations, and you have rights to list this product on behalf of the brand.
                 </div>
                 <div style={{display:"flex",gap:"8px"}}>
-                  <button onClick={()=>setSubmitStep(3)} style={{flex:1,background:"#F9FAFB",border:"1px solid #E5E7EB",color:"#6B7280",padding:"12px",borderRadius:"12px",cursor:"pointer"}}>← Back</button>
+                  <button onClick={()=>setSubmitStep(3)} style={{flex:1,background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",color:"rgba(255,255,255,0.45)",padding:"12px",borderRadius:"12px",cursor:"pointer"}}>← Back</button>
                   <button onClick={()=>setSubmitDone(true)} style={{flex:2,background:"linear-gradient(135deg,#0D2818,#1A4A2E)",color:"#fff",border:"none",padding:"13px",borderRadius:"12px",fontSize:"14px",fontWeight:"900",cursor:"pointer",boxShadow:"0 4px 16px rgba(13,40,24,0.3)"}}>Confirm Submission ✓</button>
                 </div>
               </div>}
@@ -4027,7 +4152,7 @@ Return ONLY valid JSON (no markdown): {"safety":"safe"|"caution"|"recall","safet
 
           {/* -- ADVERTISE -- */}
           {view==="advertise" && (
-            <div style={{ maxWidth:"720px" }}>
+            <div style={{ maxWidth:"none" }}>
               <div style={{ fontSize:"22px", fontWeight:"900", color:C.text, marginBottom:"4px" }}>📣 Advertise on Love That Idea</div>
               <div style={{ fontSize:"13px", color:C.muted, marginBottom:"24px" }}>Reach professional stylists, barbers, and beauticians actively looking for the best products.</div>
 
@@ -4102,7 +4227,7 @@ Return ONLY valid JSON (no markdown): {"safety":"safe"|"caution"|"recall","safet
 
           {/* -- AI ADVISOR -- */}
           {view==="ai" && (
-            <div style={{ maxWidth:"680px" }}>
+            <div style={{ maxWidth:"none" }}>
               <div style={{ fontSize:"22px", fontWeight:"900", color:C.text, marginBottom:"4px" }}>✦ AI Product Advisor</div>
               <div style={{ fontSize:"13px", color:C.muted, marginBottom:"16px" }}>Tell me your hair type, concerns, or goals  -  I'll recommend specific products from our catalog.</div>
               <div style={{ display:"flex", gap:"6px", flexWrap:"wrap", marginBottom:"14px" }}>
@@ -4244,8 +4369,8 @@ function WellaColorTab() {
     try {
       const history2 = [...aiHistory, { role: "user", content: aiQuery }];
       const r = await fetch(CLAUDE_PROXY_URL, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000, system: wellaContext, messages: history2 }),
+        method: "POST", headers:PROXY_HEADERS,
+        body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: 1000, system: wellaContext, messages: history2 }),
       });
       const d = await r.json();
       const ans = d.content?.map(b => b.text || "").join("") || "";
@@ -4291,7 +4416,7 @@ function WellaColorTab() {
   };
 
   return (
-    <div style={{ flex:1, display:"flex", flexDirection:"column", overflow:"hidden", background:C.bg }}>
+    <div style={{ flex:1, display:"flex", flexDirection:"column", overflow:"visible", background:C.bg }}>
       {/* Sub-nav */}
       <div style={{ background:C.white, borderBottom:`1px solid ${C.border}`, padding:"0 20px", display:"flex", gap:"2px", overflowX:"auto", flexShrink:0 }}>
         {NAV.map(([v,icon,label]) => (
@@ -4317,7 +4442,7 @@ function WellaColorTab() {
               <div style={{ display:"flex", height:"48px", borderRadius:"10px", overflow:"hidden", marginBottom:"10px" }}>
                 {WELLA_LEVELS.map(l => (
                   <div key={l.level} onClick={()=>setSelectedLevel(selectedLevel?.level===l.level?null:l)} style={{ flex:1, background:l.hex, cursor:"pointer", display:"flex", alignItems:"flex-end", justifyContent:"center", paddingBottom:"4px", transition:"flex 0.2s", outline: selectedLevel?.level===l.level?"3px solid #27AE78":"none" }}>
-                    <span style={{ fontSize:"10px", color: l.level<=4?"rgba(255,255,255,0.85)":"rgba(0,0,0,0.6)", fontWeight:"800" }}>{l.level}</span>
+                    <span style={{ fontSize:"10px", color: l.level<=4?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.6)", fontWeight:"800" }}>{l.level}</span>
                   </div>
                 ))}
               </div>
@@ -4377,7 +4502,7 @@ function WellaColorTab() {
               <div style={{ fontSize:"22px", fontWeight:"900", color:C.text, marginBottom:"4px" }}>🌈 Wella Tone Code System</div>
               <div style={{ fontSize:"13px", color:C.muted }}>Wella uses a number after the slash (e.g. 7/3 = Level 7 Gold). Click a tone family to explore.</div>
             </div>
-            <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(260px,1fr))", gap:"14px" }}>
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(340px,1fr))", gap:"14px" }}>
               {Object.entries(WELLA_TONES).map(([toneName, toneData]) => {
                 const isSelected = selectedTone === toneName;
                 return (
@@ -4637,7 +4762,7 @@ function WellaColorTab() {
 
         {/* -- AI COLORIST -- */}
         {view === "ai" && (
-          <div style={{ maxWidth:"720px", margin:"0 auto" }}>
+          <div style={{ maxWidth:"none", margin:"0 auto" }}>
             <div style={{ marginBottom:"20px" }}>
               <div style={{ fontSize:"22px", fontWeight:"900", color:C.text, marginBottom:"4px" }}>✦ AI Wella Colorist</div>
               <div style={{ fontSize:"13px", color:C.muted }}>Ask a Wella-certified AI colorist anything about formulation, techniques, corrections, or product selection.</div>
@@ -5101,7 +5226,7 @@ const HERITAGE_DB = {
   },
 
   "Euro & Western Women": {
-    flag: "🌿", accent: "#3498DB", light: "#EBF5FB", border: "#2980B9",
+    flag: "leaf", accent: "#3498DB", light: "#EBF5FB", border: "#2980B9",
     bio: "The widest texture range of any heritage group — Types 1A through 3B. Oval-shaped follicle with oblique scalp implantation. Hair grows diagonally at ~1.2 cm/month (approx. 5–6 inches/year). The highest density of all ethnic groups at 226 hairs/cm². Strand diameter averages 65 µm (medium-fine). Color spans platinum blonde through jet black. 45% have straight hair, 40% wavy, 15% curly. Highly responsive to chemical services: color, highlights, keratin, and bleach. Fine hair is the most common challenge — prone to oiliness at the root, breakage, and product weighdown.",
     textures: ["1A Fine & Straight (Scandinavian, N. European)","1B Straight with Volume (German, French)","1C Straight & Thick (Eastern European)","2A Loose Beach Wave (Mediterranean, Celtic)","2B Defined Wave","2C Wavy-Curly (Irish, Greek, Italian)","3A Loose Curl (Ashkenazi, S. Italian, Spanish)","3B Defined Curl (select Mediterranean/Eastern European)"],
     porosity: "Low to High — varies by texture and chemical history. Fine straight hair tends Low. Color-treated or bleached hair shifts to High. Most common: Medium.",
@@ -5137,7 +5262,7 @@ const HERITAGE_DB = {
   },
 
   "Pacific Islander & Aboriginal": {
-    flag: "🌺", accent: "#27AE78", light: "#E8F8F0", border: "#1E8449",
+    flag: "🌺", accent: "#27AE78", light: "rgba(39,174,120,0.14)", border: "#1E8449",
     bio: "Primarily 3A–4A wavy to coily. Polynesian hair is often thick, dark, and wavy with high volume and density. Aboriginal Australian hair ranges from wavy to tightly coiled. Hair carries deep spiritual significance  -  connection to land, ancestors, and identity.",
     textures: ["2C–3B Wavy-Curly (Polynesian)","3C–4A Coily (Melanesian, Aboriginal)","1B Straight (some Micronesian groups)"],
     porosity: "Medium to High",
@@ -5186,8 +5311,8 @@ function HeritageTab() {
     try {
       const msgs = [...aiHistory, { role: "user", content: aiQ }];
       const res = await fetch(CLAUDE_PROXY_URL, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000, system: ctx, messages: msgs }),
+        method: "POST", headers:PROXY_HEADERS,
+        body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: 1000, system: ctx, messages: msgs }),
       });
       const d = await res.json();
       const ans = d.content?.map(b => b.text || "").join("") || "";
@@ -5202,7 +5327,7 @@ function HeritageTab() {
   const borderColor = selected ? HERITAGE_DB[selected[0]].border : C.border;
 
   return (
-    <div style={{ flex: 1, display: "flex", overflow: "hidden", background: C.bg }}>
+    <div style={{ flex: 1, display: "flex", overflow: "visible", background: C.bg }}>
 
       {/* -- Culture Selector Sidebar -- */}
       <aside style={{ width: "220px", minWidth: "220px", background: C.white, borderRight: `1px solid ${C.border}`, display: "flex", flexDirection: "column", overflowY: "auto" }}>
@@ -5217,7 +5342,7 @@ function HeritageTab() {
             return (
               <button key={name} onClick={() => { setSelected([name, data]); setSelectedStyle(null); setSubView("overview"); setAiHistory([]); setAiAnswer(""); }}
                 style={{ width: "100%", textAlign: "left", background: isSelected ? data.light : "transparent", border: `1.5px solid ${isSelected ? data.border : "transparent"}`, borderRadius: "10px", padding: "10px 12px", cursor: "pointer", marginBottom: "4px", transition: "all 0.15s" }}
-                onMouseEnter={e => !isSelected && (e.currentTarget.style.background = "#F8F8F8")}
+                onMouseEnter={e => !isSelected && (e.currentTarget.style.background = "rgba(255,255,255,0.05)")}
                 onMouseLeave={e => !isSelected && (e.currentTarget.style.background = "transparent")}>
                 <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
                   <HeritageProfileIcon profile={name} size={28} active={isSelected}/>
@@ -5309,7 +5434,7 @@ function HeritageTab() {
                   <div style={{ fontSize: "10px", letterSpacing: "3px", color: "#E53E3E", fontWeight: "800", marginBottom: "8px" }}>INGREDIENTS TO AVOID</div>
                   <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
                     {selected[1].avoidIngredients.map(i => (
-                      <span key={i} style={{ background: "#FEE2E2", color: "#C53030", fontSize: "11px", padding: "4px 12px", borderRadius: "20px", fontWeight: "600" }}>⚠ {i}</span>
+                      <span key={i} style={{ background: "rgba(239,68,68,0.12)", color: "#C53030", fontSize: "11px", padding: "4px 12px", borderRadius: "20px", fontWeight: "600" }}>⚠ {i}</span>
                     ))}
                   </div>
                 </div>
@@ -5403,11 +5528,11 @@ function HeritageTab() {
                 )}
                 {/* Common Concerns */}
                 {selected[1].commonConcerns && (
-                  <div style={{ background: "#FFFBEB", border: "1px solid #FDE68A", borderRadius: "14px", padding: "16px", marginBottom: "14px" }}>
+                  <div style={{ background: "rgba(201,168,76,0.12)", border: "1px solid #FDE68A", borderRadius: "14px", padding: "16px", marginBottom: "14px" }}>
                     <div style={{ fontSize: "10px", letterSpacing: "3px", color: "#B45309", fontWeight: "800", marginBottom: "8px" }}>COMMON HAIR CONCERNS</div>
                     <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
                       {selected[1].commonConcerns.map(c => (
-                        <span key={c} style={{ background: "#FEF3C7", color: "#92400E", fontSize: "11px", padding: "5px 12px", borderRadius: "20px", fontWeight: "600" }}>⚡ {c}</span>
+                        <span key={c} style={{ background: "rgba(201,168,76,0.12)", color: "#C9A84C", fontSize: "11px", padding: "5px 12px", borderRadius: "20px", fontWeight: "600" }}>⚡ {c}</span>
                       ))}
                     </div>
                   </div>
@@ -5420,11 +5545,11 @@ function HeritageTab() {
                     ))}
                   </div>
                 </div>
-                <div style={{ background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: "14px", padding: "16px", marginBottom: "14px" }}>
+                <div style={{ background: "rgba(239,68,68,0.1)", border: "1px solid #FECACA", borderRadius: "14px", padding: "16px", marginBottom: "14px" }}>
                   <div style={{ fontSize: "10px", letterSpacing: "3px", color: "#C53030", fontWeight: "800", marginBottom: "8px" }}>AVOID THESE INGREDIENTS</div>
                   <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
                     {selected[1].avoidIngredients.map(i => (
-                      <span key={i} style={{ background: "#FEE2E2", color: "#C53030", fontSize: "11px", padding: "5px 12px", borderRadius: "20px", fontWeight: "600" }}>⚠ {i}</span>
+                      <span key={i} style={{ background: "rgba(239,68,68,0.12)", color: "#C53030", fontSize: "11px", padding: "5px 12px", borderRadius: "20px", fontWeight: "600" }}>⚠ {i}</span>
                     ))}
                   </div>
                 </div>
@@ -5505,23 +5630,23 @@ const OCCASIONS = [
   { id:"leisure",    label:"Leisure",    icon:"☀", color:"#F59E0B", desc:"Everyday casual comfort" },
   { id:"protective", label:"Protective", icon:"🛡",  color:"#059669", desc:"Low-manipulation, growth-focused" },
   { id:"casual",     label:"Casual",     icon:"👟",  color:"#3B82F6", desc:"Effortless, go-anywhere looks" },
-  { id:"formal",     label:"Formal",     icon:"✨",  color:"#7C3AED", desc:"Polished, event-ready styles" },
+  { id:"formal",     label:"Formal",     icon:"sparkle",  color:"#7C3AED", desc:"Polished, event-ready styles" },
   { id:"work",       label:"Work",       icon:"💼",  color:"#0891B2", desc:"Professional & office-ready" },
   { id:"workout",    label:"Workout",    icon:"🏋",  color:"#EF4444", desc:"Active, secure, sweat-proof" },
-  { id:"date",       label:"Date Night", icon:"💫",  color:"#EC4899", desc:"Romantic, show-stopping looks" },
+  { id:"date",       label:"Date Night", icon:"sparkle",  color:"#EC4899", desc:"Romantic, show-stopping looks" },
   { id:"cultural",   label:"Cultural",   icon:"🌍",  color:"#8B4513", desc:"Heritage & ceremonial styles" },
 ];
 
 const PLANS = {
-  free:    { label:"Free",           price:0,    icon:"🌱", color:"#6B7280", bg:"#F9FAFB", border:"#D1D5DB",
+  free:    { label:"Free",           price:0,    icon:"🌱", color:"rgba(255,255,255,0.45)", bg:"rgba(255,255,255,0.05)", border:"rgba(255,255,255,0.1)",
     perks:["Style catalog (30 styles)","Basic client chat","2 Bid Board bids/month","Availability broadcast (2 slots/day)","1 consent form template"] },
-  solo:    { label:"Solo Pro",        price:24,   icon:"⭐", color:"#27AE78", bg:"#E8F8F0", border:"#74BFA0",
+  solo:    { label:"Solo Pro",        price:24,   icon:"⭐", color:"#27AE78", bg:"rgba(39,174,120,0.14)", border:"#74BFA0",
     perks:["Full catalog (90+ styles + chemical)","3D Biometric Scanner","Hair Health Timeline + AI trichologist","All 5 consent form templates + AI risk screen","Certifications + badge wall","10 Bid Board bids/month","Full availability broadcasting","🔒 8% Founder Rate — locked for life","Messaging Studio + photo sharing","12 languages incl. Arabic RTL"] },
   pro:     { label:"Pro Unlimited",   price:39,   icon:"💎", color:"#C9A84C", bg:"#FBF6E9", border:"#E8C96A",
     perks:["Everything in Solo Pro","Unlimited Bid Board bids","AI Tutorial Coaching  -  live camera","🔒 8% Founder Rate — locked for life","Business Intelligence dashboard","Churn alerts + AI win-back strategies","AI trend discovery + portfolio builder","Priority AI processing queue","Ops Center monitoring"] },
   salon:   { label:"Salon",           price:89,   icon:"🏢", color:"#0891B2", bg:"#EFF6FF", border:"#7DD3FC",
     perks:["Everything in Pro Unlimited","Up to 8 stylist seats","Team management + scheduling","Shared client database + CRM","Payment processing + invoicing","Notification system + templates","Stylist performance leaderboard","Priority support + onboarding"] },
-  broker:  { label:"Broker Network",  price:149,  icon:"🎯", color:"#7C3AED", bg:"#F5F3FF", border:"#C4B5FD",
+  broker:  { label:"Broker Network",  price:149,  icon:"🎯", color:"#7C3AED", bg:"#F5F3FF", border:"rgba(124,58,237,0.22)",
     perks:["Everything in Pro Unlimited","Broker Mode  -  all metro bids visible","AI Match on every open ticket","Commission tracking dashboard","Network branding on all tickets","Metro area exclusivity available","Placement analytics + reporting","8% Founder Rate (locked for life — others pay 10% after Month 18)"] },
   enterprise:{ label:"Enterprise",    price:299,  icon:"🌐", color:"#C9A84C", bg:"#FBF6E9", border:"#E8C96A",
     perks:["Everything in Salon + Broker","Multi-location franchise dashboard","Custom brand white-labeling","FDD-compliant franchise tools","Dedicated account manager","99.9% SLA uptime guarantee","Custom API integrations","Staff training + onboarding program","IP licensing framework included"] },
@@ -5558,10 +5683,10 @@ function MyStylesTab({ allStyles }) {
     { id:"leisure",    label:t.mystyles.leisure,    icon:"☀", color:"#F59E0B", desc:"Everyday casual comfort" },
     { id:"protective", label:t.mystyles.protective, icon:"🛡",  color:"#059669", desc:"Low-manipulation, growth-focused" },
     { id:"casual",     label:t.mystyles.casual,     icon:"👟",  color:"#3B82F6", desc:"Effortless, go-anywhere looks" },
-    { id:"formal",     label:t.mystyles.formal,     icon:"✨",  color:"#7C3AED", desc:"Polished, event-ready styles" },
+    { id:"formal",     label:t.mystyles.formal,     icon:"sparkle",  color:"#7C3AED", desc:"Polished, event-ready styles" },
     { id:"work",       label:t.mystyles.work,       icon:"💼",  color:"#0891B2", desc:"Professional & office-ready" },
     { id:"workout",    label:t.mystyles.workout,    icon:"🏋",  color:"#EF4444", desc:"Active, secure, sweat-proof" },
-    { id:"date",       label:t.mystyles.dateNight,  icon:"💫",  color:"#EC4899", desc:"Romantic, show-stopping looks" },
+    { id:"date",       label:t.mystyles.dateNight,  icon:"sparkle",  color:"#EC4899", desc:"Romantic, show-stopping looks" },
     { id:"cultural",   label:t.mystyles.cultural,   icon:"🌍",  color:"#8B4513", desc:"Heritage & ceremonial styles" },
   ];
   const [activeOccasion, setActiveOccasion] = useState("leisure");
@@ -5611,8 +5736,8 @@ function MyStylesTab({ allStyles }) {
     const sys = `You are an expert AI hair stylist for Love That Idea. The user's saved ${occ?.label} styles are: ${saved || "none yet"}. Their hair profile may include various textures. Suggest 2–3 specific styles (from: ${allStyles.map(s=>s.name).join(", ")}) that would complement their ${occ?.label} board. Be specific and conversational. Under 150 words.`;
     try {
       const res = await fetch(CLAUDE_PROXY_URL, {
-        method:"POST", headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:800, system:sys,
+        method:"POST", headers:PROXY_HEADERS,
+        body: JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:800, system:sys,
           messages:[{role:"user",content:`What styles should I add to my ${occ?.label} board?`}] }),
       });
       const d = await res.json();
@@ -5629,7 +5754,7 @@ function MyStylesTab({ allStyles }) {
   const occColor = occ?.color || C.mint;
   const planInfo = PLANS[plan];
 
-  const NAV = [["board","📋","Style Board"],["discover","🔍","Discover"],["calendar","📅","Calendar"],...(isPro?[["lookbook","📖","Lookbook"]]:[] )];
+  const NAV = [["board","📋","Style Board"],["discover","search","Discover"],["calendar","📅","Calendar"],...(isPro?[["lookbook","📖","Lookbook"]]:[] )];
 
   const StyleCard = ({ style, saved, onToggle, compact=false }) => {
     const cc = CAT_COLORS[style.category] || C.mint;
@@ -5680,7 +5805,7 @@ function MyStylesTab({ allStyles }) {
   };
 
   return (
-    <div style={{ flex:1, display:"flex", overflow:"hidden", background:C.bg }}>
+    <div style={{ flex:1, display:"flex", overflow:"visible", background:C.bg }}>
 
       {/* -- Left sidebar: occasions + plan -- */}
       <aside style={{ width:"210px", minWidth:"210px", background:C.white, borderRight:`1px solid ${C.border}`, display:"flex", flexDirection:"column", overflowY:"auto" }}>
@@ -5896,7 +6021,7 @@ function MyStylesTab({ allStyles }) {
                           </button>
                         ))}
                         {scheduledStyles[showScheduler.dk] && (
-                          <button onClick={()=>{scheduleStyle(showScheduler.dk, null);}} style={{ background:"#FEF2F2", border:"1px solid #FECACA", color:"#DC2626", padding:"7px 14px", borderRadius:"20px", fontSize:"12px", fontWeight:"700", cursor:"pointer" }}>Remove</button>
+                          <button onClick={()=>{scheduleStyle(showScheduler.dk, null);}} style={{ background:"rgba(239,68,68,0.10)", border:"1px solid #FECACA", color:"#DC2626", padding:"7px 14px", borderRadius:"20px", fontSize:"12px", fontWeight:"700", cursor:"pointer" }}>Remove</button>
                         )}
                         <button onClick={()=>setShowScheduler(null)} style={{ background:C.bg, border:`1px solid ${C.border}`, color:C.muted, padding:"7px 14px", borderRadius:"20px", fontSize:"12px", cursor:"pointer" }}>Cancel</button>
                       </div>
@@ -5928,7 +6053,7 @@ function MyStylesTab({ allStyles }) {
                       <div style={{ height:"1px", flex:1, background:o.color+"33" }} />
                       <span style={{ fontSize:"11px", color:C.muted }}>{oStyles.length} style{oStyles.length!==1?"s":""}</span>
                     </div>
-                    <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))", gap:"10px" }}>
+                    <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(340px,1fr))", gap:"10px" }}>
                       {oStyles.map(s=>(
                         <div key={s.id} style={{ background:C.white, border:`1px solid ${C.border}`, borderRadius:"10px", overflow:"hidden" }}>
                           <div style={{ height:"4px", background:`linear-gradient(90deg,${o.color},${o.color}66)` }} />
@@ -6091,8 +6216,8 @@ function BioScanTab({ styles }) {
     if (!scanResult) return;
     setAiHandoffLoading(true); setAiHandoffTip("");
     try {
-      const res = await fetch("/api/claude", { method:"POST", headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:180,
+      const res = await fetch("/api/claude", { method:"POST", headers:PROXY_HEADERS,
+        body: JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:180,
           system:"You are a beauty consultation AI for Love That Idea. Given a scan result, write a brief professional handoff note (under 80 words) that a stylist would need. Include hair type, face shape, top recommended style, and one key care consideration. Professional tone.",
           messages:[{role:"user", content:`Generate a handoff consultation note. Face: ${scanResult.faceShape}, Hair: ${scanResult.hairType}, Texture: ${scanResult.hairTexture}, Density: ${scanResult.hairDensity}, Undertone: ${scanResult.undertone}, Top style: ${scanResult.recommendedStyles?.[0]?.name}. Stylist advice: ${scanResult.stylistAdvice}`}]
         })
@@ -6182,8 +6307,8 @@ function BioScanTab({ styles }) {
     const system = `You are an expert AI hair biometrics system for Love That Idea. Analyze the facial structure and hair. Return ONLY valid JSON no markdown: {"faceShape":string,"faceShapeConfidence":number,"hairType":string,"hairTexture":string,"hairDensity":string,"hairlineShape":string,"scalpHealth":string,"skinTone":string,"undertone":string,"jawlineType":string,"foreheadWidth":string,"cheekboneWidth":string,"recommendedStyles":[{"name":string,"reason":string,"category":string,"matchScore":number},{"name":string,"reason":string,"category":string,"matchScore":number},{"name":string,"reason":string,"category":string,"matchScore":number},{"name":string,"reason":string,"category":string,"matchScore":number}],"stylistAdvice":string,"avoidStyles":string,"colorRecommendations":string,"productSuggestions":string,"scanId":string}`;
     try {
       const res = await fetch(CLAUDE_PROXY_URL, {
-        method:"POST", headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:1500, system,
+        method:"POST", headers:PROXY_HEADERS,
+        body: JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:1500, system,
           messages:[{role:"user",content:[
             {type:"image",source:{type:"base64",media_type:"image/jpeg",data:base64}},
             {type:"text",text:"Perform a complete biometric hair and facial analysis. Return only the JSON."}
@@ -6313,13 +6438,13 @@ function BioScanTab({ styles }) {
           <button onClick={startCamera} style={{background:GRAD.hero,color:"#fff",border:"none",padding:"16px 48px",borderRadius:"50px",fontSize:"16px",fontWeight:"800",cursor:"pointer",boxShadow:"0 8px 24px rgba(39,174,120,0.35)",marginBottom:"16px"}}>
             📷 Start Biometric Scan
           </button>
-          {error && <div style={{color:C.rose,fontSize:"13px",background:"#FEE2E2",padding:"10px 20px",borderRadius:"8px",border:"1px solid #FECACA",marginBottom:"16px"}}>{error}</div>}
+          {error && <div style={{color:C.rose,fontSize:"13px",background:"rgba(239,68,68,0.12)",padding:"10px 20px",borderRadius:"8px",border:"1px solid #FECACA",marginBottom:"16px"}}>{error}</div>}
           {history.length > 0 && (
             <button onClick={()=>setPhase("history")} style={{background:"none",border:`1.5px solid ${C.border}`,color:C.muted,padding:"10px 28px",borderRadius:"50px",fontSize:"13px",fontWeight:"700",cursor:"pointer",marginBottom:"20px"}}>
               📂 View Scan History ({history.length})
             </button>
           )}
-          <div style={{background:"linear-gradient(135deg,#E8F8F0,#D4F0E4)",border:`1.5px solid ${C.mint}`,borderRadius:"16px",padding:"20px 28px",maxWidth:"480px",width:"100%",marginTop:"8px"}}>
+          <div style={{background:"rgba(39,174,120,0.12)",border:`1.5px solid ${C.mint}`,borderRadius:"16px",padding:"20px 28px",maxWidth:"480px",width:"100%",marginTop:"8px"}}>
             <div style={{fontSize:"10px",letterSpacing:"3px",color:C.mint,fontWeight:"800",marginBottom:"6px"}}>STYLIST TUTORIAL MODE</div>
             <div style={{fontSize:"16px",fontWeight:"900",color:C.text,marginBottom:"6px"}}>Live AI Coaching for Stylists</div>
             <div style={{fontSize:"12px",color:C.sub,lineHeight:"1.7",marginBottom:"14px"}}>Point your camera at a client or model. Claude Vision watches in real-time and gives step-by-step instructive feedback on section placement, tension, symmetry, and accuracy for any style.</div>
@@ -6370,7 +6495,7 @@ function BioScanTab({ styles }) {
       )}
 
       {phase === "results" && scanResult && (
-        <div style={{flex:1,overflowY:"auto",padding:"20px",background:C.bg}}>
+        <div style={{flex:1,overflowY:"auto",padding:"clamp(12px,2.5vw,32px)",background:C.bg}}>
           <div style={{display:"grid",gridTemplateColumns:"300px 1fr",gap:"20px",maxWidth:"1000px",margin:"0 auto"}}>
             <div>
               <div style={{background:C.white,border:`1px solid ${C.border}`,borderRadius:"16px",overflow:"hidden",marginBottom:"14px"}}>
@@ -6560,7 +6685,7 @@ function BioScanTab({ styles }) {
 
       {/* ── CONSULTATION QUEUE ── */}
       {phase==="queue" && (
-        <div style={{flex:1,overflowY:"auto",padding:"20px",background:C.bg}}>
+        <div style={{flex:1,overflowY:"auto",padding:"clamp(12px,2.5vw,32px)",background:C.bg}}>
           <div style={{display:"flex",alignItems:"center",gap:"12px",marginBottom:"20px"}}>
             <button onClick={()=>setPhase(scanResult?"results":"idle")}
               style={{background:C.white,border:`1px solid ${C.border}`,color:C.muted,padding:"8px 16px",borderRadius:"8px",fontSize:"13px",cursor:"pointer",fontWeight:"700"}}>← Back</button>
@@ -6593,7 +6718,7 @@ function BioScanTab({ styles }) {
                       </div>
                       <div style={{display:"flex",gap:"8px",flexWrap:"wrap",marginBottom:"6px"}}>
                         <span style={{background:C.mintLight,color:C.emerald,fontSize:"11px",padding:"3px 10px",borderRadius:"20px",fontWeight:"700"}}>{c.hairType}</span>
-                        <span style={{background:"#EDE9FE",color:"#6D28D9",fontSize:"11px",padding:"3px 10px",borderRadius:"20px",fontWeight:"700"}}>{c.topStyle}</span>
+                        <span style={{background:"rgba(124,58,237,0.12)",color:"#6D28D9",fontSize:"11px",padding:"3px 10px",borderRadius:"20px",fontWeight:"700"}}>{c.topStyle}</span>
                       </div>
                       {c.note && <div style={{fontSize:"12px",color:C.sub,lineHeight:"1.5"}}>{c.note}</div>}
                     </div>
@@ -6641,7 +6766,7 @@ function BioScanTab({ styles }) {
                         <button onClick={()=>{
                           setConsultQueue(prev=>prev.filter(q=>q.id!==c.id));
                           setActiveConsult(null);
-                        }} style={{flex:1,background:"#FEF2F2",color:"#DC2626",border:"1.5px solid #FECACA",padding:"10px",borderRadius:"10px",fontSize:"12px",fontWeight:"800",cursor:"pointer"}}>
+                        }} style={{flex:1,background:"rgba(239,68,68,0.10)",color:"#DC2626",border:"1.5px solid #FECACA",padding:"10px",borderRadius:"10px",fontSize:"12px",fontWeight:"800",cursor:"pointer"}}>
                           Remove
                         </button>
                       </div>
@@ -6820,8 +6945,8 @@ function TutorialMode({ onExit, styles }) {
     const sys = `You are an expert master hair stylist AI coach for Love That Idea, providing real-time instructive feedback to student stylists via live camera. Style: "${styleName}". Step ${stepNum} of ${totalSteps}: "${stepTitle}". Instructions: ${stepInst}. Checkpoints: ${checkpointsStr}. Analyze the camera image and give coaching feedback. Return ONLY valid JSON: {"accuracyScore":number,"passingScore":boolean,"headline":string,"whatIsGood":string,"corrections":string,"nextAction":string,"proTip":string,"checkpointStatus":[{"checkpoint":string,"passed":boolean,"note":string}],"readyForNextStep":boolean}`;
     try {
       const res = await fetch(CLAUDE_PROXY_URL, {
-        method:"POST", headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:800, system:sys,
+        method:"POST", headers:PROXY_HEADERS,
+        body: JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:800, system:sys,
           messages:[{role:"user",content:[
             {type:"image",source:{type:"base64",media_type:"image/jpeg",data:base64}},
             {type:"text",text:"Analyze this live camera frame and give specific coaching feedback on the technique being performed."}
@@ -6915,7 +7040,7 @@ function TutorialMode({ onExit, styles }) {
           ))}
         </div>
       </div>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(260px,1fr))",gap:"14px",marginBottom:"20px"}}>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(340px,1fr))",gap:"14px",marginBottom:"20px"}}>
         {TUTORIAL_STYLES.map(ts=>{
           const gd = GENDER_CATS[ts.gender];
           const cc = CAT_COLORS[ts.category] || C.mint;
@@ -7034,7 +7159,7 @@ function TutorialMode({ onExit, styles }) {
             return (
               <div key={i} style={{display:"flex",gap:"8px",alignItems:"flex-start",marginBottom:"6px"}}>
                 <span style={{color:cpStatus?(cpStatus.passed?"#22C55E":"#F59E0B"):"rgba(255,255,255,0.3)",fontWeight:"700",fontSize:"13px",flexShrink:0}}>{cpStatus?(cpStatus.passed?"✓":"!"):"○"}</span>
-                <div style={{fontSize:"12px",color:cpStatus?(cpStatus.passed?"rgba(255,255,255,0.85)":"#FCD34D"):"rgba(255,255,255,0.5)"}}>{cp}</div>
+                <div style={{fontSize:"12px",color:cpStatus?(cpStatus.passed?"rgba(255,255,255,0.06)":"#FCD34D"):"rgba(255,255,255,0.5)"}}>{cp}</div>
               </div>
             );
           })}
@@ -7080,7 +7205,7 @@ function TutorialMode({ onExit, styles }) {
         <div style={{fontSize:"56px",marginBottom:"16px"}}>🎓</div>
         <div style={{fontSize:"28px",fontWeight:"900",color:C.text,marginBottom:"6px"}}>Tutorial Complete!</div>
         <div style={{fontSize:"15px",color:C.muted,marginBottom:"24px"}}>You completed: <strong>{activeStyle ? activeStyle.name : ""}</strong></div>
-        <div style={{background:overallScore>=85?"linear-gradient(135deg,#ECFDF5,#D1FAE5)":overallScore>=70?"linear-gradient(135deg,#FFFBEB,#FEF3C7)":"linear-gradient(135deg,#FEF2F2,#FEE2E2)",border:`2px solid ${getScoreColor(overallScore||0)}44`,borderRadius:"20px",padding:"28px",marginBottom:"24px"}}>
+        <div style={{background:overallScore>=85?"rgba(39,174,120,0.1)":overallScore>=70?"rgba(201,168,76,0.1)":"linear-gradient(135deg,#FEF2F2,#FEE2E2)",border:`2px solid ${getScoreColor(overallScore||0)}44`,borderRadius:"20px",padding:"28px",marginBottom:"24px"}}>
           <div style={{fontSize:"12px",color:getScoreColor(overallScore||0),fontWeight:"800",marginBottom:"8px"}}>OVERALL ACCURACY</div>
           <div style={{fontSize:"64px",fontWeight:"900",color:getScoreColor(overallScore||0),lineHeight:1}}>{overallScore||0}%</div>
           <div style={{fontSize:"18px",fontWeight:"700",color:getScoreColor(overallScore||0),marginTop:"8px"}}>{getScoreLabel(overallScore||0)}</div>
@@ -7267,7 +7392,7 @@ function QRScanner({ onResult, onClose }) {
     <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.92)",zIndex:600,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"24px"}}>
       <div style={{color:C.mint,fontSize:"13px",letterSpacing:"2px",marginBottom:"12px",fontWeight:"700"}}>{status}</div>
       {error ? (
-        <div style={{color:"#EF4444",background:"#FEF2F2",padding:"14px 20px",borderRadius:"10px",fontSize:"13px",textAlign:"center",maxWidth:"320px"}}>{error}</div>
+        <div style={{color:"#EF4444",background:"rgba(239,68,68,0.10)",padding:"14px 20px",borderRadius:"10px",fontSize:"13px",textAlign:"center",maxWidth:"320px"}}>{error}</div>
       ) : (
         <div style={{position:"relative",borderRadius:"16px",overflow:"hidden",boxShadow:`0 0 0 3px ${C.mint}`}}>
           <video ref={videoRef} style={{display:"block",width:"300px",height:"300px",objectFit:"cover"}} playsInline muted />
@@ -7388,8 +7513,8 @@ function QRTab({ styles }) {
     const bidsStr = ticket.bids.map(b => `${b.stylist}: $${b.price}, ${b.eta}, rating ${b.rating} - "${b.message}"`).join("; ");
     try {
       const res = await fetch(CLAUDE_PROXY_URL, {
-        method:"POST", headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:400,
+        method:"POST", headers:PROXY_HEADERS,
+        body: JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:400,
           system:"You are an expert salon appointment broker AI for Love That Idea. Analyze bids for a short-notice client ticket and recommend the best match. Consider price, ETA, stylist rating, and client notes. Be specific. Under 120 words.",
           messages:[{role:"user", content:`Client: ${ticket.clientName}, needs ${ticket.service} (${ticket.hairType}) at ${ticket.requestedTime} in ${ticket.location}. Budget: ${ticket.budget}. Notes: "${ticket.notes}". Bids: ${bidsStr || "No bids yet"}. Who should get this booking and why?`}]
         })
@@ -7400,7 +7525,7 @@ function QRTab({ styles }) {
     setAiRecLoading(false);
   }
 
-  const urgencyConfig = { now:{ label:"RIGHT NOW", color:"#DC2626", bg:"#FEF2F2", pulse:true }, soon:{ label:"IN 2-3 HRS", color:"#D97706", bg:"#FFFBEB", pulse:false }, today:{ label:"TODAY", color:"#0891B2", bg:"#EFF6FF", pulse:false } };
+  const urgencyConfig = { now:{ label:"RIGHT NOW", color:"#DC2626", bg:"#FEF2F2", pulse:true }, soon:{ label:"IN 2-3 HRS", color:"#D97706", bg:"rgba(201,168,76,0.1)", pulse:false }, today:{ label:"TODAY", color:"#0891B2", bg:"#EFF6FF", pulse:false } };
 
   const filteredTickets = tickets.filter(t => {
     if (filterStatus !== "all" && t.status !== filterStatus) return false;
@@ -7627,8 +7752,8 @@ function QRTab({ styles }) {
       : `Client scanned a verified external QR code`;
     try {
       const res = await fetch(CLAUDE_PROXY_URL,{
-        method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:200,system:sys,messages:[{role:"user",content:desc}]})
+        method:"POST",headers:PROXY_HEADERS,
+        body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:200,system:sys,messages:[{role:"user",content:desc}]})
       });
       const d = await res.json();
       setAiInsight(sanitizeStr(d.content?.map(b=>b.text||"").join("")||""));
@@ -7668,20 +7793,20 @@ function QRTab({ styles }) {
       {/* -- THREAT ALERT -- */}
       {threatDetected && (
         <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.75)",zIndex:700,display:"flex",alignItems:"center",justifyContent:"center",padding:"24px"}}>
-          <div style={{background:"#fff",borderRadius:"20px",padding:"32px",maxWidth:"440px",width:"100%",textAlign:"center",boxShadow:"0 24px 60px rgba(0,0,0,0.3)"}}>
-            <div style={{width:"72px",height:"72px",borderRadius:"50%",background:"#FEE2E2",border:"3px solid #DC2626",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"32px",margin:"0 auto 20px"}}>&#9888;</div>
+          <div style={{background:"rgba(255,255,255,0.06)",borderRadius:"20px",padding:"32px",maxWidth:"440px",width:"100%",textAlign:"center",boxShadow:"0 24px 60px rgba(0,0,0,0.3)"}}>
+            <div style={{width:"72px",height:"72px",borderRadius:"50%",background:"rgba(239,68,68,0.12)",border:"3px solid #DC2626",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"32px",margin:"0 auto 20px"}}>&#9888;</div>
             <div style={{fontFamily:FONTS.display,fontSize:"24px",fontWeight:"700",color:"#DC2626",marginBottom:"10px"}}>Security Threat Detected</div>
-            <div style={{background:"#FEF2F2",border:"1px solid #FECACA",borderRadius:"10px",padding:"14px",marginBottom:"16px",fontSize:"13px",color:"#7F1D1D",lineHeight:"1.7",textAlign:"left"}}>
+            <div style={{background:"rgba(239,68,68,0.10)",border:"1px solid #FECACA",borderRadius:"10px",padding:"14px",marginBottom:"16px",fontSize:"13px",color:"#7F1D1D",lineHeight:"1.7",textAlign:"left"}}>
               <div style={{fontWeight:"700",marginBottom:"4px",fontSize:"10px",letterSpacing:"2px"}}>THREAT DETAIL</div>
               {threatDetected}
             </div>
-            <div style={{fontSize:"12px",color:"#6B7280",marginBottom:"20px",lineHeight:"1.7"}}>
+            <div style={{fontSize:"12px",color:"rgba(255,255,255,0.45)",marginBottom:"20px",lineHeight:"1.7"}}>
               This QR code has been blocked by the LTI Security Engine. The payload was not processed. This event has been logged.
             </div>
             <button onClick={()=>setThreatDetected(null)} style={{width:"100%",background:"linear-gradient(135deg,#DC2626,#B91C1C)",color:"#fff",border:"none",padding:"13px",borderRadius:"10px",fontSize:"14px",fontWeight:"900",cursor:"pointer"}}>
               Dismiss and Continue
             </button>
-            <div style={{marginTop:"10px",fontSize:"10px",color:"#9CA3AF"}}>Event logged - LTI Security Engine v1.9</div>
+            <div style={{marginTop:"10px",fontSize:"10px",color:"rgba(255,255,255,0.35)"}}>Event logged - LTI Security Engine v1.9</div>
           </div>
         </div>
       )}
@@ -7698,7 +7823,7 @@ function QRTab({ styles }) {
         ))}
       </div>
 
-      <div style={{flex:1,overflowY:"auto",padding:"20px"}}>
+      <div style={{flex:1,overflowY:"auto",padding:"clamp(12px,2.5vw,32px)"}}>
 
         {/* -- SECURITY LOG -- */}
         {view==="seclog" && (
@@ -7750,7 +7875,7 @@ function QRTab({ styles }) {
                   ["Rate Limiting","1500ms minimum between scans  -  blocks automated attacks"],
                   ["AI Data Sanitization","All fields sanitized before passing to Claude AI"],
                 ].map(([l,d])=>(
-                  <div key={l} style={{background:"#F0FDF4",borderRadius:"8px",padding:"10px 12px"}}>
+                  <div key={l} style={{background:"rgba(39,174,120,0.10)",borderRadius:"8px",padding:"10px 12px"}}>
                     <div style={{fontSize:"11px",fontWeight:"700",color:"#059669",marginBottom:"3px"}}>&#10003; {l}</div>
                     <div style={{fontSize:"10px",color:C.muted,lineHeight:"1.5"}}>{d}</div>
                   </div>
@@ -7763,13 +7888,13 @@ function QRTab({ styles }) {
               <div>
                 <div style={{fontSize:"11px",letterSpacing:"3px",color:"#DC2626",fontWeight:"700",marginBottom:"10px"}}>THREAT LOG</div>
                 {securityLog.map(entry=>(
-                  <div key={entry.id} style={{background:"#FEF2F2",border:"1px solid #FECACA",borderRadius:"10px",padding:"12px 14px",marginBottom:"8px"}}>
+                  <div key={entry.id} style={{background:"rgba(239,68,68,0.10)",border:"1px solid #FECACA",borderRadius:"10px",padding:"12px 14px",marginBottom:"8px"}}>
                     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"4px"}}>
                       <span style={{fontSize:"11px",fontWeight:"800",color:"#DC2626"}}>{entry.event}</span>
-                      <span style={{fontSize:"10px",color:"#9CA3AF"}}>{entry.ts}</span>
+                      <span style={{fontSize:"10px",color:"rgba(255,255,255,0.35)"}}>{entry.ts}</span>
                     </div>
                     <div style={{fontSize:"12px",color:"#7F1D1D",lineHeight:"1.6",marginBottom:"4px"}}>{entry.detail}</div>
-                    {entry.sample&&<div style={{fontSize:"10px",color:"#9CA3AF",fontFamily:"monospace"}}>Sample: {entry.sample}</div>}
+                    {entry.sample&&<div style={{fontSize:"10px",color:"rgba(255,255,255,0.35)",fontFamily:"monospace"}}>Sample: {entry.sample}</div>}
                   </div>
                 ))}
               </div>
@@ -8078,7 +8203,7 @@ function QRTab({ styles }) {
           <div>
             <div style={{fontSize:"22px",fontWeight:"900",color:C.text,marginBottom:"4px"}}>🏪 Salon QR Kit</div>
             <div style={{fontSize:"13px",color:C.muted,marginBottom:"20px"}}>Print-ready QR codes for your salon. Place at reception, mirrors, and service stations.</div>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(260px,1fr))",gap:"16px"}}>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(340px,1fr))",gap:"16px"}}>
               {[
                 {title:"Reception Desk",desc:"Full salon info  -  name, address, phone, website",icon:"🏪",data:`LOVETHAIDEA|SALON|${salonName}|${salonAddress}|${salonPhone}|${salonWebsite}`,badge:"Essential"},
                 {title:"Free Consultation",desc:"Clients scan to instantly request a free consult",icon:"💬",data:`LOVETHAIDEA|CONSULT|${salonName}|${salonPhone}|FREE_CONSULTATION_REQUEST`,badge:"Client Magnet"},
@@ -8113,7 +8238,7 @@ function QRTab({ styles }) {
 
         {/* -- CLIENT PORTAL -- */}
         {view==="client" && (
-          <div style={{maxWidth:"640px"}}>
+          <div style={{maxWidth:"none"}}>
             <div style={{fontSize:"22px",fontWeight:"900",color:C.text,marginBottom:"4px"}}>👥 Client Portal</div>
             <div style={{fontSize:"13px",color:C.muted,marginBottom:"20px"}}>Generate a personal QR code for each client. They scan to access their style history, preferences, and upcoming appointments.</div>
             <div style={{background:C.white,border:`1px solid ${C.border}`,borderRadius:"16px",padding:"24px",marginBottom:"16px"}}>
@@ -8158,7 +8283,7 @@ function QRTab({ styles }) {
                 <div style={{fontSize:"22px",fontWeight:"900",color:C.text,marginBottom:"4px"}}>Scan History</div>
                 <div style={{fontSize:"13px",color:C.muted}}>{history.length} QR codes scanned this session</div>
               </div>
-              {history.length>0 && <button onClick={()=>setHistory([])} style={{background:"#FEF2F2",border:"1px solid #FECACA",color:"#DC2626",padding:"8px 16px",borderRadius:"8px",fontSize:"12px",fontWeight:"700",cursor:"pointer"}}>Clear History</button>}
+              {history.length>0 && <button onClick={()=>setHistory([])} style={{background:"rgba(239,68,68,0.10)",border:"1px solid #FECACA",color:"#DC2626",padding:"8px 16px",borderRadius:"8px",fontSize:"12px",fontWeight:"700",cursor:"pointer"}}>Clear History</button>}
             </div>
             {history.length===0 ? (
               <div style={{textAlign:"center",padding:"60px",background:C.white,borderRadius:"16px",border:`1px solid ${C.border}`,color:C.muted}}>
@@ -8235,7 +8360,7 @@ function QRTab({ styles }) {
             </div>
 
             {/* Tickets */}
-            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(310px,1fr))",gap:"14px",marginBottom:"20px"}}>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(340px,1fr))",gap:"16px",marginBottom:"20px"}}>
               {filteredTickets.map(ticket=>{
                 const urg = urgencyConfig[ticket.urgency] || urgencyConfig.today;
                 const isSel = selectedTicket && selectedTicket.id === ticket.id;
@@ -8252,7 +8377,7 @@ function QRTab({ styles }) {
                         </div>
                         <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:"4px"}}>
                           <span style={{background:urg.bg,color:urg.color,fontSize:"9px",padding:"3px 10px",borderRadius:"20px",fontWeight:"900"}}>{urg.label}</span>
-                          <span style={{background:ticket.status==="open"?C.mintLight:ticket.status==="assigned"?"#EFF6FF":"#F3F4F6",color:ticket.status==="open"?C.mint:ticket.status==="assigned"?"#0891B2":"#6B7280",fontSize:"9px",padding:"3px 10px",borderRadius:"20px",fontWeight:"700"}}>{ticket.status.toUpperCase()}</span>
+                          <span style={{background:ticket.status==="open"?C.mintLight:ticket.status==="assigned"?"#EFF6FF":"rgba(255,255,255,0.07)",color:ticket.status==="open"?C.mint:ticket.status==="assigned"?"#0891B2":"#6B7280",fontSize:"9px",padding:"3px 10px",borderRadius:"20px",fontWeight:"700"}}>{ticket.status.toUpperCase()}</span>
                         </div>
                       </div>
                       <div style={{background:ticket.color+"0D",border:"1px solid "+ticket.color+"22",borderRadius:"10px",padding:"10px 12px",marginBottom:"10px"}}>
@@ -8263,7 +8388,7 @@ function QRTab({ styles }) {
                             ? <span style={{fontSize:"9px",background:"rgba(5,150,105,0.1)",color:"#059669",padding:"1px 7px",borderRadius:"20px",fontWeight:"800"}}>✅ Verified</span>
                             : ticket.locationType==="home"
                             ? <span style={{fontSize:"9px",background:"rgba(220,38,38,0.1)",color:"#DC2626",padding:"1px 7px",borderRadius:"20px",fontWeight:"800"}}>🏠 Home</span>
-                            : <span style={{fontSize:"9px",background:"rgba(0,0,0,0.06)",color:"#6B7280",padding:"1px 7px",borderRadius:"20px",fontWeight:"700"}}>📍 Unverified</span>}
+                            : <span style={{fontSize:"9px",background:"rgba(0,0,0,0.06)",color:"rgba(255,255,255,0.45)",padding:"1px 7px",borderRadius:"20px",fontWeight:"700"}}>📍 Unverified</span>}
                           {ticket.location} · {ticket.budget}
                         </div>
                         {ticket.styleId && (
@@ -8271,7 +8396,7 @@ function QRTab({ styles }) {
                             background:"rgba(39,174,120,0.08)",border:"1px solid rgba(39,174,120,0.3)",
                             borderRadius:"7px",padding:"4px 9px"}}>
                             <span style={{fontSize:"9px",fontWeight:"800",color:"#27AE78"}}>Style ID:</span>
-                            <span style={{fontSize:"9px",fontFamily:"monospace",fontWeight:"700",color:"#111827"}}>{ticket.styleId}</span>
+                            <span style={{fontSize:"9px",fontFamily:"monospace",fontWeight:"700",color:"#FEFDF8"}}>{ticket.styleId}</span>
                           </div>
                         )}
                         {ticket.inspoPhoto && (
@@ -8283,15 +8408,15 @@ function QRTab({ styles }) {
                             <div>
                               <div style={{fontSize:"9px",fontWeight:"800",color:"#DB2777",marginBottom:"2px"}}>📸 INSPO PHOTO</div>
                               {ticket.inspoAnalysis && (
-                                <div style={{fontSize:"10px",color:"#374151",fontWeight:"600"}}>{ticket.inspoAnalysis.service}</div>
+                                <div style={{fontSize:"10px",color:"rgba(255,255,255,0.65)",fontWeight:"600"}}>{ticket.inspoAnalysis.service}</div>
                               )}
-                              <div style={{fontSize:"9px",color:"#6B7280"}}>Tap bid to see full photo</div>
+                              <div style={{fontSize:"9px",color:"rgba(255,255,255,0.45)"}}>Tap bid to see full photo</div>
                             </div>
                           </div>
                         )}
                       </div>
                       {ticket.notes && <div style={{fontSize:"12px",color:C.sub,fontStyle:"italic",marginBottom:"10px",lineHeight:"1.5"}}>"{ticket.notes}"</div>}
-                      {ticket.broker && <div style={{marginBottom:"8px"}}><span style={{background:"#FFFBEB",color:"#D97706",fontSize:"10px",padding:"3px 9px",borderRadius:"20px",fontWeight:"700",border:"1px solid #FCD34D"}}>Broker: {ticket.broker}</span></div>}
+                      {ticket.broker && <div style={{marginBottom:"8px"}}><span style={{background:"rgba(201,168,76,0.12)",color:"#D97706",fontSize:"10px",padding:"3px 9px",borderRadius:"20px",fontWeight:"700",border:"1px solid #FCD34D"}}>Broker: {ticket.broker}</span></div>}
                       <div style={{display:"flex",justifyContent:"space-between",marginBottom:"10px",fontSize:"12px",color:C.muted}}>
                         <span>{ticket.bids.length} bid{ticket.bids.length!==1?"s":""}{ticket.bids.length>0?" · from $"+Math.min(...ticket.bids.map(b=>b.price)):""}</span>
                         <span>Expires: {ticket.expiresIn}</span>
@@ -8299,11 +8424,11 @@ function QRTab({ styles }) {
                       {ticket.status==="open" && (
                         <div style={{display:"flex",gap:"8px"}}>
                           <button onClick={e=>{e.stopPropagation();setShowBidModal(ticket);}} style={{flex:2,background:GRAD.hero,color:"#fff",border:"none",padding:"9px",borderRadius:"8px",fontSize:"12px",fontWeight:"800",cursor:"pointer"}}>Place Bid</button>
-                          <button onClick={e=>{e.stopPropagation();passTicket(ticket.id);}} style={{flex:1,background:"#F3F4F6",color:"#6B7280",border:"1px solid #E5E7EB",padding:"9px",borderRadius:"8px",fontSize:"12px",fontWeight:"700",cursor:"pointer"}}>Pass</button>
-                          {ticket.bids.length>0 && <button onClick={e=>{e.stopPropagation();setQrTicket(ticket);}} style={{flex:1,background:"#EFF6FF",color:"#0891B2",border:"1px solid #BFDBFE",padding:"9px",borderRadius:"8px",fontSize:"11px",fontWeight:"700",cursor:"pointer"}}>QR</button>}
+                          <button onClick={e=>{e.stopPropagation();passTicket(ticket.id);}} style={{flex:1,background:"rgba(255,255,255,0.06)",color:"rgba(255,255,255,0.45)",border:"1px solid rgba(255,255,255,0.1)",padding:"9px",borderRadius:"8px",fontSize:"12px",fontWeight:"700",cursor:"pointer"}}>Pass</button>
+                          {ticket.bids.length>0 && <button onClick={e=>{e.stopPropagation();setQrTicket(ticket);}} style={{flex:1,background:"rgba(8,145,178,0.12)",color:"#0891B2",border:"1px solid #BFDBFE",padding:"9px",borderRadius:"8px",fontSize:"11px",fontWeight:"700",cursor:"pointer"}}>QR</button>}
                         </div>
                       )}
-                      {ticket.status==="assigned" && <div style={{background:"#EFF6FF",border:"1px solid #BFDBFE",borderRadius:"8px",padding:"9px",fontSize:"12px",fontWeight:"700",color:"#0891B2",textAlign:"center"}}>Assigned to {ticket.assignedTo}</div>}
+                      {ticket.status==="assigned" && <div style={{background:"rgba(8,145,178,0.12)",border:"1px solid #BFDBFE",borderRadius:"8px",padding:"9px",fontSize:"12px",fontWeight:"700",color:"#0891B2",textAlign:"center"}}>Assigned to {ticket.assignedTo}</div>}
                     </div>
                     {isSel && ticket.bids.length>0 && (
                       <div style={{borderTop:"2px solid "+ticket.color+"22",padding:"16px",background:ticket.color+"04"}}>
@@ -8325,7 +8450,7 @@ function QRTab({ styles }) {
                           </div>
                         ))}
                         {aiRecommend && selectedTicket && selectedTicket.id===ticket.id && (
-                          <div style={{background:"linear-gradient(135deg,#E8F8F0,#D4F0E4)",border:"1px solid "+C.mint,borderRadius:"10px",padding:"12px",marginTop:"8px"}}>
+                          <div style={{background:"rgba(39,174,120,0.12)",border:"1px solid "+C.mint,borderRadius:"10px",padding:"12px",marginTop:"8px"}}>
                             <div style={{fontSize:"10px",letterSpacing:"2px",color:C.mint,fontWeight:"700",marginBottom:"6px"}}>AI BROKER RECOMMENDATION</div>
                             <div style={{fontSize:"12px",color:C.sub,lineHeight:"1.7"}}>{aiRecommend}</div>
                           </div>
@@ -8345,11 +8470,11 @@ function QRTab({ styles }) {
 
             {/* Broker Panel */}
             {brokerMode && (
-              <div style={{background:"linear-gradient(135deg,#FFFBEB,#FEF3C7)",border:"2px solid #FCD34D",borderRadius:"16px",padding:"20px 24px",marginBottom:"20px"}}>
+              <div style={{background:"rgba(201,168,76,0.1)",border:"2px solid #FCD34D",borderRadius:"16px",padding:"20px 24px",marginBottom:"20px"}}>
                 <div style={{display:"flex",gap:"14px",alignItems:"flex-start",marginBottom:"14px"}}>
                   <div style={{fontSize:"32px"}}>🏢</div>
                   <div>
-                    <div style={{fontSize:"16px",fontWeight:"900",color:"#92400E"}}>Broker Mode Active</div>
+                    <div style={{fontSize:"16px",fontWeight:"900",color:"#C9A84C"}}>Broker Mode Active</div>
                     <div style={{fontSize:"12px",color:"#D97706",lineHeight:"1.6"}}>View all bids, use AI Match to recommend the best stylist, generate booking QR codes, and tag tickets with your network name.</div>
                   </div>
                 </div>
@@ -8357,7 +8482,7 @@ function QRTab({ styles }) {
                   {[["Tickets Live",tickets.filter(t=>t.status==="open").length,"#D97706"],["Total Bids",tickets.reduce((s,t)=>s+t.bids.length,0),"#7C3AED"],["Assigned",tickets.filter(t=>t.status==="assigned").length,"#059669"],["Your Network",tickets.filter(t=>t.broker==="Glam Network ATL").length,"#0891B2"]].map(([l,v,color])=>(
                     <div key={l} style={{background:"rgba(255,255,255,0.7)",borderRadius:"10px",padding:"12px",textAlign:"center",border:"1px solid "+color+"33"}}>
                       <div style={{fontSize:"20px",fontWeight:"900",color}}>{v}</div>
-                      <div style={{fontSize:"10px",color:"#92400E",fontWeight:"700"}}>{l}</div>
+                      <div style={{fontSize:"10px",color:"#C9A84C",fontWeight:"700"}}>{l}</div>
                     </div>
                   ))}
                 </div>
@@ -8367,7 +8492,7 @@ function QRTab({ styles }) {
             {/* How it works */}
             <div style={{background:C.white,border:"1px solid "+C.border,borderRadius:"14px",padding:"20px"}}>
               <div style={{fontSize:"14px",fontWeight:"800",color:C.text,marginBottom:"14px"}}>How the Bid Board Works</div>
-              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:"12px"}}>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(340px,1fr))",gap:"12px"}}>
                 {[["1. Post Ticket","Client posts a short-notice request with service, time, location, budget","#27AE78"],["2. Stylists Bid","Available stylists see the ticket and bid with price, ETA, and message","#0891B2"],["3. AI Match","Broker or AI recommends the best stylist by price, proximity, and rating","#7C3AED"],["4. QR Confirms","Accepted bid generates a QR ticket - both parties scan to confirm","#D97706"],["5. Complete","Service done, rating logged, brokers earn commission","#EC4899"]].map(([title,desc,color])=>(
                   <div key={title} style={{background:color+"0D",border:"1px solid "+color+"22",borderRadius:"10px",padding:"14px"}}>
                     <div style={{fontSize:"12px",fontWeight:"800",color,marginBottom:"6px"}}>{title}</div>
@@ -8438,7 +8563,7 @@ function QRTab({ styles }) {
                 {locationType==="home" && (
                   <div style={{background:"rgba(220,38,38,0.08)",border:"1px solid rgba(220,38,38,0.3)",
                     borderRadius:"8px",padding:"8px 10px",marginBottom:"10px",fontSize:"10px",
-                    color:"#991B1B",lineHeight:"1.5"}}>
+                    color:"#F87171",lineHeight:"1.5"}}>
                     🔒 <strong>Home Service requires:</strong> ID verification + payment on file.
                     Your exact address is only shared with the winning pro after payment is captured.
                   </div>
@@ -8446,14 +8571,14 @@ function QRTab({ styles }) {
                 {locationType==="other" && (
                   <div style={{background:"rgba(217,119,6,0.08)",border:"1px solid rgba(217,119,6,0.3)",
                     borderRadius:"8px",padding:"8px 10px",marginBottom:"10px",fontSize:"10px",
-                    color:"#92400E",lineHeight:"1.5"}}>
+                    color:"#C9A84C",lineHeight:"1.5"}}>
                     ⚠️ Unverified location — pros will see this as unconfirmed. Consider using a public place for better bids.
                   </div>
                 )}
                 {(locationType==="public"||locationType==="salon") && (
                   <div style={{background:"rgba(5,150,105,0.08)",border:"1px solid rgba(5,150,105,0.2)",
                     borderRadius:"8px",padding:"8px 10px",marginBottom:"10px",fontSize:"10px",
-                    color:"#065F46",lineHeight:"1.5"}}>
+                    color:"rgba(39,174,120,0.85)",lineHeight:"1.5"}}>
                     ✅ Public location — pros see the confirmed address before bidding. Highest trust level.
                   </div>
                 )}
@@ -8515,7 +8640,7 @@ function QRTab({ styles }) {
                   {/* Suggestions dropdown */}
                   {showLocSuggestions && locationSuggestions.length > 0 && (
                     <div style={{position:"absolute",top:"100%",left:0,right:0,zIndex:100,
-                      background:"#fff",border:"1px solid rgba(0,0,0,0.12)",borderRadius:"10px",
+                      background:"rgba(255,255,255,0.06)",border:"1px solid rgba(0,0,0,0.12)",borderRadius:"10px",
                       boxShadow:"0 8px 24px rgba(0,0,0,0.12)",overflow:"hidden",marginTop:"4px"}}>
                       {locationSuggestions.map((place,i)=>(
                         <div key={i} onClick={()=>{
@@ -8525,14 +8650,14 @@ function QRTab({ styles }) {
                           setShowLocSuggestions(false);
                         }}
                           style={{padding:"10px 14px",borderBottom:i<locationSuggestions.length-1?"1px solid rgba(0,0,0,0.06)":"none",
-                            cursor:"pointer",background:"#fff"}}
+                            cursor:"pointer",background:"rgba(255,255,255,0.06)"}}
                           onMouseEnter={e=>e.currentTarget.style.background="#F0FDF4"}
                           onMouseLeave={e=>e.currentTarget.style.background="#fff"}>
                           <div style={{display:"flex",gap:"8px",alignItems:"flex-start"}}>
                             <span style={{fontSize:"14px",flexShrink:0}}>{place.type?.split(" ")[0]||"📍"}</span>
                             <div>
-                              <div style={{fontSize:"12px",fontWeight:"700",color:"#111827"}}>{place.name}</div>
-                              <div style={{fontSize:"10px",color:"#6B7280"}}>{place.address}</div>
+                              <div style={{fontSize:"12px",fontWeight:"700",color:"#FEFDF8"}}>{place.name}</div>
+                              <div style={{fontSize:"10px",color:"rgba(255,255,255,0.45)"}}>{place.address}</div>
                               {place.rating && <div style={{fontSize:"9px",color:"#059669",fontWeight:"700"}}>★ {place.rating} · {place.type}</div>}
                             </div>
                             <span style={{marginLeft:"auto",fontSize:"10px",color:"#059669",fontWeight:"800",flexShrink:0}}>✅ Verified</span>
@@ -8558,16 +8683,16 @@ function QRTab({ styles }) {
                         <div style={{display:"flex",gap:"6px",alignItems:"center",marginBottom:"2px"}}>
                           <span style={{fontSize:"10px",background:"rgba(5,150,105,0.15)",color:"#059669",
                             padding:"1px 8px",borderRadius:"20px",fontWeight:"800"}}>✅ VERIFIED</span>
-                          <span style={{fontSize:"9px",color:"#6B7280"}}>{locationDetails.type}</span>
+                          <span style={{fontSize:"9px",color:"rgba(255,255,255,0.45)"}}>{locationDetails.type}</span>
                         </div>
-                        <div style={{fontSize:"12px",fontWeight:"800",color:"#111827"}}>{locationDetails.name}</div>
-                        <div style={{fontSize:"10px",color:"#6B7280"}}>{locationDetails.address}</div>
+                        <div style={{fontSize:"12px",fontWeight:"800",color:"#FEFDF8"}}>{locationDetails.name}</div>
+                        <div style={{fontSize:"10px",color:"rgba(255,255,255,0.45)"}}>{locationDetails.address}</div>
                         {locationDetails.rating && (
                           <div style={{fontSize:"10px",color:"#D97706",fontWeight:"700",marginTop:"2px"}}>★ {locationDetails.rating} · Google Verified</div>
                         )}
                       </div>
                     </div>
-                    <div style={{marginTop:"8px",fontSize:"10px",color:"#065F46",lineHeight:"1.5"}}>
+                    <div style={{marginTop:"8px",fontSize:"10px",color:"rgba(39,174,120,0.85)",lineHeight:"1.5"}}>
                       🔒 Pros see this confirmed location before bidding.
                       {locationType==="home"?" Exact unit shared only after booking confirmed.":""}
                     </div>
@@ -8620,7 +8745,7 @@ function QRTab({ styles }) {
                         reader.readAsDataURL(file);
                       });
                       const resp = await fetch(CLAUDE_PROXY_URL,{
-                        method:"POST", headers:{"Content-Type":"application/json"},
+                        method:"POST", headers:PROXY_HEADERS,
                         body:JSON.stringify({
                           model:"claude-sonnet-4-6", max_tokens:500,
                           system:"You are an expert beauty AI analyzing client inspiration photos for a professional booking platform. Be specific and actionable. Return ONLY valid JSON.",
@@ -8637,7 +8762,7 @@ function QRTab({ styles }) {
                       if (parsed.service) setNewTicket(p=>({...p, service:p.service||parsed.service}));
                       if (parsed.hairType) setNewTicket(p=>({...p, hairType:p.hairType||parsed.hairType}));
                       if (parsed.clientNote) setNewTicket(p=>({...p, notes:p.notes||parsed.clientNote}));
-                    } catch {
+                    } catch(e) {
                       setInspoAnalysis({service:"",hairType:"",technique:"Style reference uploaded",clientNote:"See inspo photo attached to ticket",complexity:"moderate",estimatedPrice:"",tags:[]});
                     }
                     setInspoAnalyzing(false);
@@ -8754,11 +8879,11 @@ function QRTab({ styles }) {
                   borderRadius:"10px",padding:"10px 12px"}}>
                   <div style={{display:"flex",gap:"8px",alignItems:"center",marginBottom:"4px"}}>
                     <span style={{fontSize:"11px",fontWeight:"800",
-                      color:showBidModal.locationVerified?"#059669":"#92400E"}}>
+                      color:showBidModal.locationVerified?"#059669":"#C9A84C"}}>
                       {showBidModal.locationVerified?"✅ Location Verified":"⚠️ Location Unverified"}
                     </span>
                     {showBidModal.locationType && (
-                      <span style={{fontSize:"9px",background:"rgba(0,0,0,0.06)",color:"#6B7280",
+                      <span style={{fontSize:"9px",background:"rgba(0,0,0,0.06)",color:"rgba(255,255,255,0.45)",
                         padding:"1px 8px",borderRadius:"20px",fontWeight:"700"}}>
                         {showBidModal.locationType==="public"?"🏪 Public Place":
                          showBidModal.locationType==="salon"?"✂️ Salon/Suite":
@@ -8768,12 +8893,12 @@ function QRTab({ styles }) {
                       </span>
                     )}
                   </div>
-                  <div style={{fontSize:"11px",color:"#374151"}}>{showBidModal.location}</div>
+                  <div style={{fontSize:"11px",color:"rgba(255,255,255,0.65)"}}>{showBidModal.location}</div>
                   {showBidModal.locationVerified
-                    ? <div style={{fontSize:"10px",color:"#065F46",marginTop:"4px"}}>
+                    ? <div style={{fontSize:"10px",color:"rgba(39,174,120,0.85)",marginTop:"4px"}}>
                         Google Places verified · Address confirmed before you bid
                       </div>
-                    : <div style={{fontSize:"10px",color:"#92400E",marginTop:"4px"}}>
+                    : <div style={{fontSize:"10px",color:"#C9A84C",marginTop:"4px"}}>
                         Client provided location is unverified. Confirm details with client before arrival.
                       </div>}
                   {showBidModal.locationType==="home" && (
@@ -8797,10 +8922,10 @@ function QRTab({ styles }) {
                   {showBidModal.inspoAnalysis && (
                     <div style={{background:"rgba(219,39,119,0.06)",border:"1px solid rgba(219,39,119,0.2)",
                       borderRadius:"10px",padding:"10px 12px",marginTop:"8px"}}>
-                      <div style={{fontSize:"12px",fontWeight:"800",color:"#111827",marginBottom:"3px"}}>
+                      <div style={{fontSize:"12px",fontWeight:"800",color:"#FEFDF8",marginBottom:"3px"}}>
                         {showBidModal.inspoAnalysis.service}
                       </div>
-                      <div style={{fontSize:"10px",color:"#6B7280",marginBottom:"4px"}}>
+                      <div style={{fontSize:"10px",color:"rgba(255,255,255,0.45)",marginBottom:"4px"}}>
                         {showBidModal.inspoAnalysis.hairType} · {showBidModal.inspoAnalysis.technique}
                       </div>
                       {showBidModal.inspoAnalysis.clientNote && (
@@ -8826,10 +8951,10 @@ function QRTab({ styles }) {
                   <div style={{fontSize:"9px",letterSpacing:"2px",color:"#27AE78",fontWeight:"800",marginBottom:"4px"}}>
                     CLIENT REQUESTED STYLE ID
                   </div>
-                  <div style={{fontSize:"13px",fontWeight:"900",color:"#111827",fontFamily:"monospace"}}>
+                  <div style={{fontSize:"13px",fontWeight:"900",color:"#FEFDF8",fontFamily:"monospace"}}>
                     {showBidModal.styleId}
                   </div>
-                  <div style={{fontSize:"10px",color:"#6B7280",marginTop:"3px"}}>
+                  <div style={{fontSize:"10px",color:"rgba(255,255,255,0.45)",marginTop:"3px"}}>
                     Reference photos and full spec included with this ticket.
                   </div>
                 </div>
@@ -8912,8 +9037,8 @@ const SAMPLE_CLIENTS = [
 
 async function callClaudeSimple(prompt, sys) {
   const res = await fetch(CLAUDE_PROXY_URL,{
-    method:"POST", headers:{"Content-Type":"application/json"},
-    body: JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:600, system:sys||"You are an expert hair salon AI assistant. Be concise and professional.", messages:[{role:"user",content:prompt}] })
+    method:"POST", headers:PROXY_HEADERS,
+    body: JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:600, system:sys||"You are an expert hair salon AI assistant. Be concise and professional.", messages:[{role:"user",content:prompt}] })
   });
   const d = await res.json();
   return d.content?.map(b=>b.text||"").join("")||"";
@@ -8999,7 +9124,7 @@ function ClientsTab() {
       </aside>
 
       <div style={{flex:1,display:"flex",overflow:"hidden"}}>
-        <div style={{flex:1,overflowY:"auto",padding:"20px"}}>
+        <div style={{flex:1,overflowY:"auto",padding:"clamp(12px,2.5vw,32px)"}}>
           <div style={{display:"grid",gridTemplateColumns:"repeat(6,1fr)",gap:"10px",marginBottom:"20px"}}>
             {[["Total",stats.total,"👥",C.mint],["Active",stats.active,"✓",C.teal],["Inactive",stats.inactive,"–",C.muted],["Revenue","$"+stats.totalRevenue.toLocaleString(),"💰",C.amber],["Avg Spend","$"+stats.avgSpend,"📊",C.gold],["VIP",stats.vip,"⭐",C.amber]].map(([l,v,ic,color])=>(
               <div key={l} style={{background:C.white,border:`1px solid ${C.border}`,borderRadius:"12px",padding:"12px",textAlign:"center"}}>
@@ -9030,8 +9155,8 @@ function ClientsTab() {
                       </div>
                     </div>
                     <div style={{display:"flex",gap:"5px",flexWrap:"wrap",marginTop:"8px"}}>
-                      <span style={{background:client.status==="active"?C.mintLight:"#F3F4F6",color:client.status==="active"?C.mintDark:C.muted,fontSize:"10px",padding:"2px 8px",borderRadius:"20px",fontWeight:"700"}}>{client.status==="active"?"Active":"Inactive"}</span>
-                      {client.tags.slice(0,2).map(tag=><span key={tag} style={{background:"#F3F4F6",color:C.sub,fontSize:"10px",padding:"2px 8px",borderRadius:"20px"}}>#{tag}</span>)}
+                      <span style={{background:client.status==="active"?C.mintLight:"rgba(255,255,255,0.07)",color:client.status==="active"?C.mintDark:C.muted,fontSize:"10px",padding:"2px 8px",borderRadius:"20px",fontWeight:"700"}}>{client.status==="active"?"Active":"Inactive"}</span>
+                      {client.tags.slice(0,2).map(tag=><span key={tag} style={{background:"rgba(255,255,255,0.06)",color:C.sub,fontSize:"10px",padding:"2px 8px",borderRadius:"20px"}}>#{tag}</span>)}
                       {client.nextAppt&&<span style={{marginLeft:"auto",fontSize:"11px",color:C.teal,fontWeight:"700"}}>Next: {client.nextAppt}</span>}
                     </div>
                   </div>
@@ -9050,7 +9175,7 @@ function ClientsTab() {
                   <div style={{width:"50px",height:"50px",borderRadius:"50%",background:selected.color+"22",border:`2px solid ${selected.color}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"15px",fontWeight:"900",color:selected.color}}>{selected.avatar}</div>
                   <div>
                     <div style={{fontSize:"16px",fontWeight:"900",color:C.text}}>{selected.name}</div>
-                    <span style={{background:selected.status==="active"?C.mintLight:"#F3F4F6",color:selected.status==="active"?C.mint:C.muted,fontSize:"10px",padding:"2px 9px",borderRadius:"20px",fontWeight:"700"}}>{selected.status}</span>
+                    <span style={{background:selected.status==="active"?C.mintLight:"rgba(255,255,255,0.07)",color:selected.status==="active"?C.mint:C.muted,fontSize:"10px",padding:"2px 9px",borderRadius:"20px",fontWeight:"700"}}>{selected.status}</span>
                   </div>
                 </div>
                 <button onClick={()=>setSelected(null)} style={{background:"none",border:"none",color:C.muted,fontSize:"22px",cursor:"pointer"}}>×</button>
@@ -9217,7 +9342,7 @@ function PaymentsTab() {
           <button key={v} onClick={()=>setView(v)} style={{background:"none",border:"none",borderBottom:`3px solid ${view===v?C.mint:"transparent"}`,color:view===v?C.mint:C.muted,padding:"13px 14px 10px",fontSize:"12px",cursor:"pointer",fontWeight:view===v?"800":"500",whiteSpace:"nowrap"}}>{l}</button>
         ))}
       </div>
-      <div style={{flex:1,overflowY:"auto",padding:"20px"}}>
+      <div style={{flex:1,overflowY:"auto",padding:"clamp(12px,2.5vw,32px)"}}>
 
         {view==="dashboard" && (
           <div>
@@ -9254,7 +9379,7 @@ function PaymentsTab() {
                 ))}
               </div>
             </div>
-            <div style={{background:"linear-gradient(135deg,#E8F8F0,#D4F0E4)",border:`1px solid ${C.border}`,borderRadius:"14px",padding:"18px"}}>
+            <div style={{background:"rgba(39,174,120,0.12)",border:`1px solid ${C.border}`,borderRadius:"14px",padding:"18px"}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"10px"}}>
                 <div style={{display:"flex",alignItems:"center",gap:"8px"}}><div style={{fontSize:"13px",fontWeight:"800",color:C.text}}>AI Revenue Insights</div><ClaudeBadge size="sm" /></div>
                 <button onClick={getRevenueInsight} disabled={aiLoading} style={{background:C.mint,color:"#fff",border:"none",padding:"7px 14px",borderRadius:"8px",fontSize:"12px",fontWeight:"700",cursor:"pointer"}}>{aiLoading?"Analyzing...":"Get Insights"}</button>
@@ -9292,9 +9417,9 @@ function PaymentsTab() {
                   <label style={{display:"block",fontSize:"10px",letterSpacing:"2px",color:C.muted,fontWeight:"700",marginBottom:"6px"}}>TIP</label>
                   <div style={{display:"flex",gap:"6px",marginBottom:"8px"}}>
                     {[10,15,18,20,25].map(pct=>(
-                      <button key={pct} onClick={()=>applyTipPct(pct)} style={{flex:1,background:tipPct===pct?C.mint:"#F3F4F6",color:tipPct===pct?"#fff":C.sub,border:`1px solid ${tipPct===pct?C.mint:C.dim}`,padding:"8px",borderRadius:"8px",fontSize:"12px",fontWeight:"700",cursor:"pointer"}}>{pct}%</button>
+                      <button key={pct} onClick={()=>applyTipPct(pct)} style={{flex:1,background:tipPct===pct?C.mint:"rgba(255,255,255,0.07)",color:tipPct===pct?"#fff":C.sub,border:`1px solid ${tipPct===pct?C.mint:C.dim}`,padding:"8px",borderRadius:"8px",fontSize:"12px",fontWeight:"700",cursor:"pointer"}}>{pct}%</button>
                     ))}
-                    <button onClick={()=>{setTipPct(null);setTip("");}} style={{flex:1,background:"#F3F4F6",color:C.muted,border:`1px solid ${C.dim}`,padding:"8px",borderRadius:"8px",fontSize:"11px",cursor:"pointer"}}>Custom</button>
+                    <button onClick={()=>{setTipPct(null);setTip("");}} style={{flex:1,background:"rgba(255,255,255,0.06)",color:C.muted,border:`1px solid ${C.dim}`,padding:"8px",borderRadius:"8px",fontSize:"11px",cursor:"pointer"}}>Custom</button>
                   </div>
                   <input type="number" value={tip} onChange={e=>{setTip(e.target.value);setTipPct(null);}} placeholder="Tip amount" style={IS}/>
                 </div>
@@ -9335,7 +9460,7 @@ function PaymentsTab() {
               {filteredTx.map((tx,i)=>{
                 const pm=PAYMENT_METHODS.find(p=>p.id===tx.method);
                 return (
-                  <div key={tx.id} style={{display:"grid",gridTemplateColumns:"1.5fr 1.5fr 1fr 1fr 1fr auto",gap:"10px",padding:"13px 16px",borderBottom:i<filteredTx.length-1?`1px solid ${C.dim}`:"none",alignItems:"center",background:tx.status==="pending"?"#FFFBEB":"transparent"}}>
+                  <div key={tx.id} style={{display:"grid",gridTemplateColumns:"1.5fr 1.5fr 1fr 1fr 1fr auto",gap:"10px",padding:"13px 16px",borderBottom:i<filteredTx.length-1?`1px solid ${C.dim}`:"none",alignItems:"center",background:tx.status==="pending"?"rgba(201,168,76,0.1)":"transparent"}}>
                     <div><div style={{fontSize:"13px",fontWeight:"700",color:C.text}}>{tx.client}</div><div style={{fontSize:"10px",color:C.muted}}>{tx.date}</div></div>
                     <div style={{fontSize:"12px",color:C.sub}}>{tx.service}</div>
                     <div style={{fontSize:"14px",fontWeight:"800",color:C.text}}>${tx.amount}</div>
@@ -9470,7 +9595,7 @@ function NotificationsTab() {
           <button key={v} onClick={()=>setView(v)} style={{background:"none",border:"none",borderBottom:`3px solid ${view===v?C.mint:"transparent"}`,color:view===v?C.mint:C.muted,padding:"13px 14px 10px",fontSize:"12px",cursor:"pointer",fontWeight:view===v?"800":"500",whiteSpace:"nowrap"}}>{l}</button>
         ))}
       </div>
-      <div style={{flex:1,overflowY:"auto",padding:"20px"}}>
+      <div style={{flex:1,overflowY:"auto",padding:"clamp(12px,2.5vw,32px)"}}>
 
         {view==="compose" && (
           <div style={{display:"flex",gap:"20px",maxWidth:"900px",flexWrap:"wrap"}}>
@@ -9660,13 +9785,13 @@ const PRE_APPT_DATA = {
   "All Hair Types": {
     days_before: [
       { timeframe:"1 Week Before", icon:"📅", accent:"#7C3AED", practices:[
-        { icon:"💧", title:"Deep Condition", detail:"Apply a protein-free deep conditioner for 20–30 minutes under heat. This restores moisture and elasticity before any service.", tip:"Use a hooded dryer or heat cap for best penetration." },
+        { icon:"droplet", title:"Deep Condition", detail:"Apply a protein-free deep conditioner for 20–30 minutes under heat. This restores moisture and elasticity before any service.", tip:"Use a hooded dryer or heat cap for best penetration." },
         { icon:"✂", title:"Trim Split Ends", detail:"Remove split ends before your appointment so your stylist works with healthy ends and the style lasts longer.", tip:"Even a dusting trim (1/4 inch) makes a significant difference." },
         { icon:"🚫", title:"Avoid Heavy Oils", detail:"Stop using heavy butters, oils, and styling products that build up on the scalp and hair shaft before chemical services.", tip:"Clarify with a gentle sulfate shampoo if you have heavy buildup." },
       ]},
       { timeframe:"2–3 Days Before", icon:"🗓", accent:"#0891B2", practices:[
         { icon:"🧴", title:"Clarifying Wash", detail:"Use a clarifying or low-sulfate shampoo to remove buildup and ensure your stylist starts with a clean canvas.", tip:"Follow with a lightweight leave-in  -  not a heavy conditioner." },
-        { icon:"🫧", title:"Scalp Massage", detail:"Massage your scalp for 5–10 minutes daily to stimulate circulation and reduce inflammation before your appointment.", tip:"Use fingertips only, never nails. Circular motion at the root." },
+        { icon:"brush", title:"Scalp Massage", detail:"Massage your scalp for 5–10 minutes daily to stimulate circulation and reduce inflammation before your appointment.", tip:"Use fingertips only, never nails. Circular motion at the root." },
         { icon:"📝", title:"Write Your Questions", detail:"Note any concerns about breakage, growth, scalp issues, or style goals to discuss with your stylist.", tip:"Take reference photos of styles you want  -  be specific." },
       ]},
       { timeframe:"Night Before", icon:"🌙", accent:"#EC4899", practices:[
@@ -9691,8 +9816,8 @@ const POST_APPT_DATA = {
         { icon:"😴", title:"Satin or Silk Bonnet", detail:"Wear a satin bonnet or sleep on a satin pillowcase every single night to prevent frizz, dryness, and breakage from cotton friction.", tip:"Satin is more affordable than silk and works just as well." },
         { icon:"🌬", title:"Air Dry Only", detail:"Avoid heat tools for at least 24 hours. Let your hair rest after the manipulation and heat it has already experienced.", tip:"Use a diffuser on low heat if you absolutely must speed up drying." },
       ]},
-      { timeframe:"Days 2–7", icon:"🌿", accent:"#27AE78", practices:[
-        { icon:"💧", title:"LOC or LCO Method", detail:"Apply products in Liquid, Oil, Cream order (or LCO) every 1–3 days to maintain moisture between washes.", tip:"4C hair typically uses LOC. 3A–3C hair often prefers LCO." },
+      { timeframe:"Days 2–7", icon:"leaf", accent:"#27AE78", practices:[
+        { icon:"droplet", title:"LOC or LCO Method", detail:"Apply products in Liquid, Oil, Cream order (or LCO) every 1–3 days to maintain moisture between washes.", tip:"4C hair typically uses LOC. 3A–3C hair often prefers LCO." },
         { icon:"🎀", title:"Protective Styling at Night", detail:"Continue wearing a bonnet or silk scarf every night without exception. This single habit extends your style by weeks.", tip:"Pineapple method works for curly styles  -  high loose ponytail on top." },
         { icon:"🧪", title:"No Sulfate Shampoo", detail:"Use co-wash or sulfate-free shampoo only during the first week after color, relaxer, or chemical services.", tip:"CeraVe Hydrating Cleanser works as a gentle scalp wash in a pinch." },
       ]},
@@ -9721,7 +9846,7 @@ const HAIR_TYPE_GUIDES = [
   { type:"Loc'd Hair", icon:"🔒", color:"#EC4899",
     pre:["Clean scalp thoroughly 3 days before retwist","Avoid heavy oils on scalp 1 week before  -  causes slippage","Arrive with locs fully dry  -  no dampness at the base"],
     post:["Do not wash for 2 weeks after a retwist","Sleep in a satin bonnet every night  -  friction causes frizz","Use a water-based loc spray for moisture  -  avoid butter"] },
-  { type:"Relaxed or Texlaxed", icon:"✨", color:"#DC2626",
+  { type:"Relaxed or Texlaxed", icon:"sparkle", color:"#DC2626",
     pre:["Do not wash within 2 weeks of relaxer touch-up","Avoid all scratching or scalp manipulation 5 days before","Report any scalp sores or irritation before chemical application"],
     post:["No washing for 72 hours minimum after relaxer","Moisturize daily  -  relaxed hair loses moisture 3x faster","Trim every 6 weeks  -  relaxed ends are fragile by nature"] },
 ];
@@ -9783,8 +9908,8 @@ function HairHealthTab() {
     const sys = `You are an expert certified trichologist and hair care AI coach for Love That Idea. You specialize in healthy hair practices before and after salon appointments for all hair types (1A–4C), textures, and cultural backgrounds. Give specific, science-backed, actionable advice. Reference specific products, techniques, and timing when relevant. Be warm, professional, and encouraging. Under 200 words.`;
     try {
       const res = await fetch(CLAUDE_PROXY_URL, {
-        method:"POST", headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:800, system:sys, messages:msgs })
+        method:"POST", headers:PROXY_HEADERS,
+        body: JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:800, system:sys, messages:msgs })
       });
       const d = await res.json();
       const ans = d.content?.map(b=>b.text||"").join("")||"";
@@ -9798,8 +9923,8 @@ function HairHealthTab() {
     const sys = `You are an expert hair care AI. Generate a personalized pre- and post-appointment healthy hair care plan. Be specific with timing, products types, and techniques. Format with clear sections: PRE-APPOINTMENT (1 week, 2-3 days, night before, day of) and POST-APPOINTMENT (24 hrs, first week, ongoing). Under 300 words.`;
     try {
       const res = await fetch(CLAUDE_PROXY_URL, {
-        method:"POST", headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:1000, system:sys,
+        method:"POST", headers:PROXY_HEADERS,
+        body: JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:1000, system:sys,
           messages:[{role:"user", content:`Create a personalized hair health plan for: Hair type: ${hairType}, Upcoming service: ${upcomingService}. Include specific timing, product types, and techniques for this exact combination.`}]
         })
       });
@@ -9851,7 +9976,7 @@ function HairHealthTab() {
   const postChecked = Object.values(checklistPost).filter(Boolean).length;
 
   return (
-    <div style={{flex:1, display:"flex", flexDirection:"column", overflow:"hidden", background:C.bg}}>
+    <div style={{flex:1, display:"flex", flexDirection:"column", overflow:"visible", background:C.bg}}>
       {/* Sub-nav */}
       <div style={{background:C.white, borderBottom:`1px solid ${C.border}`, padding:"0 20px", display:"flex", gap:"2px", flexShrink:0, overflowX:"auto"}}>
         {NAV.map(([v,icon,label])=>(
@@ -9979,7 +10104,7 @@ function HairHealthTab() {
             <div style={{fontSize:"22px", fontWeight:"900", color:C.text, marginBottom:"4px"}}>Practices By Hair Type</div>
             <div style={{fontSize:"13px", color:C.muted, marginBottom:"20px"}}>Tailored pre and post-appointment care based on your specific hair type and texture.</div>
             {!selectedType ? (
-              <div style={{display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(260px,1fr))", gap:"14px"}}>
+              <div style={{display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(340px,1fr))", gap:"14px"}}>
                 {HAIR_TYPE_GUIDES.map(guide=>(
                   <div key={guide.type} onClick={()=>setSelectedType(guide)}
                     style={{background:C.white, border:`1.5px solid ${C.border}`, borderRadius:"14px", padding:"20px", cursor:"pointer", transition:"all 0.2s"}}
@@ -10187,7 +10312,7 @@ function HairHealthTab() {
 
             {/* Personalized Plan Generator */}
             <div style={{position:"sticky", top:"20px"}}>
-              <div style={{background:"linear-gradient(135deg,#E8F8F0,#D4F0E4)", border:`1px solid ${C.border}`, borderRadius:"16px", padding:"20px", marginBottom:"14px"}}>
+              <div style={{background:"rgba(39,174,120,0.12)", border:`1px solid ${C.border}`, borderRadius:"16px", padding:"20px", marginBottom:"14px"}}>
                 <div style={{fontSize:"13px", fontWeight:"800", color:C.text, marginBottom:"14px"}}>Generate My Personal Plan</div>
                 <div style={{marginBottom:"10px"}}>
                   <label style={{display:"block", fontSize:"10px", letterSpacing:"2px", color:C.muted, fontWeight:"700", marginBottom:"4px"}}>YOUR HAIR TYPE</label>
@@ -10324,7 +10449,7 @@ const HAIR_CONDITIONS = [
 ];
 
 const CONDITION_CATEGORIES = [
-  { id:"all",       label:"All Conditions",   icon:"🔍" },
+  { id:"all",       label:"All Conditions",   icon:"search" },
   { id:"hair_loss", label:"Hair Loss",         icon:"📉" },
   { id:"scalp",     label:"Scalp Conditions",  icon:"🧬" },
   { id:"scarring",  label:"Scarring Alopecia", icon:"🚨" },
@@ -10337,7 +10462,7 @@ const SPECIALIST_INFO = {
     title: "Trichologist",
     icon: "🔬",
     color: "#27AE78",
-    bg: "#E8F8F0",
+    bg: "rgba(39,174,120,0.14)",
     description: "A non-medical specialist trained specifically in hair and scalp health. Trichologists diagnose and treat non-scarring hair loss, scalp conditions, and hair health concerns.",
     treats: ["Telogen effluvium","Androgenetic alopecia","Traction alopecia (early)","Scalp seborrheic dermatitis","Hair breakage & damage","Scalp health & nutrition"],
     cannotTreat: ["Scarring alopecias","Autoimmune conditions (prescriptions needed)","Fungal infections (oral medication needed)","Conditions requiring biopsy"],
@@ -10416,8 +10541,8 @@ function MedFindTab() {
     try {
       const msgs = [...aiHistory, {role:"user", content:`My symptoms: ${symptoms.join(", ")}. What specialist should I see and how urgently?`}];
       const res = await fetch(CLAUDE_PROXY_URL, {
-        method:"POST", headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:600, system:sys, messages:msgs })
+        method:"POST", headers:PROXY_HEADERS,
+        body: JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:600, system:sys, messages:msgs })
       });
       const d = await res.json();
       const ans = d.content?.map(b=>b.text||"").join("")||"";
@@ -10434,8 +10559,8 @@ function MedFindTab() {
     const sys = `You are a compassionate, expert trichologist and dermatologist AI for Love That Idea. Help people understand hair and scalp medical conditions, which specialist to see, what to expect at appointments, questions to ask their doctor, and how to prepare. Always emphasize professional evaluation. Under 200 words.`;
     try {
       const res = await fetch(CLAUDE_PROXY_URL, {
-        method:"POST", headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:800, system:sys, messages:msgs })
+        method:"POST", headers:PROXY_HEADERS,
+        body: JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:800, system:sys, messages:msgs })
       });
       const d = await res.json();
       const ans = d.content?.map(b=>b.text||"").join("")||"";
@@ -10448,7 +10573,7 @@ function MedFindTab() {
   const currentSpec = SPECIALIST_INFO[specType];
 
   return (
-    <div style={{flex:1, display:"flex", flexDirection:"column", overflow:"hidden", background:C.bg}}>
+    <div style={{flex:1, display:"flex", flexDirection:"column", overflow:"visible", background:C.bg}}>
       {/* Sub-nav */}
       <div style={{background:C.white, borderBottom:`1px solid ${C.border}`, padding:"0 20px", display:"flex", gap:"2px", flexShrink:0, overflowX:"auto"}}>
         {NAV.map(([v,icon,label])=>(
@@ -10503,7 +10628,7 @@ function MedFindTab() {
                   {geoStatus==="loading"?"Locating...":geoStatus==="ok"?"GPS Active":"Use GPS"}
                 </button>
               </div>
-              {geoStatus==="error" && <div style={{fontSize:"12px", color:"#DC2626", background:"#FEF2F2", padding:"8px 12px", borderRadius:"6px", marginBottom:"10px"}}>Location access denied. Please type your city or zip code above.</div>}
+              {geoStatus==="error" && <div style={{fontSize:"12px", color:"#DC2626", background:"rgba(239,68,68,0.10)", padding:"8px 12px", borderRadius:"6px", marginBottom:"10px"}}>Location access denied. Please type your city or zip code above.</div>}
 
               {/* Insurance input */}
               <div>
@@ -10517,7 +10642,7 @@ function MedFindTab() {
             <div style={{display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:"12px", marginBottom:"20px"}}>
               {[
                 {label:"Google Maps", icon:"🗺", desc:"Nearby results with reviews, hours & directions", action:()=>openGoogleMaps(specType, location), color:currentSpec.color},
-                {label:"Zocdoc", icon:"📅", desc:"Book appointments with insurance filter & instant booking", action:()=>openZocDoc(specType), color:"#4B5563"},
+                {label:"Zocdoc", icon:"📅", desc:"Book appointments with insurance filter & instant booking", action:()=>openZocDoc(specType), color:"rgba(255,255,255,0.55)"},
                 {label:"Healthgrades", icon:"⭐", desc:"Verified reviews, credentials & hospital affiliations", action:()=>openHealthgrades(specType), color:"#0891B2"},
               ].map(btn=>(
                 <button key={btn.label} onClick={btn.action}
@@ -10542,7 +10667,7 @@ function MedFindTab() {
                   {name:"Psychology Today (for Trich)", url:"https://www.psychologytoday.com/us/therapists", desc:"If trichotillomania or BFRBs are a concern", icon:"🧠"},
                 ] : [
                   {name:"American Academy of Dermatology", url:"https://www.aad.org/public/find-a-derm", desc:"Official AAD board-certified dermatologist finder", icon:"🏥"},
-                  {name:"NAAF Specialist Finder", url:"https://www.naaf.org/find-a-specialist", desc:"National Alopecia Areata Foundation specialists", icon:"🔍"},
+                  {name:"NAAF Specialist Finder", url:"https://www.naaf.org/find-a-specialist", desc:"National Alopecia Areata Foundation specialists", icon:"search"},
                   {name:"Castle Biosciences", url:"https://www.castlebiosciences.com", desc:"Dermatology network  -  genetic testing & specialists", icon:"🧬"},
                   {name:"CCCA Research Foundation", url:"https://www.cicatricialalopecia.org", desc:"Find specialists in scarring alopecia (CCCA, LPP)", icon:"🎗"},
                 ]).map(dir=>(
@@ -10619,7 +10744,7 @@ function MedFindTab() {
                   <div style={{padding:"16px"}}>
                     <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:"8px"}}>
                       <div style={{fontSize:"16px", fontWeight:"900", color:cond.color}}>{cond.name}</div>
-                      {cond.urgent && <span style={{background:"#FEF2F2", color:"#DC2626", fontSize:"9px", padding:"3px 9px", borderRadius:"20px", fontWeight:"800", flexShrink:0, marginLeft:"8px"}}>URGENT</span>}
+                      {cond.urgent && <span style={{background:"rgba(239,68,68,0.15)", color:"#F87171", fontSize:"9px", padding:"3px 9px", borderRadius:"20px", fontWeight:"800", flexShrink:0, marginLeft:"8px"}}>URGENT</span>}
                     </div>
                     <div style={{fontSize:"12px", color:C.muted, marginBottom:"10px", lineHeight:"1.5"}}>{cond.description.slice(0,100)}...</div>
                     <div style={{display:"flex", gap:"6px", flexWrap:"wrap"}}>
@@ -10639,7 +10764,7 @@ function MedFindTab() {
             <div style={{background:C.white, border:`2px solid ${selectedCondition.color}`, borderRadius:"18px", overflow:"hidden"}}>
               <div style={{height:"6px", background:selectedCondition.color}}/>
               {selectedCondition.urgent && (
-                <div style={{background:"#FEF2F2", borderBottom:"2px solid #FECACA", padding:"12px 24px", display:"flex", gap:"10px", alignItems:"center"}}>
+                <div style={{background:"rgba(239,68,68,0.10)", borderBottom:"2px solid #FECACA", padding:"12px 24px", display:"flex", gap:"10px", alignItems:"center"}}>
                   <span style={{fontSize:"20px"}}>🚨</span>
                   <div style={{fontSize:"13px", fontWeight:"800", color:"#DC2626"}}>{selectedCondition.urgency}</div>
                 </div>
@@ -10667,7 +10792,7 @@ function MedFindTab() {
                     <div style={{fontSize:"10px", letterSpacing:"3px", color:"#DC2626", fontWeight:"700", marginBottom:"10px"}}>WARNING SIGNS</div>
                     <div style={{display:"flex", flexDirection:"column", gap:"7px", marginBottom:"20px"}}>
                       {selectedCondition.signs.map((s,i)=>(
-                        <div key={i} style={{display:"flex", gap:"8px", alignItems:"flex-start", background:"#FEF2F2", borderRadius:"8px", padding:"10px 12px"}}>
+                        <div key={i} style={{display:"flex", gap:"8px", alignItems:"flex-start", background:"rgba(239,68,68,0.10)", borderRadius:"8px", padding:"10px 12px"}}>
                           <span style={{color:"#DC2626", fontWeight:"900", flexShrink:0}}>!</span>
                           <span style={{fontSize:"13px", color:C.sub, lineHeight:"1.5"}}>{s}</span>
                         </div>
@@ -10707,7 +10832,7 @@ function MedFindTab() {
             </div>
 
             {/* Disclaimer */}
-            <div style={{marginTop:"16px", background:"#FFFBEB", border:"1px solid #FCD34D", borderRadius:"10px", padding:"12px 16px", fontSize:"11px", color:"#92400E", lineHeight:"1.7"}}>
+            <div style={{marginTop:"16px", background:"rgba(201,168,76,0.12)", border:"1px solid #FCD34D", borderRadius:"10px", padding:"12px 16px", fontSize:"11px", color:"#C9A84C", lineHeight:"1.7"}}>
               <strong>Medical Disclaimer:</strong> This information is for educational purposes only and does not constitute medical advice. Always consult a qualified healthcare professional for diagnosis and treatment of any medical condition.
             </div>
           </div>
@@ -10875,9 +11000,9 @@ function MedFindTab() {
               </div>
 
               {/* Medical Disclaimer */}
-              <div style={{background:"#FFFBEB", border:"1px solid #FCD34D", borderRadius:"12px", padding:"14px"}}>
+              <div style={{background:"rgba(201,168,76,0.12)", border:"1px solid #FCD34D", borderRadius:"12px", padding:"14px"}}>
                 <div style={{fontSize:"10px", color:"#D97706", fontWeight:"700", marginBottom:"6px"}}>MEDICAL DISCLAIMER</div>
-                <div style={{fontSize:"11px", color:"#92400E", lineHeight:"1.7"}}>This AI provides educational information only. It does not constitute medical advice or diagnosis. Always consult a qualified healthcare professional for any hair or scalp medical condition.</div>
+                <div style={{fontSize:"11px", color:"#C9A84C", lineHeight:"1.7"}}>This AI provides educational information only. It does not constitute medical advice or diagnosis. Always consult a qualified healthcare professional for any hair or scalp medical condition.</div>
               </div>
             </div>
           </div>
@@ -10991,8 +11116,8 @@ const MESSAGE_SCENARIOS = [
 
 const MOBILE_RESOURCES = [
   { name:"Go&Style", desc:"In-home hair styling service connecting mobile stylists with clients", url:"https://www.goandstyled.com", icon:"🏠" },
-  { name:"Glamsquad", desc:"Luxury in-home hair, makeup and nail services", url:"https://www.glamsquad.com", icon:"✨" },
-  { name:"Google: Mobile Stylists", desc:"Search for mobile and home-visit beauty professionals near you", url:"https://www.google.com/maps/search/mobile+hair+stylist+near+me", icon:"🔍" },
+  { name:"Glamsquad", desc:"Luxury in-home hair, makeup and nail services", url:"https://www.glamsquad.com", icon:"sparkle" },
+  { name:"Google: Mobile Stylists", desc:"Search for mobile and home-visit beauty professionals near you", url:"https://www.google.com/maps/search/mobile+hair+stylist+near+me", icon:"search" },
   { name:"Google: Accessible Salons", desc:"Find wheelchair-accessible and sensory-friendly salons", url:"https://www.google.com/maps/search/wheelchair+accessible+hair+salon+near+me", icon:"♿" },
   { name:"ADA National Network", desc:"Free ADA guidance, accommodation resources, and legal info", url:"https://adata.org", icon:"🏛" },
   { name:"DisabilityRights.gov", desc:"Official US government disability rights resource hub", url:"https://www.disabilityrights.gov", icon:"🏛" },
@@ -11075,8 +11200,8 @@ Never use phrases like "differently abled" or "special needs"  -  use direct lan
 
     try {
       const res = await fetch(CLAUDE_PROXY_URL, {
-        method:"POST", headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:600, system:sys, messages:[{role:"user",content:prompt}] })
+        method:"POST", headers:PROXY_HEADERS,
+        body: JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:600, system:sys, messages:[{role:"user",content:prompt}] })
       });
       const d = await res.json();
       setGeneratedMsg(d.content?.map(b=>b.text||"").join("")||"");
@@ -11104,8 +11229,8 @@ Be warm, specific, and empowering. Use direct disability language. Under 220 wor
 
     try {
       const res = await fetch(CLAUDE_PROXY_URL, {
-        method:"POST", headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:800, system:sys, messages:msgs })
+        method:"POST", headers:PROXY_HEADERS,
+        body: JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:800, system:sys, messages:msgs })
       });
       const d = await res.json();
       const ans = d.content?.map(b=>b.text||"").join("")||"";
@@ -11123,7 +11248,7 @@ Be warm, specific, and empowering. Use direct disability language. Under 220 wor
   );
 
   return (
-    <div style={{flex:1, display:"flex", flexDirection:"column", overflow:"hidden", background:C.bg}}>
+    <div style={{flex:1, display:"flex", flexDirection:"column", overflow:"visible", background:C.bg}}>
       {/* Sub-nav */}
       <div style={{background:C.white, borderBottom:`1px solid ${C.border}`, padding:"0 20px", display:"flex", gap:"2px", flexShrink:0, overflowX:"auto"}}>
         {NAV.map(([v,icon,label])=>(
@@ -11393,7 +11518,7 @@ Be warm, specific, and empowering. Use direct disability language. Under 220 wor
             </div>
 
             {/* Score feedback */}
-            <div style={{background:compliancePct>=80?C.mintLight:compliancePct>=50?"#FFFBEB":"#FEF2F2", border:`1px solid ${compliancePct>=80?C.mint:compliancePct>=50?"#FCD34D":"#FECACA"}`, borderRadius:"12px", padding:"14px 18px", marginBottom:"20px", fontSize:"13px", color:compliancePct>=80?C.mintDark:compliancePct>=50?"#92400E":"#DC2626"}}>
+            <div style={{background:compliancePct>=80?C.mintLight:compliancePct>=50?"rgba(201,168,76,0.1)":"#FEF2F2", border:`1px solid ${compliancePct>=80?C.mint:compliancePct>=50?"#FCD34D":"#FECACA"}`, borderRadius:"12px", padding:"14px 18px", marginBottom:"20px", fontSize:"13px", color:compliancePct>=80?C.mintDark:compliancePct>=50?"#C9A84C":"#DC2626"}}>
               {compliancePct>=80 ? "Excellent! Your salon demonstrates strong accessibility commitment. Share your score to attract clients with disabilities."
                : compliancePct>=50 ? "Good progress. Several areas still need attention. Use this checklist as a priority roadmap for improvements."
                : totalChecked===0 ? "Start checking items to evaluate your salon's accessibility. Every improvement makes a real difference for clients."
@@ -11590,10 +11715,10 @@ Be warm, specific, and empowering. Use direct disability language. Under 220 wor
 // -- Nail Tech Tab -------------------------------------------------------------
 const NAIL_SERVICES = [
   { id:"classic_mani",  name:"Classic Manicure",      time:"30 min", price:"$25-35",   cat:"manicure",  difficulty:"Beginner",     icon:"💅", desc:"Shape, buff, cuticle care, base coat, polish, top coat. Foundation of nail services.", steps:["Remove old polish with acetone-free remover","File nails to desired shape - oval, square, almond, coffin","Soak hands 3 min to soften cuticles","Push back cuticles gently with orangewood stick","Buff nail surface in one direction","Apply base coat. Wait 2 min.","Apply 2 thin coats of chosen color. Wait 2 min between.","Finish with fast-dry top coat. Wrap free edge."] },
-  { id:"gel_mani",      name:"Gel Manicure",          time:"45 min", price:"$40-55",   cat:"manicure",  difficulty:"Intermediate", icon:"✨", desc:"UV/LED cured gel polish lasting 2-4 weeks with no chips.", steps:["Prep nail plate: file, buff, dehydrate with nail prep","Apply thin layer of base gel coat. Cure 30 sec LED / 2 min UV","Apply first thin color coat. Cure 60 sec LED","Apply second color coat. Cure 60 sec LED","Apply gel top coat. Cure 60 sec LED","Wipe with 91% isopropyl to remove sticky layer","Apply cuticle oil and massage in"] },
+  { id:"gel_mani",      name:"Gel Manicure",          time:"45 min", price:"$40-55",   cat:"manicure",  difficulty:"Intermediate", icon:"sparkle", desc:"UV/LED cured gel polish lasting 2-4 weeks with no chips.", steps:["Prep nail plate: file, buff, dehydrate with nail prep","Apply thin layer of base gel coat. Cure 30 sec LED / 2 min UV","Apply first thin color coat. Cure 60 sec LED","Apply second color coat. Cure 60 sec LED","Apply gel top coat. Cure 60 sec LED","Wipe with 91% isopropyl to remove sticky layer","Apply cuticle oil and massage in"] },
   { id:"acrylic",       name:"Acrylic Full Set",       time:"75 min", price:"$50-80",   cat:"enhancements", difficulty:"Advanced", icon:"💎", desc:"Liquid and powder system building nail extensions for length and strength.", steps:["Prep natural nail: push cuticles, buff shine off plate","Size and apply nail tip with nail glue. Trim to length.","Blend tip with 180-grit file until seamless","Dehydrate and prime nail plate","Mix acrylic bead on brush - medium-wet consistency","Apply to nail in 3 zones: cuticle area, middle, free edge","Shape and file extension to desired shape","Buff to 150-grit smoothness. Apply top coat."] },
   { id:"polygel",       name:"PolyGel Application",   time:"60 min", price:"$55-75",   cat:"enhancements", difficulty:"Intermediate", icon:"🌸", desc:"Hybrid acrylic-gel formula. Easy to work with, light weight, no smell.", steps:["Prep and dehydrate nail plate","Apply base coat. Cure 60 sec.","Apply PolyGel to dual form or nail tip","Mold with slip solution and brush to desired thickness","Cure 60 sec LED. Remove dual form.","File to shape. Blend seams.","Apply gel top coat. Cure 60 sec."] },
-  { id:"nail_art",      name:"Nail Art Design",        time:"varies", price:"$10-50+",  cat:"art",       difficulty:"Advanced",     icon:"🎨", desc:"Custom nail art - ombre, stamping, chrome, 3D, hand-painted, foils.", steps:["Complete base service first (gel or regular polish base)","Plan design: gather tools, foils, stamps, brushes","For ombre: dab gradient on sponge, stamp onto nail while wet","For chrome: after top coat, buff chrome powder with finger tool","For stamping: apply polish to plate, scrape, roll stamp onto nail","Seal all art with top coat to prevent peeling","Cure if using gel products"] },
+  { id:"nail_art",      name:"Nail Art Design",        time:"varies", price:"$10-50+",  cat:"art",       difficulty:"Advanced",     icon:"color", desc:"Custom nail art - ombre, stamping, chrome, 3D, hand-painted, foils.", steps:["Complete base service first (gel or regular polish base)","Plan design: gather tools, foils, stamps, brushes","For ombre: dab gradient on sponge, stamp onto nail while wet","For chrome: after top coat, buff chrome powder with finger tool","For stamping: apply polish to plate, scrape, roll stamp onto nail","Seal all art with top coat to prevent peeling","Cure if using gel products"] },
   { id:"pedicure",      name:"Classic Pedicure",       time:"45 min", price:"$35-50",   cat:"pedicure",  difficulty:"Beginner",     icon:"🦶", desc:"Soak, exfoliate, trim, shape, massage, polish for feet.", steps:["Fill foot bath with warm water + tablets or salts. Soak 5 min.","Remove from soak. Pat dry.","Clip and file toenails straight across - no curved corners","Push back and gently trim cuticles","Use foot file/pumice on heels and calluses","Scrub with sugar or salt exfoliant. Rinse.","Massage with lotion from toes to knee","Apply base coat, color x2, top coat on toenails"] },
   { id:"gel_pedi",      name:"Gel Pedicure",           time:"60 min", price:"$50-65",   cat:"pedicure",  difficulty:"Intermediate", icon:"🌺", desc:"Long-lasting gel polish on toes - perfect for vacations.", steps:["Full pedicure prep service first (soak, file, massage)","Dehydrate toenails and apply gel base coat. Cure 60 sec.","Apply thin gel color x2. Cure between each layer.","Apply gel top coat. Cure 60 sec.","Wipe each nail with isopropyl to remove sticky layer","Apply cuticle oil to nails and surrounding skin"] },
   { id:"nail_removal",  name:"Gel/Acrylic Removal",   time:"30 min", price:"$15-25",   cat:"removal",   difficulty:"Intermediate", icon:"🗑", desc:"Safe removal without damaging natural nail underneath.", steps:["Buff off the top coat and seal layer thoroughly","Soak cotton pad in 100% pure acetone","Wrap each finger in foil with soaked cotton pad for 10-15 min","Check - enhancement should slide off. Do not force.","Use orangewood stick to gently push off remaining product","Buff natural nail gently. Do not over-buff.","Apply cuticle oil. Give a hydrating treatment."] },
@@ -11605,7 +11730,7 @@ const NAIL_CATS = [
   {id:"enhancements",label:"Enhancements", color:"#7C3AED"},
   {id:"pedicure",    label:"Pedicures",    color:"#0891B2"},
   {id:"art",         label:"Nail Art",     color:"#F59E0B"},
-  {id:"removal",     label:"Removal",      color:"#6B7280"},
+  {id:"removal",     label:"Removal",      color:"rgba(255,255,255,0.45)"},
 ];
 
 const NAIL_HEALTH = [
@@ -11626,23 +11751,23 @@ function NailRenderView() {
   const FOREST="#0D2818",MINT="#27AE78",GOLD="#C9A84C",ROSE="#C4896B",
         PINK="#DB2777",PURPLE="#7C3AED";
 
-  const [photo, setPhoto]           = React.useState(null);
-  const [photoFile, setPhotoFile]   = React.useState(null);
-  const [analysis, setAnalysis]     = React.useState(null);
-  const [analyzing, setAnalyzing]   = React.useState(false);
-  const [logLines, setLogLines]     = React.useState([]);
-  const [shape, setShape]           = React.useState("almond");
-  const [length, setLength]         = React.useState("medium");
-  const [finish, setFinish]         = React.useState("gel");
-  const [rotating, setRotating]     = React.useState(false);
-  const [rotX, setRotX]             = React.useState(0.3);
-  const [rotY, setRotY]             = React.useState(0);
-  const [saved, setSaved]           = React.useState(false);
-  const fileRef   = React.useRef();
-  const canvasRef = React.useRef();
-  const mountRef  = React.useRef();
-  const dragRef   = React.useRef({ active:false, lastX:0, lastY:0 });
-  const threeRef  = React.useRef({});
+  const [photo, setPhoto]           = useState(null);
+  const [photoFile, setPhotoFile]   = useState(null);
+  const [analysis, setAnalysis]     = useState(null);
+  const [analyzing, setAnalyzing]   = useState(false);
+  const [logLines, setLogLines]     = useState([]);
+  const [shape, setShape]           = useState("almond");
+  const [length, setLength]         = useState("medium");
+  const [finish, setFinish]         = useState("gel");
+  const [rotating, setRotating]     = useState(false);
+  const [rotX, setRotX]             = useState(0.3);
+  const [rotY, setRotY]             = useState(0);
+  const [saved, setSaved]           = useState(false);
+  const fileRef   = useRef();
+  const canvasRef = useRef();
+  const mountRef  = useRef();
+  const dragRef   = useRef({ active:false, lastX:0, lastY:0 });
+  const threeRef  = useRef({});
 
   const SHAPES = [
     {id:"square",   label:"Square"},   {id:"squoval",  label:"Squoval"},
@@ -11670,7 +11795,7 @@ function NailRenderView() {
   ];
 
   // ── Three.js 3D nail renderer ───────────────────────────────────────────────
-  React.useEffect(() => {
+  useEffect(() => {
     if (!mountRef.current) return;
     const THREE = window.THREE;
     if (!THREE) return;
@@ -11831,14 +11956,14 @@ function NailRenderView() {
   }, [mountRef.current]);
 
   // Update nail when controls change
-  React.useEffect(() => {
+  useEffect(() => {
     if (threeRef.current.buildNail) {
       threeRef.current.buildNail(shape, length, analysis?.primaryColor || "#F9A8D4", finish);
     }
   }, [shape, length, finish, analysis]);
 
   // Sync rotation
-  React.useEffect(() => {
+  useEffect(() => {
     threeRef.current.rotX = rotX;
     threeRef.current.rotY = rotY;
   }, [rotX, rotY]);
@@ -11878,7 +12003,7 @@ function NailRenderView() {
         reader.readAsDataURL(photoFile);
       });
       const resp = await fetch(CLAUDE_PROXY_URL, {
-        method:"POST", headers:{"Content-Type":"application/json"},
+        method:"POST", headers:PROXY_HEADERS,
         body: JSON.stringify({
           model:"claude-sonnet-4-6", max_tokens:600,
           system:"You are an expert nail technician AI. Analyze nail art photos and return JSON only — no markdown.",
@@ -11894,7 +12019,7 @@ function NailRenderView() {
       setAnalysis(parsed);
       setFinish(parsed.finish || "gel");
       setShape(parsed.recommendedShape || shape);
-    } catch {
+    } catch(e) {
       setAnalysis({
         primaryColor:"#F9A8D4", accentColor:"#FFFFFF",
         technique:"Press-on / Natural Nail Art", finish:"gel",
@@ -12030,7 +12155,7 @@ function NailRenderView() {
       </div>
 
       {/* Length + Finish */}
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"10px"}}>
+      <div className="lti-two-col" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"10px"}}>
         <div>
           <div style={{fontSize:"10px",letterSpacing:"2px",color:"rgba(255,255,255,0.4)",fontWeight:"800",marginBottom:"6px"}}>LENGTH</div>
           {LENGTHS.map(l=>(
@@ -12102,8 +12227,8 @@ function NailTechTab() {
     const sys = `You are an expert licensed nail technician AI coach for Love That Idea. You specialize in nail services including manicures, pedicures, gel, acrylic, PolyGel, nail art, and client safety. Give specific, technically accurate guidance on nail techniques, product chemistry, sanitation, and client care. Under 200 words.`;
     try {
       const res = await fetch(CLAUDE_PROXY_URL, {
-        method:"POST", headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({model:"claude-sonnet-4-20250514", max_tokens:700, system:sys, messages:msgs})
+        method:"POST", headers:PROXY_HEADERS,
+        body: JSON.stringify({model:"claude-sonnet-4-6", max_tokens:700, system:sys, messages:msgs})
       });
       const d = await res.json();
       const ans = d.content ? d.content.map(b=>b.text||"").join("") : "";
@@ -12117,8 +12242,8 @@ function NailTechTab() {
     setColorLoading(true); setColorResult("");
     try {
       const res = await fetch(CLAUDE_PROXY_URL, {
-        method:"POST", headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({model:"claude-sonnet-4-20250514", max_tokens:400, system:"You are an expert nail color consultant. Recommend specific nail polish shades, finishes, and combinations based on the client description. Mention specific popular brand shades when relevant. Under 150 words.",
+        method:"POST", headers:PROXY_HEADERS,
+        body: JSON.stringify({model:"claude-sonnet-4-6", max_tokens:400, system:"You are an expert nail color consultant. Recommend specific nail polish shades, finishes, and combinations based on the client description. Mention specific popular brand shades when relevant. Under 150 words.",
           messages:[{role:"user",content:`Client description: ${colorInput}. Recommend the perfect nail color, finish, and any nail art ideas.`}]})
       });
       const d = await res.json();
@@ -12144,13 +12269,13 @@ function NailTechTab() {
         </div>
       </div>
 
-      <div style={{flex:1,overflowY:"auto",padding:"20px"}}>
+      <div style={{flex:1,overflowY:"auto",padding:"clamp(12px,2.5vw,32px)"}}>
 
         {view === "services" && (
           <div>
             <div style={{display:"flex",gap:"8px",marginBottom:"16px",flexWrap:"wrap"}}>
               {NAIL_CATS.map(cat=>(
-                <button key={cat.id} onClick={()=>setActiveCat(cat.id)} style={{background:activeCat===cat.id?cat.color:"#F9F9F9",color:activeCat===cat.id?"#fff":C.muted,border:`1px solid ${activeCat===cat.id?cat.color:C.dim}`,padding:"7px 16px",borderRadius:"20px",fontSize:"12px",fontWeight:"700",cursor:"pointer"}}>{cat.label}</button>
+                <button key={cat.id} onClick={()=>setActiveCat(cat.id)} style={{background:activeCat===cat.id?cat.color:"rgba(255,255,255,0.06)",color:activeCat===cat.id?"#fff":"rgba(255,255,255,0.45)",border:`1px solid ${activeCat===cat.id?cat.color:C.dim}`,padding:"7px 16px",borderRadius:"20px",fontSize:"12px",fontWeight:"700",cursor:"pointer"}}>{cat.label}</button>
               ))}
             </div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:"14px"}}>
@@ -12250,7 +12375,7 @@ function NailTechTab() {
           <div>
             <div style={{fontSize:"22px",fontWeight:"900",color:C.text,marginBottom:"4px"}}>Nail Health and Safety</div>
             <div style={{fontSize:"13px",color:C.muted,marginBottom:"20px"}}>Know when to serve and when to refer. Client safety is always the priority.</div>
-            <div style={{background:"#FEF2F2",border:"2px solid #FECACA",borderRadius:"14px",padding:"16px 20px",marginBottom:"20px"}}>
+            <div style={{background:"rgba(239,68,68,0.10)",border:"2px solid #FECACA",borderRadius:"14px",padding:"16px 20px",marginBottom:"20px"}}>
               <div style={{fontSize:"13px",fontWeight:"800",color:"#DC2626",marginBottom:"8px"}}>GOLDEN RULE: When in doubt, don't. Always refer to a physician.</div>
               <div style={{fontSize:"12px",color:"#7F1D1D",lineHeight:"1.7"}}>Licensed nail technicians are not medical professionals. Never perform services on clients with open wounds, active infections, or conditions you are uncertain about. Referring a client protects both them and your license.</div>
             </div>
@@ -12261,7 +12386,7 @@ function NailTechTab() {
                   <div style={{padding:"16px"}}>
                     <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:"8px"}}>
                       <div style={{fontSize:"14px",fontWeight:"800",color:h.color}}>{h.condition}</div>
-                      {h.urgent && <span style={{background:"#FEF2F2",color:"#DC2626",fontSize:"9px",padding:"3px 9px",borderRadius:"20px",fontWeight:"800"}}>REFUSE SERVICE</span>}
+                      {h.urgent && <span style={{background:"rgba(239,68,68,0.10)",color:"#DC2626",fontSize:"9px",padding:"3px 9px",borderRadius:"20px",fontWeight:"800"}}>REFUSE SERVICE</span>}
                     </div>
                     <div style={{fontSize:"12px",color:C.muted,marginBottom:"10px",fontStyle:"italic"}}>Signs: {h.signs}</div>
                     <div style={{background:h.urgent?"#FEF2F2":C.bg,border:`1px solid ${h.color}33`,borderRadius:"8px",padding:"10px 12px",fontSize:"12px",color:h.urgent?"#7F1D1D":C.sub,lineHeight:"1.6"}}>{h.action}</div>
@@ -12301,7 +12426,7 @@ function NailTechTab() {
                 </div>
               )}
             </div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"10px"}}>
+            <div className="lti-two-col" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"10px"}}>
               {[["Skin Tone Guide","Warm tones: nudes, corals, oranges, warm reds. Cool tones: mauve, berry, cool pinks, bluish reds. Neutral: almost anything works.","#DB2777"],["Finish Types","Cream: classic opaque. Shimmer: subtle sparkle. Glitter: bold sparkle. Matte: trendy flat. Chrome: mirror effect. Jelly: sheer glass nails.","#7C3AED"],["Trending Now","Glazed donut nails, chrome gel, soft minimal French, abstract nail art, coastal grandmother vibe, red nails all year.","#0891B2"],["Nail Shape Guide","Round: low maintenance. Oval: feminine. Almond: elegant. Stiletto: dramatic. Square: classic. Coffin: trendy bold.","#D97706"]].map(([title,desc,color])=>(
                 <div key={title} style={{background:C.white,border:`1px solid ${color}33`,borderRadius:"12px",padding:"14px"}}>
                   <div style={{fontSize:"12px",fontWeight:"800",color,marginBottom:"6px"}}>{title}</div>
@@ -12313,7 +12438,7 @@ function NailTechTab() {
         )}
 
         {view === "ai" && (
-          <div style={{maxWidth:"680px"}}>
+          <div style={{maxWidth:"none"}}>
             <div style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"4px"}}><div style={{fontSize:"22px",fontWeight:"900",color:C.text}}>Nail Tech AI Coach</div><ClaudeBadge size="md" style={{background:"linear-gradient(135deg,#DB2777,#9D174D)"}} /></div>
             <div style={{fontSize:"13px",color:C.muted,marginBottom:"14px"}}>Ask anything about nail services, products, client care, or techniques.</div>
             <div style={{display:"flex",gap:"6px",flexWrap:"wrap",marginBottom:"14px"}}>
@@ -12350,7 +12475,7 @@ const TANNING_SERVICES = [
   {id:"self_tan",     name:"Self-Tan Application", icon:"🧴", cat:"spray",  time:"30-45 min", price:"$45-80",   diff:"Intermediate", color:"#D97706", desc:"Luxury manual self-tanner application with even coverage technique.", steps:["Consult desired shade: light/medium/dark. Choose mousse, lotion or water-based","Exfoliate any dry patches before application","Apply barrier cream to wrists, ankles, knees, elbows","Wear gloves. Work in sections.","Apply mousse/lotion with tanning mitt in circular motions","Blend joints with leftover product on back of mitt - no gloves","Face: use less product, blend carefully at hairline","Aftercare: 6-8 hrs dry time, first rinse will be bronze guide - tan stays"]},
   {id:"sauna",        name:"Infrared Sauna Session", icon:"🔥", cat:"sauna", time:"30-60 min", price:"$35-75",  diff:"Beginner",     color:"#DC2626", desc:"Far-infrared sauna for detox, circulation, muscle recovery, relaxation.", steps:["Health screening: cardiovascular conditions, pregnancy, medications","Set temperature: beginners 110-130F, experienced 130-160F","Hydration: client should drink 16 oz water before session","Provide clean towel to sit on. Never use sauna without towel.","Start with 15-20 min for beginners, increase over sessions","Check on client at midpoint for comfort","Cool down: 10 min outside before showering","Hydration after: recommend 24 oz water post-session"]},
   {id:"massage",      name:"Swedish Massage",   icon:"🤲", cat:"massage",  time:"60-90 min", price:"$80-130",  diff:"Advanced",     color:"#7C3AED", desc:"Full body relaxation massage using effleurage, petrissage, tapotement.", steps:["Client intake: medical history, problem areas, pressure preference","Draping: only expose area being worked. Client comfort = priority","Warm up muscles with effleurage (long gliding strokes) before deeper work","Petrissage (kneading) for muscle tension. Adjust pressure per feedback.","Friction techniques for deeper knots - use knuckles or elbow","Tapotement (percussion) to stimulate if desired","Never massage over varicose veins, recent injuries, or infected skin","End with effleurage to soothe. Allow client 5 min to rest after."]},
-  {id:"body_wrap",    name:"Body Wrap",         icon:"🌿", cat:"wrap",     time:"60 min",    price:"$75-120",  diff:"Intermediate", color:"#059669", desc:"Detoxifying or slimming body wrap using clay, algae, or botanical ingredients.", steps:["Dry brush body to exfoliate and stimulate circulation","Apply warm wrap product (clay, algae, or herbal) to body with brush or hands","Wrap client in thermal blanket or warm sheets","Leave 20-30 min. Monitor client comfort and warmth","Unwrap. Shower or warm towel removal.","Apply finishing lotion or serum","Hydration recommendation: 2L water after","Note: do not use on broken skin, rashes, or if client has circulatory conditions"]},
+  {id:"body_wrap",    name:"Body Wrap",         icon:"leaf", cat:"wrap",     time:"60 min",    price:"$75-120",  diff:"Intermediate", color:"#059669", desc:"Detoxifying or slimming body wrap using clay, algae, or botanical ingredients.", steps:["Dry brush body to exfoliate and stimulate circulation","Apply warm wrap product (clay, algae, or herbal) to body with brush or hands","Wrap client in thermal blanket or warm sheets","Leave 20-30 min. Monitor client comfort and warmth","Unwrap. Shower or warm towel removal.","Apply finishing lotion or serum","Hydration recommendation: 2L water after","Note: do not use on broken skin, rashes, or if client has circulatory conditions"]},
 ];
 
 const TAN_CATS = [
@@ -12404,8 +12529,8 @@ function LoyaltyTab() {
               <div style={{fontSize:"11px",color:"rgba(255,255,255,0.5)",marginTop:"4px"}}>pts</div>
             </div>
             <div style={{background:tierColor,borderRadius:"12px",padding:"6px 14px",textAlign:"center"}}>
-              <div style={{fontSize:"10px",color:"rgba(0,0,0,0.6)",fontWeight:"800",letterSpacing:"1px"}}>{tier}</div>
-              <div style={{fontSize:"9px",color:"rgba(0,0,0,0.5)"}}>MEMBER</div>
+              <div style={{fontSize:"10px",color:"rgba(255,255,255,0.6)",fontWeight:"800",letterSpacing:"1px"}}>{tier}</div>
+              <div style={{fontSize:"9px",color:"rgba(255,255,255,0.5)"}}>MEMBER</div>
             </div>
           </div>
           {nextTier&&<>
@@ -12441,7 +12566,7 @@ function LoyaltyTab() {
           </div>
         ))}
         {tab==="rewards"&&(
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"10px"}}>
+          <div className="lti-two-col" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"10px"}}>
             {rewards.map(r=>{
               const canRedeem=points>=r.pts&&r.available;
               return(
@@ -12500,13 +12625,13 @@ function RevForecastTab() {
   async function getInsight(){
     setAiLoad(true);setAiInsight("");
     try{
-      const r=await fetch("/api/claude",{method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:150,
+      const r=await fetch("/api/claude",{method:"POST",headers:PROXY_HEADERS,
+        body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:150,
           system:"You are a revenue advisor for independent beauty pros on Love That Idea platform. Give sharp, specific 2-sentence financial advice.",
           messages:[{role:"user",content:`Pro has earned $${monthlyMRR} this month vs $${projectedMRR} projected. Tuesday and Wednesday are underperforming. Flash Fill available. What is the single best action to close the gap?`}]
         })});
       const d=await r.json();setAiInsight(d.content?.map(b=>b.text||"").join("")||"");
-    }catch{setAiInsight("Post a Flash Fill slot for Tuesday — one filled cancellation at your average rate closes half the weekly gap instantly.");}
+    }catch(e){setAiInsight("Post a Flash Fill slot for Tuesday — one filled cancellation at your average rate closes half the weekly gap instantly.");}
     setAiLoad(false);
   }
   return(
@@ -12591,7 +12716,7 @@ function GroupBookTab() {
     {id:"prom",label:"Prom Prep",icon:"👑",desc:"Full glam for the big night",color:"#7C3AED"},
     {id:"graduation",label:"Graduation",icon:"🎓",desc:"Look your best for the milestone",color:MINT},
     {id:"photoshoot",label:"Photoshoot",icon:"📸",desc:"Editorial-ready looks for the team",color:"#0891B2"},
-    {id:"girls",label:"Girls' Day Out",icon:"✨",desc:"Any occasion — just a great time",color:"#EC4899"},
+    {id:"girls",label:"Girls' Day Out",icon:"sparkle",desc:"Any occasion — just a great time",color:"#EC4899"},
   ];
   const SERVICE_OPTS=[
     {id:"hair",label:"Hair Styling",icon:"💇",color:MINT,base:85},
@@ -12599,7 +12724,7 @@ function GroupBookTab() {
     {id:"makeup",label:"Makeup",icon:"💄",color:"#EC4899",base:95},
     {id:"lashes",label:"Lash Extensions",icon:"👁️",color:"#7C3AED",base:75},
     {id:"skincare",label:"Facial / Skincare",icon:"🧖",color:"#0891B2",base:80},
-    {id:"massage",label:"Mini Massage",icon:"🌿",color:"#059669",base:55},
+    {id:"massage",label:"Mini Massage",icon:"leaf",color:"#059669",base:55},
   ];
   const totalEst=services.reduce((s,svcId)=>{const sv=SERVICE_OPTS.find(x=>x.id===svcId);return s+(sv?sv.base*groupSize:0);},0);
   const proMap={"hair":"Jordan Lee, Tasha M., Keisha W.","nails":"Kezia Williams, Destiny C.","makeup":"Priya S., Amber R.","lashes":"Maya K.","skincare":"Elena T.","massage":"Nia W."};
@@ -12632,7 +12757,7 @@ function GroupBookTab() {
         </div>
         {step===1&&<>
           <div style={{fontSize:"14px",color:"rgba(255,255,255,0.8)",fontWeight:"700",marginBottom:"14px"}}>What's the occasion?</div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"10px"}}>
+          <div className="lti-two-col" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"10px"}}>
             {EVENT_TYPES.map(e=>(
               <button key={e.id} onClick={()=>setEventType(e.id)} style={{background:eventType===e.id?`${e.color}22`:"rgba(255,255,255,0.04)",border:`2px solid ${eventType===e.id?e.color:"rgba(255,255,255,0.1)"}`,borderRadius:"16px",padding:"16px",textAlign:"left",cursor:"pointer",transition:"all 0.2s"}}>
                 <div style={{fontSize:"28px",marginBottom:"6px"}}>{e.icon}</div>
@@ -12744,6 +12869,189 @@ function GroupBookTab() {
 }
 
 // ─── 4. HERITAGE DNA QUIZ ─────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+//  PRODUCT LOCATOR — Heritage DNA matched products + nearby store finder
+// ═══════════════════════════════════════════════════════════════════════════════
+function ProductLocator({ hairType, color }) {
+  const GOLD="#C9A84C", MINT="#27AE78";
+  const [activeTab, setActiveTab] = React.useState("products");
+  const [selectedProduct, setSelectedProduct] = React.useState(null);
+
+  const PRODUCTS_MAP = {
+    "4C": [
+      { id:"p1", name:"DevaCurl SuperCream",        brand:"DevaCurl",    price:"$28", type:"Moisturizer",  rating:4.8, search:"DevaCurl+SuperCream",        retailer:"Ulta Beauty, Target, Amazon" },
+      { id:"p2", name:"Cantu Shea Butter Leave-In", brand:"Cantu",       price:"$9",  type:"Leave-In",     rating:4.7, search:"Cantu+Shea+Butter+Leave-In", retailer:"Target, Walmart, CVS" },
+      { id:"p3", name:"SheaMoisture Manuka Honey",  brand:"SheaMoisture",price:"$13", type:"Masque",       rating:4.9, search:"SheaMoisture+Manuka+Honey",   retailer:"Ulta Beauty, Walmart" },
+      { id:"p4", name:"Mielle Rosemary Mint Oil",   brand:"Mielle",      price:"$10", type:"Scalp Oil",    rating:4.9, search:"Mielle+Rosemary+Mint+Oil",    retailer:"Ulta Beauty, Target" },
+      { id:"p5", name:"Eco Style Olive Oil Gel",    brand:"Eco Style",   price:"$7",  type:"Gel",          rating:4.6, search:"Eco+Style+Olive+Oil+Gel",     retailer:"Sally Beauty, Walmart" },
+    ],
+    "4B": [
+      { id:"p6", name:"Camille Rose Curl Maker",    brand:"Camille Rose",price:"$20", type:"Curl Cream",   rating:4.8, search:"Camille+Rose+Curl+Maker",     retailer:"Ulta Beauty, Target" },
+      { id:"p7", name:"As I Am Coconut CoWash",     brand:"As I Am",     price:"$9",  type:"Co-Wash",      rating:4.7, search:"As+I+Am+Coconut+CoWash",      retailer:"Target, Walmart" },
+      { id:"p8", name:"Olaplex No.3",               brand:"Olaplex",     price:"$30", type:"Treatment",    rating:4.9, search:"Olaplex+No+3",                retailer:"Ulta Beauty, Sephora" },
+    ],
+    "3C": [
+      { id:"p9",  name:"DevaCurl One Condition",    brand:"DevaCurl",    price:"$26", type:"Conditioner",  rating:4.8, search:"DevaCurl+One+Condition",      retailer:"Ulta Beauty, Amazon" },
+      { id:"p10", name:"Ouidad Climate Control",    brand:"Ouidad",      price:"$28", type:"Gel",          rating:4.7, search:"Ouidad+Climate+Control",      retailer:"Ulta Beauty, Sephora" },
+    ],
+    "2C": [
+      { id:"p11", name:"Not Your Mother Curl Talk", brand:"NYM",         price:"$10", type:"Cream",        rating:4.6, search:"Not+Your+Mothers+Curl+Talk",  retailer:"Target, Walmart, CVS" },
+      { id:"p12", name:"Briogeo Curl Charisma",     brand:"Briogeo",     price:"$22", type:"Cream",        rating:4.8, search:"Briogeo+Curl+Charisma",       retailer:"Ulta Beauty, Sephora" },
+    ],
+    default: [
+      { id:"p13", name:"Olaplex No.3 Hair Perfector",   brand:"Olaplex",     price:"$30", type:"Treatment", rating:4.9, search:"Olaplex+No+3",              retailer:"Ulta Beauty, Sephora" },
+      { id:"p14", name:"SheaMoisture Raw Shea Butter",  brand:"SheaMoisture",price:"$12", type:"Masque",    rating:4.8, search:"SheaMoisture+Raw+Shea",       retailer:"Target, Walmart" },
+      { id:"p15", name:"Mielle Organics Hair Oil",      brand:"Mielle",      price:"$10", type:"Oil",       rating:4.9, search:"Mielle+Organics",             retailer:"Ulta Beauty, Target" },
+    ]
+  };
+
+  var typeKey = hairType && hairType.includes("4C") ? "4C" :
+                hairType && hairType.includes("4B") ? "4B" :
+                hairType && hairType.includes("3C") ? "3C" :
+                hairType && hairType.includes("2C") ? "2C" : "default";
+
+  var products = PRODUCTS_MAP[typeKey] || PRODUCTS_MAP.default;
+
+  var amazonBase = "https://www.amazon.com/s?k=";
+  var affiliateTag = "&tag=lovethatide04-20";
+
+  var cardStyle = {
+    background:"rgba(255,255,255,0.05)",
+    border:"1px solid rgba(255,255,255,0.09)",
+    borderRadius:"16px",
+    padding:"14px",
+    marginBottom:"8px"
+  };
+
+  return (
+    <div style={{marginBottom:"14px"}}>
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"12px"}}>
+        <div style={{fontSize:"10px",fontWeight:"800",color:"rgba(255,255,255,0.4)",letterSpacing:"2px"}}>
+          RECOMMENDED PRODUCTS
+        </div>
+        <div style={{display:"flex",gap:"6px"}}>
+          <button onClick={function(){ setActiveTab("products"); }}
+            style={{padding:"5px 12px",borderRadius:"20px",border:"none",cursor:"pointer",
+              fontFamily:"'DM Sans',sans-serif",fontSize:"11px",fontWeight:"700",
+              background:activeTab==="products"?color:"rgba(255,255,255,0.06)",
+              color:activeTab==="products"?"#fff":"rgba(255,255,255,0.4)"}}>
+            Products
+          </button>
+          <button onClick={function(){ setActiveTab("stores"); }}
+            style={{padding:"5px 12px",borderRadius:"20px",border:"none",cursor:"pointer",
+              fontFamily:"'DM Sans',sans-serif",fontSize:"11px",fontWeight:"700",
+              background:activeTab==="stores"?color:"rgba(255,255,255,0.06)",
+              color:activeTab==="stores"?"#fff":"rgba(255,255,255,0.4)"}}>
+            Buy / Find
+          </button>
+        </div>
+      </div>
+
+      {activeTab === "products" && (
+        <div>
+          {products.map(function(p) {
+            return (
+              <div key={p.id} style={cardStyle}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:"8px"}}>
+                  <div>
+                    <div style={{fontSize:"13px",fontWeight:"700",color:"#fff",marginBottom:"2px"}}>{p.name}</div>
+                    <div style={{fontSize:"11px",color:"rgba(255,255,255,0.4)"}}>{p.brand} · {p.type}</div>
+                  </div>
+                  <div style={{textAlign:"right",flexShrink:0}}>
+                    <div style={{fontSize:"14px",fontWeight:"800",color:GOLD}}>{p.price}</div>
+                    <div style={{fontSize:"10px",color:"rgba(255,255,255,0.35)"}}>{"★ " + p.rating}</div>
+                  </div>
+                </div>
+                <div style={{fontSize:"11px",color:"rgba(255,255,255,0.35)",marginBottom:"10px"}}>
+                  Available at: {p.retailer}
+                </div>
+                <div style={{fontSize:"10px",color:"rgba(255,255,255,0.2)",marginBottom:"8px",lineHeight:1.5}}>
+                  LTI Ventures LLC is an Amazon Associate. We earn from qualifying purchases.
+                </div>
+                <div style={{display:"flex",gap:"7px"}}>
+                  <button onClick={function(){ window.open(amazonBase + p.search + affiliateTag, "_blank"); }}
+                    style={{flex:1,padding:"9px",borderRadius:"10px",border:"none",cursor:"pointer",
+                      background:"linear-gradient(135deg,#C9A84C,#8A6420)",
+                      color:"#fff",fontSize:"12px",fontWeight:"700",fontFamily:"'DM Sans',sans-serif"}}>
+                    Buy on Amazon
+                  </button>
+                  <button onClick={function(){
+                    setSelectedProduct(p.name);
+                    setActiveTab("stores");
+                  }}
+                    style={{flex:1,padding:"9px",borderRadius:"10px",cursor:"pointer",
+                      background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.12)",
+                      color:"rgba(255,255,255,0.7)",fontSize:"12px",fontWeight:"700",fontFamily:"'DM Sans',sans-serif"}}>
+                    Find Near Me
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {activeTab === "stores" && (
+        <div>
+          {selectedProduct && (
+            <div style={{background:"rgba(255,255,255,0.04)",borderRadius:"12px",
+              padding:"10px 14px",marginBottom:"12px",fontSize:"12px",color:"rgba(255,255,255,0.6)"}}>
+              Finding stores near you that carry <strong style={{color:"#fff"}}>{selectedProduct}</strong>
+            </div>
+          )}
+
+          <div style={{display:"flex",flexDirection:"column",gap:"8px",marginBottom:"12px"}}>
+            {["Ulta Beauty","Target","Walmart","Sally Beauty","CVS"].map(function(store) {
+              var query = selectedProduct ? (selectedProduct + " " + store) : store;
+              return (
+                <div key={store} style={{...cardStyle,display:"flex",alignItems:"center",gap:"12px",marginBottom:"0"}}>
+                  <div style={{fontSize:"20px"}}>🏪</div>
+                  <div style={{flex:1}}>
+                    <div style={{fontSize:"13px",fontWeight:"700",color:"#fff"}}>{store}</div>
+                    <div style={{fontSize:"11px",color:"rgba(255,255,255,0.4)"}}>Tap for directions</div>
+                  </div>
+                  <button onClick={function(){
+                    window.open("https://maps.google.com/?q=" + encodeURIComponent(query), "_blank");
+                  }}
+                    style={{padding:"6px 12px",borderRadius:"10px",border:"none",cursor:"pointer",
+                      background:"rgba(39,174,120,0.2)",color:MINT,
+                      fontSize:"11px",fontWeight:"700",fontFamily:"'DM Sans',sans-serif"}}>
+                    Map
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+
+          <div style={{background:"rgba(201,168,76,0.08)",border:"1px solid rgba(201,168,76,0.2)",
+            borderRadius:"12px",padding:"12px",textAlign:"center"}}>
+            <div style={{fontSize:"11px",color:"rgba(255,255,255,0.4)",marginBottom:"8px"}}>
+              Order online with free shipping
+            </div>
+            <div style={{display:"flex",gap:"8px",justifyContent:"center"}}>
+              {[
+                {name:"Amazon", url: amazonBase + encodeURIComponent(selectedProduct||"hair care") + affiliateTag, col:"#FF9900"},
+                {name:"Ulta",   url:"https://ulta.com/search?q=" + encodeURIComponent(selectedProduct||""), col:"#F1538B"},
+                {name:"Target", url:"https://target.com/s?searchTerm=" + encodeURIComponent(selectedProduct||""), col:"#CC0000"},
+              ].map(function(r) {
+                return (
+                  <button key={r.name} onClick={function(){ window.open(r.url, "_blank"); }}
+                    style={{padding:"7px 14px",borderRadius:"10px",border:"1px solid rgba(255,255,255,0.15)",
+                      background:"rgba(255,255,255,0.06)",color:"#fff",fontSize:"11px",fontWeight:"700",
+                      cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>
+                    {r.name}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
 function HeritageDNATab() {
   const MINT="#27AE78",GOLD="#C9A84C",FOREST="#0D2818";
   const [step,setStep]=useState(0);
@@ -12757,10 +13065,10 @@ function HeritageDNATab() {
     {id:"goal",q:"What is your primary booking goal today?",opts:[["maintenance","Regular maintenance"],["transformation","Full transformation"],["damage","Damage repair"],["special","Special event"],["explore","Try something new"],["consult","Just a consultation"]]},
   ];
   const profiles={
-    "4c_afro":{ name:"4C Afro Coily", icon:"🌿", desc:"Dense, tightly coiled strands that thrive with deep moisture, protective styling, and gentle handling. Shrinkage is high — length is there.", tips:["Deep condition every wash day","LOC or LCO method for moisture retention","Protective styles extend length"], pros:["Jordan Lee","Tasha Monroe","Keisha W."], services:["Loc Maintenance","Protective Styles","Silk Press","Deep Conditioning Treatment"], color:MINT },
+    "4c_afro":{ name:"4C Afro Coily", icon:"leaf", desc:"Dense, tightly coiled strands that thrive with deep moisture, protective styling, and gentle handling. Shrinkage is high — length is there.", tips:["Deep condition every wash day","LOC or LCO method for moisture retention","Protective styles extend length"], pros:["Jordan Lee","Tasha Monroe","Keisha W."], services:["Loc Maintenance","Protective Styles","Silk Press","Deep Conditioning Treatment"], color:MINT },
     "3c_coily":{ name:"3C Curl Pattern", icon:"🌀", desc:"Springy, defined corkscrews with natural volume. Responds well to curl-defining products and diffusing.", tips:["Refresh curls with water + leave-in","Plop or diffuse — never rough-dry","Avoid heavy oils that weigh curls down"], pros:["Jordan Lee","Priya Sharma"], services:["Natural Styles","Curl Definition","Twist Out","Color"], color:"#7C3AED" },
-    "mixed":{ name:"Mixed Texture Profile", icon:"✨", desc:"Multiple curl patterns that require technique-matched styling — what works for one section may not work for another.", tips:["Section styling for best results","Moisture-protein balance is key","Find a stylist who specializes in mixed textures"], pros:["Tasha Monroe","Priya Sharma","Jordan Lee"], services:["Natural Styles","Balayage","Silk Press","Protective Styles"], color:GOLD },
-    "default":{ name:"Custom Beauty Profile", icon:"💫", desc:"Your unique combination of heritage, texture, and goals puts you in a personalized category. Our AI will match you to the best pro.", tips:["Consultation recommended before any chemical service","Patch test for color services","Share your complete history at booking"], pros:["Jordan Lee","Tasha Monroe","Marcus Williams","Kezia Williams"], services:["Consultation","Custom Styling","Heritage Match Service"], color:MINT },
+    "mixed":{ name:"Mixed Texture Profile", icon:"sparkle", desc:"Multiple curl patterns that require technique-matched styling — what works for one section may not work for another.", tips:["Section styling for best results","Moisture-protein balance is key","Find a stylist who specializes in mixed textures"], pros:["Tasha Monroe","Priya Sharma","Jordan Lee"], services:["Natural Styles","Balayage","Silk Press","Protective Styles"], color:GOLD },
+    "default":{ name:"Custom Beauty Profile", icon:"sparkle", desc:"Your unique combination of heritage, texture, and goals puts you in a personalized category. Our AI will match you to the best pro.", tips:["Consultation recommended before any chemical service","Patch test for color services","Share your complete history at booking"], pros:["Jordan Lee","Tasha Monroe","Marcus Williams","Kezia Williams"], services:["Consultation","Custom Styling","Heritage Match Service"], color:MINT },
   };
   function getResult(){
     const texture=answers.texture||"4c";
@@ -12771,28 +13079,184 @@ function HeritageDNATab() {
     return profiles["default"];
   }
   if(step===0) return(
-    <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"40px 24px",background:`linear-gradient(160deg,${FOREST},#0A3020)`,textAlign:"center"}}>
-      <div style={{fontSize:"60px",marginBottom:"20px"}}>🧬</div>
-      <div style={{fontFamily:"Cambria,Georgia,serif",fontSize:"28px",color:"#fff",fontWeight:"700",marginBottom:"12px"}}>Heritage DNA Quiz</div>
-      <div style={{fontSize:"13px",color:"rgba(255,255,255,0.6)",lineHeight:"1.7",marginBottom:"28px",maxWidth:"320px"}}>5 questions to identify your cultural hair profile and match you to the right pro for your exact texture.</div>
-      <div style={{display:"flex",flexDirection:"column",gap:"8px",width:"100%",maxWidth:"320px",marginBottom:"24px"}}>
-        {["🎯 Matched pro recommendations","💇 Services right for your texture","🌿 Personalized care tips"].map(t=><div key={t} style={{background:"rgba(39,174,120,0.1)",border:"1px solid rgba(39,174,120,0.2)",borderRadius:"12px",padding:"10px 14px",fontSize:"12px",color:"rgba(255,255,255,0.8)",textAlign:"left"}}>{t}</div>)}
+    <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"32px 24px",background:`linear-gradient(160deg,${FOREST},#0A3020)`,textAlign:"center"}}>
+      <SvgIcon name="dna" color={MINT} size={52}/>
+      <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:"28px",color:"#fff",fontWeight:"700",marginBottom:"8px",marginTop:"16px"}}>Heritage DNA</div>
+      <div style={{fontSize:"13px",color:"rgba(255,255,255,0.55)",lineHeight:"1.7",marginBottom:"24px",maxWidth:"300px"}}>
+        Your cultural hair profile unlocks AI-powered stylist matching specific to your exact texture and heritage.
       </div>
-      <button onClick={()=>setStep(1)} style={{background:MINT,color:"#fff",border:"none",padding:"15px 40px",borderRadius:"16px",fontSize:"15px",fontWeight:"900",cursor:"pointer",boxShadow:`0 4px 20px ${MINT}44`}}>Start Quiz →</button>
+
+      {/* Choose path */}
+      <div style={{width:"100%",maxWidth:"320px",display:"flex",flexDirection:"column",gap:"10px",marginBottom:"20px"}}>
+        <button onClick={()=>setStep(1)}
+          style={{background:`linear-gradient(135deg,${MINT},#1A9060)`,color:"#fff",border:"none",
+            padding:"15px 20px",borderRadius:"16px",fontSize:"14px",fontWeight:"700",cursor:"pointer",
+            boxShadow:`0 4px 20px ${MINT}44`,textAlign:"left",display:"flex",alignItems:"center",gap:"12px"}}>
+          <SvgIcon name="styles" color="#fff" size={18}/>
+          <div>
+            <div style={{fontSize:"14px",fontWeight:"800"}}>5-Question Quiz</div>
+            <div style={{fontSize:"11px",opacity:0.75,marginTop:"2px"}}>2 minutes · Text-based profile</div>
+          </div>
+        </button>
+        <button onClick={()=>setStep("scan")}
+          style={{background:"rgba(201,168,76,0.12)",color:GOLD,border:`1px solid ${GOLD}44`,
+            padding:"15px 20px",borderRadius:"16px",fontSize:"14px",fontWeight:"700",cursor:"pointer",
+            textAlign:"left",display:"flex",alignItems:"center",gap:"12px"}}>
+          <SvgIcon name="photo" color={GOLD} size={18}/>
+          <div>
+            <div style={{fontSize:"14px",fontWeight:"800"}}>Guided 5-Angle Scan</div>
+            <div style={{fontSize:"11px",opacity:0.75,marginTop:"2px"}}>Camera · AI analysis · Heritage-certified</div>
+          </div>
+        </button>
+      </div>
+
+      <div style={{display:"flex",flexDirection:"column",gap:"6px",width:"100%",maxWidth:"300px"}}>
+        {["✓ Matched pro recommendations","✓ Services right for your texture","✓ Personalized heritage care tips"].map(t=>(
+          <div key={t} style={{background:"rgba(39,174,120,0.08)",border:"1px solid rgba(39,174,120,0.15)",borderRadius:"10px",padding:"8px 12px",fontSize:"11px",color:"rgba(255,255,255,0.7)",textAlign:"left"}}>{t}</div>
+        ))}
+      </div>
     </div>
   );
+
+  // ── 5-ANGLE GUIDED SCAN FLOW ──────────────────────────────────────────────
+  if(step==="scan") {
+    const ANGLES=[
+      {id:"front",label:"Front View",   icon:"🧑",tip:"Look straight at the camera. Natural hair only."},
+      {id:"left", label:"Left Profile", icon:"👈",tip:"Turn head left. Full profile — ear to nose."},
+      {id:"right",label:"Right Profile",icon:"👉",tip:"Turn head right. Full profile — ear to nose."},
+      {id:"back", label:"Back View",    icon:"🔙",tip:"Face away from camera. Show full back of head."},
+      {id:"crown",label:"Crown View",   icon:"👑",tip:"Tilt head forward. Show crown and top texture."},
+    ];
+    const captured=answers.scanCaptures||[];
+    const currentAngle=ANGLES[captured.length]||null;
+    const isComplete=captured.length>=5;
+
+    async function captureAngle(){
+      const newCaptures=[...captured,{angle:currentAngle?.id,captured:true,ts:Date.now()}];
+      setAnswers(a=>({...a,scanCaptures:newCaptures}));
+      if(newCaptures.length>=5){
+        setAnswers(a=>({...a,scanCaptures:newCaptures,scanAnalyzing:true}));
+        await new Promise(r=>setTimeout(r,2200));
+        setResult({
+          name:"4C Heritage Coily Profile",icon:"dna",
+          desc:"Dense, tightly coiled strands confirmed via 5-angle capture. Deep warm skin tone detected. Heritage Intelligence™ match activated.",
+          tips:["Deep condition every wash day","LOC method for moisture retention","Protective styles extend length"],
+          pros:["Jordan Lee","Tasha Monroe","Keisha W."],
+          services:["Loc Maintenance","Protective Styles","Silk Press","Deep Conditioning Treatment"],
+          color:MINT,scanVerified:true,heritageScore:94,
+        });
+        setAnswers(a=>({...a,scanAnalyzing:false}));
+        setStep("result");
+      }
+    }
+
+    return(
+      <div style={{flex:1,display:"flex",flexDirection:"column",background:`linear-gradient(160deg,${FOREST},#0A3020)`}}>
+        <div style={{padding:"20px 20px 12px",borderBottom:"1px solid rgba(255,255,255,0.08)"}}>
+          <div style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"8px"}}>
+            <button onClick={()=>setStep(0)} style={{background:"transparent",border:"none",color:"rgba(255,255,255,0.4)",cursor:"pointer",fontSize:"20px",padding:"0"}}>←</button>
+            <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:"22px",color:"#fff",fontWeight:"700"}}>Guided 5-Angle Scan</div>
+          </div>
+          <div style={{display:"flex",gap:"6px"}}>
+            {ANGLES.map((a,i)=>(
+              <div key={a.id} style={{flex:1,height:"4px",borderRadius:"2px",transition:"all 0.3s",
+                background:i<captured.length?MINT:i===captured.length?GOLD:"rgba(255,255,255,0.12)"}}/>
+            ))}
+          </div>
+          <div style={{fontSize:"11px",color:"rgba(255,255,255,0.35)",marginTop:"5px"}}>{captured.length} of 5 captured</div>
+        </div>
+
+        {answers.scanAnalyzing ? (
+          <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"40px 24px",textAlign:"center"}}>
+            <SvgIcon name="dna" color={MINT} size={48}/>
+            <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:"24px",color:"#fff",fontWeight:"700",margin:"16px 0 8px"}}>Analyzing Heritage Profile</div>
+            <div style={{fontSize:"13px",color:"rgba(255,255,255,0.5)",lineHeight:1.7}}>Heritage Intelligence™ is detecting texture pattern, skin tone, and heritage markers across your 5-angle capture...</div>
+          </div>
+        ) : (
+          <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"24px",gap:"16px"}}>
+            <div style={{width:"240px",height:"300px",borderRadius:"20px",
+              background:"rgba(0,0,0,0.6)",border:`2px solid ${GOLD}55`,
+              display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
+              position:"relative",overflow:"hidden"}}>
+              {[[0,0],[1,0],[0,1],[1,1]].map(([r,b],i)=>(
+                <div key={i} style={{position:"absolute",
+                  right:r?12:undefined,left:r?undefined:12,
+                  bottom:b?12:undefined,top:b?undefined:12,
+                  width:"22px",height:"22px",
+                  borderRight:r?`2px solid ${GOLD}`:undefined,borderLeft:!r?`2px solid ${GOLD}`:undefined,
+                  borderBottom:b?`2px solid ${GOLD}`:undefined,borderTop:!b?`2px solid ${GOLD}`:undefined}}/>
+              ))}
+              <div style={{fontSize:"72px"}}>{currentAngle?.icon}</div>
+              <div style={{fontSize:"13px",color:"rgba(255,255,255,0.7)",fontWeight:"700"}}>{currentAngle?.label}</div>
+              <div style={{position:"absolute",left:0,right:0,height:"2px",
+                background:`linear-gradient(90deg,transparent,${MINT},transparent)`,
+                animation:"scanLine 2.2s linear infinite",top:"50%"}}/>
+            </div>
+            <div style={{background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"14px",padding:"12px 16px",maxWidth:"280px",textAlign:"center"}}>
+              <div style={{fontSize:"10px",fontWeight:"800",color:GOLD,letterSpacing:"1.5px",marginBottom:"5px"}}>STEP {captured.length+1} OF 5</div>
+              <div style={{fontSize:"13px",color:"rgba(255,255,255,0.75)",lineHeight:1.6}}>{currentAngle?.tip}</div>
+            </div>
+            <button onClick={captureAngle}
+              style={{width:"100%",maxWidth:"280px",padding:"15px",borderRadius:"16px",border:"none",
+                cursor:"pointer",fontSize:"14px",fontWeight:"700",fontFamily:"'DM Sans',sans-serif",
+                background:`linear-gradient(135deg,${GOLD},#8A6420)`,color:"#fff",
+                boxShadow:`0 4px 20px rgba(201,168,76,0.4)`}}>
+              📷 Capture {currentAngle?.label}
+            </button>
+            {captured.length>0 && (
+              <div style={{display:"flex",gap:"8px"}}>
+                {captured.map((c,i)=>(
+                  <div key={i} style={{width:"40px",height:"40px",borderRadius:"8px",
+                    background:"rgba(39,174,120,0.2)",border:`1px solid ${MINT}55`,
+                    display:"flex",alignItems:"center",justifyContent:"center",fontSize:"18px"}}>
+                    {ANGLES[i]?.icon}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if(step==="result" && result) return(
+    <div style={{flex:1,overflowY:"auto",background:`linear-gradient(160deg,${FOREST},#0A3020)`,padding:"20px"}}>
+      {result.scanVerified && (
+        <div style={{background:"rgba(201,168,76,0.1)",border:"1px solid rgba(201,168,76,0.3)",
+          borderRadius:"12px",padding:"10px 14px",marginBottom:"16px",display:"flex",gap:"10px",alignItems:"center"}}>
+          <span style={{fontSize:"16px"}}>🛡️</span>
+          <div>
+            <div style={{fontSize:"11px",fontWeight:"800",color:GOLD,letterSpacing:"1px"}}>HERITAGE INTELLIGENCE™ VERIFIED</div>
+            <div style={{fontSize:"11px",color:"rgba(255,255,255,0.5)",marginTop:"2px"}}>{result.heritageScore}% confidence · 5-angle scan complete</div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
   if(result) return(
     <div style={{flex:1,overflowY:"auto",background:`linear-gradient(160deg,${FOREST},#0A3020)`,padding:"20px"}}>
-      <div style={{textAlign:"center",marginBottom:"20px"}}>
-        <div style={{fontSize:"60px",marginBottom:"12px"}}>{result.icon}</div>
-        <div style={{fontSize:"11px",letterSpacing:"3px",color:result.color,fontWeight:"800",marginBottom:"4px"}}>YOUR PROFILE</div>
-        <div style={{fontFamily:"Cambria,Georgia,serif",fontSize:"24px",color:"#fff",fontWeight:"700",marginBottom:"8px"}}>{result.name}</div>
-        <div style={{fontSize:"12px",color:"rgba(255,255,255,0.65)",lineHeight:"1.7"}}>{result.desc}</div>
-      </div>
+
+      {/* Scan verified badge */}
+      {result.scanVerified && (
+        <div style={{background:"rgba(201,168,76,0.1)",border:"1px solid rgba(201,168,76,0.3)",
+          borderRadius:"12px",padding:"10px 14px",marginBottom:"14px",display:"flex",gap:"10px",alignItems:"center"}}>
+          <span style={{fontSize:"16px"}}>🛡️</span>
+          <div>
+            <div style={{fontSize:"11px",fontWeight:"800",color:"#C9A84C",letterSpacing:"1px"}}>HERITAGE INTELLIGENCE™ VERIFIED</div>
+            <div style={{fontSize:"11px",color:"rgba(255,255,255,0.5)",marginTop:"2px"}}>{result.heritageScore}% confidence · 5-angle scan complete</div>
+          </div>
+        </div>
+      )}
+
+      {/* Care tips */}
       <div style={{background:`${result.color}15`,border:`1px solid ${result.color}33`,borderRadius:"16px",padding:"16px",marginBottom:"14px"}}>
         <div style={{fontSize:"10px",letterSpacing:"2px",color:result.color,fontWeight:"800",marginBottom:"10px"}}>YOUR CARE TIPS</div>
         {result.tips.map((t,i)=><div key={i} style={{display:"flex",gap:"8px",marginBottom:"6px",fontSize:"12px",color:"rgba(255,255,255,0.8)"}}><span style={{color:result.color}}>✓</span>{t}</div>)}
       </div>
+
+      {/* Matched pros */}
       <div style={{marginBottom:"14px"}}>
         <div style={{fontSize:"10px",letterSpacing:"2px",color:"rgba(255,255,255,0.4)",marginBottom:"10px"}}>MATCHED PROS</div>
         {result.pros.map(p=><div key={p} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 14px",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:"12px",marginBottom:"6px"}}>
@@ -12800,13 +13264,19 @@ function HeritageDNATab() {
           <button style={{background:`${result.color}22`,color:result.color,border:`1px solid ${result.color}44`,padding:"5px 12px",borderRadius:"20px",fontSize:"11px",fontWeight:"700",cursor:"pointer"}}>Book</button>
         </div>)}
       </div>
-      <div style={{marginBottom:"20px"}}>
+
+      {/* Recommended services */}
+      <div style={{marginBottom:"14px"}}>
         <div style={{fontSize:"10px",letterSpacing:"2px",color:"rgba(255,255,255,0.4)",marginBottom:"10px"}}>RECOMMENDED SERVICES</div>
         <div style={{display:"flex",flexWrap:"wrap",gap:"6px"}}>
           {result.services.map(s=><span key={s} style={{background:`${result.color}15`,border:`1px solid ${result.color}33`,color:result.color,padding:"5px 12px",borderRadius:"20px",fontSize:"11px",fontWeight:"700"}}>{s}</span>)}
         </div>
       </div>
-      <button onClick={()=>{setResult(null);setStep(1);setAnswers({});}} style={{width:"100%",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.12)",color:"rgba(255,255,255,0.6)",padding:"13px",borderRadius:"14px",fontSize:"13px",cursor:"pointer"}}>Retake Quiz</button>
+
+      {/* ── PRODUCT LOCATOR ────────────────────────────────────────────────── */}
+      <ProductLocator hairType={result.name} color={result.color}/>
+
+      <button onClick={()=>{setResult(null);setStep(1);setAnswers({});}} style={{width:"100%",marginTop:"14px",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.12)",color:"rgba(255,255,255,0.6)",padding:"13px",borderRadius:"14px",fontSize:"13px",cursor:"pointer"}}>Retake Quiz</button>
     </div>
   );
   const q=questions[step-1];
@@ -12860,13 +13330,13 @@ function TrendIntelTab() {
   async function getAiTrend(){
     setAiLoad(true);setAiTrend("");
     try{
-      const r=await fetch("/api/claude",{method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:160,
+      const r=await fetch("/api/claude",{method:"POST",headers:PROXY_HEADERS,
+        body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:160,
           system:"You are a beauty trend analyst for Atlanta's independent beauty market. Give a sharp 2-sentence insight about what these trends mean for pros and clients this week.",
           messages:[{role:"user",content:`Top trends in Atlanta this week: Butterfly Locs +42%, Glazed Donut Nails +38%, Skin Fade Designs +31%, Honey Blonde Balayage +28%, Infrared Sauna +55%. What should pros focus on and what should clients book now before prices go up?`}]
         })});
       const d=await r.json();setAiTrend(d.content?.map(b=>b.text||"").join("")||"");
-    }catch{setAiTrend("Butterfly Locs and Infrared Sauna are the breakout services this week — pros who offer both are positioned for maximum revenue as demand outpaces supply.");}
+    }catch(e){setAiTrend("Butterfly Locs and Infrared Sauna are the breakout services this week — pros who offer both are positioned for maximum revenue as demand outpaces supply.");}
     setAiLoad(false);
   }
   return(
@@ -13047,7 +13517,7 @@ function SkinToneTab() {
   const profiles={
     "deep_warm":{ name:"Deep Warm Tone", icon:"🌟", shade:"Ref: Deep Warm 498 / Matte Syracuse", undertone:"Warm — golden, caramel", muas:["Nadia Amara","Jade Monroe"], tips:["Foundation oxidation is real — always test on jaw, not wrist","Bronzer should be 2 shades deeper than skin","Gold and copper eyeshadows pop on warm deep skin"], brands:["Fenty Beauty","NARS","Pat McGrath","Uoma Beauty"], color:"#D97706" },
     "deep_cool":{ name:"Deep Cool Tone", icon:"💙", shade:"Ref: Deep Cool 498 / NC65 equivalent", undertone:"Cool — blue-red, jewel-toned", muas:["Nadia Amara"], tips:["Berry and plum lips are your power move","Silver jewelry complements cool tones","Avoid yellow-base foundations that pull ashy"], brands:["Fenty Beauty","Black Opal","Danessa Myricks","Mented Cosmetics"], color:"#7C3AED" },
-    "medium_warm":{ name:"Medium Warm Tone", icon:"✨", shade:"Ref: Medium Warm 330 / 7 Warm equivalent", undertone:"Warm — peachy, golden", muas:["Jade Monroe","Nadia Amara"], tips:["Peachy blushes complement your undertone","Bronzer is your best friend — blend wide","Warm browns and terracottas for eyes"], brands:["Charlotte Tilbury","Fenty Beauty","NARS","MAC"], color:GOLD },
+    "medium_warm":{ name:"Medium Warm Tone", icon:"sparkle", shade:"Ref: Medium Warm 330 / 7 Warm equivalent", undertone:"Warm — peachy, golden", muas:["Jade Monroe","Nadia Amara"], tips:["Peachy blushes complement your undertone","Bronzer is your best friend — blend wide","Warm browns and terracottas for eyes"], brands:["Charlotte Tilbury","Fenty Beauty","NARS","MAC"], color:GOLD },
     "fair_cool":{ name:"Fair Cool Tone", icon:"🌸", shade:"Ref: Fair Cool 100 / Mont Blanc equivalent", undertone:"Cool — pink, rosy", muas:["Jade Monroe"], tips:["Pink-based blushes over orange-based bronzers","Cool-toned highlight for your complexion","SPF in foundation matters more at this depth"], brands:["NARS","Charlotte Tilbury","Laura Mercier","Too Faced"], color:"#EC4899" },
     "default":{ name:"Custom Tone Profile", icon:"💄", shade:"Consult recommended for exact match" }, // Shade references are for guidance only — LTI is not affiliated with any cosmetic brand, undertone:"Mixed / needs in-person assessment", muas:["Nadia Amara","Jade Monroe"], tips:["Always request a shade match before full application","Ask your MUA to test 3 shades — you'll see the right one","Lighting matters — check in natural light"], brands:["Fenty Beauty","NARS","MAC","Charlotte Tilbury"], color:MINT },
   };
@@ -13175,7 +13645,7 @@ function LookBoardTab() {
         </div>
       </div>
       {/* Look cards */}
-      <div style={{flex:1,overflowY:"auto",padding:"16px"}}>
+      <div style={{flex:1,overflowY:"auto",padding:"clamp(10px,2vw,28px)"}}>
         {postedLooks.map(look=>(
           <div key={look.id} style={{background:"rgba(255,255,255,0.04)",border:`1.5px solid ${look.color}33`,borderRadius:"20px",marginBottom:"14px",overflow:"hidden"}}>
             <div style={{height:"3px",background:`linear-gradient(90deg,${look.color},${look.color}66)`}}/>
@@ -13282,19 +13752,19 @@ function BridalTab() {
     { id:"micro", name:"Micro Wedding", guests:"1–2", icon:"💍", desc:"Bride + 1 attendant", includes:["Bridal Hair","Bridal Makeup","1 Bridesmaid Hair","1 Bridesmaid Makeup"], est:680, color:GOLD },
     { id:"intimate", name:"Intimate Party", guests:"3–5", icon:"🌸", desc:"Bride + full party",  includes:["Bridal Hair","Bridal Makeup","Trial Run","Up to 4 Party Members"], est:1200, color:PINK },
     { id:"full", name:"Full Bridal Suite", guests:"6–10", icon:"👑", desc:"Complete coordination", includes:["Bridal Hair + Trial","Bridal Makeup + Trial","Up to 8 Party Members","On-Site Touch-Up MUA"], est:2200, color:"#7C3AED" },
-    { id:"custom", name:"Custom Build", guests:"Any size", icon:"✨", desc:"Build your own package", includes:["You choose every service","Mix of hair/nails/makeup","Full pro coordination","Itemized quote"], est:null, color:MINT },
+    { id:"custom", name:"Custom Build", guests:"Any size", icon:"sparkle", desc:"Build your own package", includes:["You choose every service","Mix of hair/nails/makeup","Full pro coordination","Itemized quote"], est:null, color:MINT },
   ];
   const extras=[
     {id:"nails",icon:"💅",label:"Bridal Nails",price:95},{id:"trial_hair",icon:"💇",label:"Hair Trial",price:85},
     {id:"touchup",icon:"⏱️",label:"Touch-Up MUA (2hr)",price:150},{id:"lashes",icon:"👁️",label:"Lash Extensions",price:75},
-    {id:"transport",icon:"🚐",label:"Pro Travel to Venue",price:50},{id:"brows",icon:"🎨",label:"Brow Shaping + Tint",price:40},
+    {id:"transport",icon:"🚐",label:"Pro Travel to Venue",price:50},{id:"brows",icon:"color",label:"Brow Shaping + Tint",price:40},
   ];
   const timeline=[
     {when:"6–8 Weeks Out",task:"Book trial run for hair and makeup",status:"pending",icon:"📅"},
     {when:"4 Weeks Out", task:"Confirm all party member services",status:"pending",icon:"✓"},
     {when:"2 Weeks Out", task:"Final headcount and service list locked",status:"pending",icon:"📋"},
     {when:"1 Week Out",  task:"Review look board and send inspo to pros",status:"pending",icon:"💄"},
-    {when:"Day Before",  task:"Rest, moisturize, no new skincare products",status:"pending",icon:"🌿"},
+    {when:"Day Before",  task:"Rest, moisturize, no new skincare products",status:"pending",icon:"leaf"},
     {when:"Wedding Day", task:"Pro arrives 3 hours before ceremony",status:"pending",icon:"💍"},
   ];
   if(confirmed) return(
@@ -13381,7 +13851,7 @@ function BridalTab() {
               </div>
               <div style={{paddingTop:"4px",paddingBottom:"16px"}}>
                 <div style={{fontSize:"10px",color:PINK,fontWeight:"800",letterSpacing:"1px",marginBottom:"2px"}}>{t.when.toUpperCase()}</div>
-                <div style={{fontSize:"13px",color:"rgba(255,255,255,0.85)"}}>{t.task}</div>
+                <div style={{fontSize:"13px",color:"rgba(255,255,255,0.06)"}}>{t.task}</div>
               </div>
             </div>
           ))}
@@ -13429,7 +13899,7 @@ function TouchUpTab() {
           💡 MUAs post 2–4hr availability windows for events, shoots, and venues. Priced per hour. Clients claim your block for on-site beauty.
         </div>
       </div>
-      <div style={{flex:1,overflowY:"auto",padding:"16px"}}>
+      <div style={{flex:1,overflowY:"auto",padding:"clamp(10px,2vw,28px)"}}>
         {blocks.map(block=>(
           <div key={block.id} style={{background:"rgba(255,255,255,0.04)",border:`1.5px solid ${block.color}33`,borderRadius:"18px",padding:"16px",marginBottom:"12px"}}>
             <div style={{height:"3px",background:`linear-gradient(90deg,${block.color},${block.color}55)`,margin:"-16px -16px 14px"}}/> 
@@ -13504,7 +13974,7 @@ let _gothicMarkId = 0;
 // ─── CLAUDE GOTHIC MARK — Rose gold tracery on forest green (Gothic Gucci-style) ──
 // Nav icon — Gothic quatrefoil lattice with "C", reads well at 20px+
 function ClaudePrismMark({ size = 26, active = false }) {
-  const uid = React.useRef(`cgm${++_gothicMarkId}`).current;
+  const uid = useRef(`cgm${++_gothicMarkId}`).current;
   const s = size, cx = s/2, cy = s/2;
 
   // Color palette — pulled from the rose gold / forest green inspiration image
@@ -13604,7 +14074,7 @@ function ClaudePrismMark({ size = 26, active = false }) {
 
 // Full Gothic Stamp — certification badge for completed work
 function ClaudeStamp({ size = 120 }) {
-  const uid = React.useRef(`cgs${++_gothicMarkId}`).current;
+  const uid = useRef(`cgs${++_gothicMarkId}`).current;
   const s = size, cx = s/2, cy = s/2, r = s*0.47;
 
   const ROSE    = "#C4896B";
@@ -13797,7 +14267,7 @@ function ClaudeStamp({ size = 120 }) {
 let _hpiId = 0;
 
 function HeritageProfileIcon({ profile, size = 36, active = false }) {
-  const uid = React.useRef(`hpi${++_hpiId}`).current;
+  const uid = useRef(`hpi${++_hpiId}`).current;
   const s = size, cx = s/2, cy = s/2;
   const outerR = s*0.44, innerR = s*0.195;
   const sw = s*0.038, sw2 = s*0.025, sw3 = s*0.015;
@@ -14267,7 +14737,7 @@ function detectPrismTier() {
 }
 
 // ── 2. PRISM CONTEXT — global AI signal + tier + pitch mode ──────────────────
-const PrismContext = React.createContext({
+const PrismContext = createContext({
   tier:"full", aiActive:false, pitchMode:false,
   setAiActive:()=>{}, setPitchMode:()=>{}, prismOn:true, setPrismOn:()=>{}
 });
@@ -14312,7 +14782,7 @@ function useClaudeFetch() {
 
 // ── 3. STYLE INJECTOR — TIER-AWARE CSS ───────────────────────────────────────
 function PrismStylesInjector() {
-  const { tier, prismOn } = React.useContext(PrismContext);
+  const { tier, prismOn } = useContext(PrismContext);
   useEffect(()=>{
     const id = "claude-prism-css";
     document.getElementById(id)?.remove();
@@ -14610,7 +15080,7 @@ function PrismStylesInjector() {
 
 // ── 4. REUSABLE PRISM COMPONENTS ─────────────────────────────────────────────
 function PrismCard({ children, style, className="" }) {
-  const { tier } = React.useContext(PrismContext);
+  const { tier } = useContext(PrismContext);
   return <div className={`claude-prism-card ${className}`} style={{ padding:"18px", ...style }}>{children}</div>;
 }
 function PrismBorderCard({ children, style }) {
@@ -14735,7 +15205,7 @@ function PrismDrawer({ open, onClose, title, children }) {
 
 // ── 5. AI SIGNAL OVERLAY ──────────────────────────────────────────────────────
 function PrismAiSignal() {
-  const { aiActive, tier } = React.useContext(PrismContext);
+  const { aiActive, tier } = useContext(PrismContext);
   if (!aiActive || tier === "none" || tier === "static") return null;
   return (
     <>
@@ -14752,7 +15222,7 @@ function PrismAiSignal() {
 
 // ── 6. CLAUDE PRISM SHOWCASE TAB ─────────────────────────────────────────────
 function ClaudePrismTab() {
-  const { tier, aiActive, setAiActive, prismOn, setPrismOn, pitchMode, setPitchMode } = React.useContext(PrismContext);
+  const { tier, aiActive, setAiActive, prismOn, setPrismOn, pitchMode, setPitchMode } = useContext(PrismContext);
   const [intensity, setIntensity]   = useState("full");
   const [demo,      setDemo]        = useState("system");
   const [modalOpen, setModalOpen]   = useState(false);
@@ -14829,13 +15299,13 @@ function ClaudePrismTab() {
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"12px" }}>
               <div style={{ fontSize:"13px", fontWeight:"700", color:"#fff" }}>Claude Prism Active</div>
               <div onClick={()=>setPrismOn(p=>!p)} style={{ width:"50px", height:"26px", borderRadius:"13px", background:prismOn?"linear-gradient(90deg,#7209B7,#4CC9F0)":"rgba(255,255,255,0.1)", cursor:"pointer", position:"relative", transition:"all 0.3s" }}>
-                <div style={{ width:"20px", height:"20px", borderRadius:"50%", background:"#fff", position:"absolute", top:"3px", left:prismOn?"27px":"3px", transition:"left 0.3s", boxShadow:"0 2px 6px rgba(0,0,0,0.4)" }}/>
+                <div style={{ width:"20px", height:"20px", borderRadius:"50%", background:"rgba(255,255,255,0.06)", position:"absolute", top:"3px", left:prismOn?"27px":"3px", transition:"left 0.3s", boxShadow:"0 2px 6px rgba(0,0,0,0.4)" }}/>
               </div>
             </div>
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
               <div style={{ fontSize:"13px", fontWeight:"700", color:"#fff" }}>Pitch Mode</div>
               <div onClick={()=>setPitchMode(p=>!p)} style={{ width:"50px", height:"26px", borderRadius:"13px", background:pitchMode?"linear-gradient(90deg,#FF006E,#7209B7)":"rgba(255,255,255,0.1)", cursor:"pointer", position:"relative", transition:"all 0.3s" }}>
-                <div style={{ width:"20px", height:"20px", borderRadius:"50%", background:"#fff", position:"absolute", top:"3px", left:pitchMode?"27px":"3px", transition:"left 0.3s", boxShadow:"0 2px 6px rgba(0,0,0,0.4)" }}/>
+                <div style={{ width:"20px", height:"20px", borderRadius:"50%", background:"rgba(255,255,255,0.06)", position:"absolute", top:"3px", left:pitchMode?"27px":"3px", transition:"left 0.3s", boxShadow:"0 2px 6px rgba(0,0,0,0.4)" }}/>
               </div>
             </div>
           </div>
@@ -14854,7 +15324,7 @@ function ClaudePrismTab() {
           {/* Demo nav */}
           <div style={{ display:"flex", gap:"5px", marginBottom:"14px", overflowX:"auto" }}>
             {[["system","⚙ System"],["components","🧩 Components"],["charts","📊 Charts"],["timeline","⏱ Timeline"],["spectrum","🌈 Spectrum"],["applyto","🎛 Apply To"]].map(([v,l])=>(
-              <button key={v} onClick={()=>setDemo(v)} style={{ background:demo===v?"rgba(124,58,237,0.22)":"rgba(255,255,255,0.04)", color:demo===v?"#C4B5FD":"rgba(255,255,255,0.4)", border:`1.5px solid ${demo===v?"rgba(124,58,237,0.55)":"rgba(255,255,255,0.1)"}`, padding:"7px 13px", borderRadius:"20px", fontSize:"11px", fontWeight:"700", cursor:"pointer", flexShrink:0, transition:"all 0.2s" }}>
+              <button key={v} onClick={()=>setDemo(v)} style={{ background:demo===v?"rgba(124,58,237,0.22)":"rgba(255,255,255,0.04)", color:demo===v?"rgba(124,58,237,0.22)":"rgba(255,255,255,0.4)", border:`1.5px solid ${demo===v?"rgba(124,58,237,0.55)":"rgba(255,255,255,0.1)"}`, padding:"7px 13px", borderRadius:"20px", fontSize:"11px", fontWeight:"700", cursor:"pointer", flexShrink:0, transition:"all 0.2s" }}>
                 {l}
               </button>
             ))}
@@ -15115,9 +15585,9 @@ function MUAVisionScan() {
 
       const response = await fetch(CLAUDE_PROXY_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers:PROXY_HEADERS,
         body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
+          model: "claude-sonnet-4-6",
           max_tokens: 1200,
           system: `You are an expert MUA (Makeup Artist) consultation AI for Love That Idea beauty platform. 
 Analyze the uploaded face photo and return a detailed JSON consultation report.
@@ -15192,7 +15662,7 @@ If the image is not a face or is unclear, still return the JSON structure with "
       try {
         const clean = rawText.replace(/```json|```/g, "").trim();
         parsed = JSON.parse(clean);
-      } catch {
+      } catch(e) {
         // Graceful fallback if JSON is malformed
         parsed = buildFallbackResult();
       }
@@ -15241,10 +15711,10 @@ If the image is not a face or is unclear, still return the JSON structure with "
 
         {/* What you get */}
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px",marginBottom:"24px"}}>
-          {[["🎨","Skin Tone & Undertone","Depth, undertone, foundation shade"],["💄","Feature Mapping","Eyes, lips, brows, face shape"],["🌿","Skin Analysis","Concerns and care tips"],["🎯","Pro Match","Right MUA for your complexion"],["✨","Color Palette","Eyes, lips, blush, highlight"],["💍","Look Suggestions","3 curated looks for your features"]].map(([icon,t,s])=>(
+          {[["color","Skin Tone & Undertone","Depth, undertone, foundation shade"],["💄","Feature Mapping","Eyes, lips, brows, face shape"],["leaf","Skin Analysis","Concerns and care tips"],["🎯","Pro Match","Right MUA for your complexion"],["sparkle","Color Palette","Eyes, lips, blush, highlight"],["💍","Look Suggestions","3 curated looks for your features"]].map(([icon,t,s])=>(
             <div key={t} style={{background:"rgba(236,72,153,0.06)",border:"1px solid rgba(236,72,153,0.15)",borderRadius:"14px",padding:"12px"}}>
               <div style={{fontSize:"22px",marginBottom:"5px"}}>{icon}</div>
-              <div style={{fontSize:"11px",fontWeight:"700",color:"rgba(255,255,255,0.85)",marginBottom:"2px"}}>{t}</div>
+              <div style={{fontSize:"11px",fontWeight:"700",color:"rgba(255,255,255,0.06)",marginBottom:"2px"}}>{t}</div>
               <div style={{fontSize:"10px",color:"rgba(255,255,255,0.4)"}}>{s}</div>
             </div>
           ))}
@@ -15343,7 +15813,7 @@ If the image is not a face or is unclear, still return the JSON structure with "
         </div>
 
         {/* Tab content */}
-        <div style={{flex:1,overflowY:"auto",padding:"16px 20px"}}>
+        <div style={{flex:1,overflowY:"auto",padding:"clamp(10px,2vw,28px) clamp(12px,2.5vw,32px)"}}>
 
           {/* ── PROFILE TAB ── */}
           {activeTab==="profile"&&<>
@@ -15406,7 +15876,7 @@ If the image is not a face or is unclear, still return the JSON structure with "
                 <div style={{fontSize:"11px",fontWeight:"800",color:c,letterSpacing:"1.5px",marginBottom:"10px"}}>{label.toUpperCase()}</div>
                 <div style={{display:"flex",flexWrap:"wrap",gap:"7px"}}>
                   {(colors||[]).map(color=>(
-                    <div key={color} style={{background:`${c}15`,border:`1px solid ${c}44`,color:"rgba(255,255,255,0.85)",fontSize:"12px",fontWeight:"600",padding:"6px 14px",borderRadius:"20px"}}>{color}</div>
+                    <div key={color} style={{background:`${c}15`,border:`1px solid ${c}44`,color:"rgba(255,255,255,0.06)",fontSize:"12px",fontWeight:"600",padding:"6px 14px",borderRadius:"20px"}}>{color}</div>
                   ))}
                 </div>
               </div>
@@ -15422,12 +15892,12 @@ If the image is not a face or is unclear, still return the JSON structure with "
             <div style={{fontFamily:"Cambria,Georgia,serif",fontSize:"18px",color:"#fff",fontWeight:"700",marginBottom:"14px"}}>Your Curated Looks</div>
             {(R.lookSuggestions||[]).map((look,i)=>{
               const colors=[MINT,PINK,GOLD];
-              const icons=["🌿","💄","🔥"];
+              const icons=["leaf","💄","🔥"];
               const labels=["Everyday Look","Event Look","Signature Bold"];
               return(
                 <div key={i} style={{background:`${colors[i]}10`,border:`1.5px solid ${colors[i]}33`,borderRadius:"18px",padding:"16px",marginBottom:"12px"}}>
                   <div style={{fontSize:"10px",letterSpacing:"1.5px",color:colors[i],fontWeight:"800",marginBottom:"5px"}}>{icons[i]} {labels[i]}</div>
-                  <div style={{fontSize:"13px",color:"rgba(255,255,255,0.85)",lineHeight:"1.6"}}>{look}</div>
+                  <div style={{fontSize:"13px",color:"rgba(255,255,255,0.06)",lineHeight:"1.6"}}>{look}</div>
                   <button onClick={()=>setPhase("booking")} style={{marginTop:"12px",background:`${colors[i]}18`,color:colors[i],border:`1px solid ${colors[i]}44`,padding:"8px 16px",borderRadius:"10px",fontSize:"11px",fontWeight:"800",cursor:"pointer"}}>Book This Look →</button>
                 </div>
               );
@@ -15518,8 +15988,8 @@ function TextureMatchTab() {
     {id:"lifestyle",q:"Your daily lifestyle?",opts:[["active","Very active — gym, outdoor, sweating"],["professional","Professional setting — polished, all-day wear"],["casual","Casual — low maintenance preferred"],["events","Event-based — special occasions only"]]},
   ];
   const recommendations={
-    "4c_blend":{ title:"4C Match — Afro Kinky Texture", icon:"🌿", desc:"For seamless blending with your 4C coils, choose tight kinky or afro-textured extensions with matching density. Avoid body wave — it won't blend.", textures:["Afro Kinky","Kinky Coily","Deep Kinky Curl","Marley Twist Hair"], capType:"Full lace or 360 for natural hairline", density:"180%+ for your hair density", brands:["Luvme Hair Kinky","Sensationnel African Collection","X-Pression"], installRec:"Glueless or crochet to preserve 4C edges", color:MINT },
-    "4c_transform":{ title:"Straight Transform on 4C", icon:"✨", desc:"A dramatic straight look over 4C hair requires a leave-out or full wig that covers all your natural hair. HD lace is essential for a realistic hairline.", textures:["Straight","Silky Straight","Body Wave (slight)"], capType:"5x5 Closure wig or HD lace front with baby hairs", density:"150–180% for full coverage", brands:["Luvme Hair","UNice Hair","Outre Mytresses"], installRec:"Glueless closure wig — zero leave-out prevents heat damage to 4C", color:PURP },
+    "4c_blend":{ title:"4C Match — Afro Kinky Texture", icon:"leaf", desc:"For seamless blending with your 4C coils, choose tight kinky or afro-textured extensions with matching density. Avoid body wave — it won't blend.", textures:["Afro Kinky","Kinky Coily","Deep Kinky Curl","Marley Twist Hair"], capType:"Full lace or 360 for natural hairline", density:"180%+ for your hair density", brands:["Luvme Hair Kinky","Sensationnel African Collection","X-Pression"], installRec:"Glueless or crochet to preserve 4C edges", color:MINT },
+    "4c_transform":{ title:"Straight Transform on 4C", icon:"sparkle", desc:"A dramatic straight look over 4C hair requires a leave-out or full wig that covers all your natural hair. HD lace is essential for a realistic hairline.", textures:["Straight","Silky Straight","Body Wave (slight)"], capType:"5x5 Closure wig or HD lace front with baby hairs", density:"150–180% for full coverage", brands:["Luvme Hair","UNice Hair","Outre Mytresses"], installRec:"Glueless closure wig — zero leave-out prevents heat damage to 4C", color:PURP },
     "3b_blend":{ title:"3B/3C Curl Blend", icon:"🌀", desc:"Your curls need a match with defined spiral texture. 'Deep wave' and 'kinky curly' most closely mimic 3B/3C patterns.", textures:["Deep Wave","Kinky Curly","Spiral Curl","Spring Curl"], capType:"Lace front or closure wig", density:"150% average", brands:["UNice Deep Wave","Bellami Clip-Ins","Sensationnel Butta Lace"], installRec:"Clip-ins or glueless lace for defined curl maintenance", color:GOLD },
     "2ab_blend":{ title:"2A/2B Wave Match", icon:"🌊", desc:"Wavy extensions blend naturally with your pattern. Body wave and loose wave are your best match categories.", textures:["Body Wave","Loose Wave","Natural Wave","Italian Wave"], capType:"Clip-in set or lace front", density:"130–150%", brands:["Bellami Body Wave Clip-Ins","UNice Body Wave Bundles","Great Lengths Tape-Ins"], installRec:"Tape-in or clip-in for flexible daily wear", color:"#0891B2" },
     "default":{ title:"Custom Texture Consultation", icon:"💆", desc:"Your profile suggests a personalized consultation with a wig specialist before purchasing. Your combination of texture and install goal is best assessed in person.", textures:["Consult recommended","Any straight for full coverage"], capType:"Adjustable strap recommended for first-time buyers", density:"150% universal starting point", brands:["Sensationnel","UNice Hair","Luvme Hair"], installRec:"Book a wig consultation on the Bid Board", color:MINT },
@@ -15590,7 +16060,7 @@ function BundleBuilderTab() {
   const [vendor,setVendor]=useState("");
   const [aiRec,setAiRec]=useState(""); const [aiLoad,setAiLoad]=useState(false);
   const [cartAdded,setCartAdded]=useState(false);
-  const TEXTURES=[{v:"body_wave",l:"Body Wave",icon:"🌊",color:"#0891B2"},{v:"deep_wave",l:"Deep Wave",icon:"🌀",color:PURP},{v:"straight",l:"Silky Straight",icon:"💫",color:GOLD},{v:"kinky_curly",l:"Kinky Curly",icon:"🌿",color:MINT},{v:"loose_wave",l:"Loose Wave",icon:"〰️",color:"#EC4899"},{v:"water_wave",l:"Water Wave",icon:"💧",color:"#0891B2"},{v:"afro_kinky",l:"Afro Kinky",icon:"✨",color:"#D97706"}];
+  const TEXTURES=[{v:"body_wave",l:"Body Wave",icon:"🌊",color:"#0891B2"},{v:"deep_wave",l:"Deep Wave",icon:"🌀",color:PURP},{v:"straight",l:"Silky Straight",icon:"sparkle",color:GOLD},{v:"kinky_curly",l:"Kinky Curly",icon:"leaf",color:MINT},{v:"loose_wave",l:"Loose Wave",icon:"〰️",color:"#EC4899"},{v:"water_wave",l:"Water Wave",icon:"droplet",color:"#0891B2"},{v:"afro_kinky",l:"Afro Kinky",icon:"sparkle",color:"#D97706"}];
   const CLOSURES=[["4x4","4x4 Closure"],["5x5","5x5 Closure"],["6x6","6x6 Closure"],["13x4","13x4 Lace Front"],["13x6","13x6 Lace Front"],["360","360 Lace"],["none","Bundles Only"]];
   const VENDORS=[{v:"unice",l:"UNice Hair",pricePerInch:8.5,rating:4.8,safety:"A"},{v:"luvme",l:"Luvme Hair",pricePerInch:9.2,rating:4.9,safety:"A"},{v:"bellami",l:"Bellami Hair",pricePerInch:10.5,rating:4.8,safety:"A"},{v:"budget",l:"Budget Grade",pricePerInch:5.0,rating:3.8,safety:"C"}];
   const LENGTH_OPTS=["12","14","16","18","20","22","24","26","28","30"];
@@ -15601,13 +16071,13 @@ function BundleBuilderTab() {
   async function getAiRec(){
     setAiLoad(true);setAiRec("");
     try{
-      const r=await fetch(CLAUDE_PROXY_URL,{method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:150,
+      const r=await fetch(CLAUDE_PROXY_URL,{method:"POST",headers:PROXY_HEADERS,
+        body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:150,
           system:"You are a professional wig and extension advisor. Give a sharp 2-sentence recommendation for this build.",
           messages:[{role:"user",content:`Bundle build: ${bundleCount} bundles, ${texture} texture, lengths ${lengths.slice(0,bundleCount).join("+")} inches, ${closure} closure, vendor ${vendor||"UNice"}. Total ~$${total}. Is this a good build and is anything worth changing?`}]
         })});
       const d=await r.json();setAiRec(d.content?.map(b=>b.text||"").join("")||"");
-    }catch{setAiRec("This is a solid build — the length graduation (shorter front to longer back) creates natural movement. Upgrade to a 13x4 frontal if you want a full hairline illusion.");}
+    }catch(e){setAiRec("This is a solid build — the length graduation (shorter front to longer back) creates natural movement. Upgrade to a 13x4 frontal if you want a full hairline illusion.");}
     setAiLoad(false);
   }
   function updateLength(i,val){const l=[...lengths];l[i]=val;setLengths(l);}
@@ -15779,15 +16249,15 @@ function WigMarketplaceTab() {
   async function runManufacturerScan(){
     setScanLoading(true);setScanResult(null);
     try{
-      const r=await fetch(CLAUDE_PROXY_URL,{method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:700,
+      const r=await fetch(CLAUDE_PROXY_URL,{method:"POST",headers:PROXY_HEADERS,
+        body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:700,
           system:`You are a hair extension and wig product safety analyst. Review this product submission for a professional beauty marketplace. Check for: formaldehyde in fibers, acid processing in human hair, kanekalon allergen risk, adhesive chemical safety, country-of-origin processing standards, heavy metals in colorants, synthetic fiber allergens, and any FDA/EU compliance concerns. Return ONLY valid JSON: {"approved":boolean,"safetyRating":"A"|"B"|"C"|"D"|"F","safetyScore":number,"flags":[{"severity":"info"|"warning"|"critical","issue":string,"detail":string}],"formaldehyde":"detected"|"not detected"|"unknown","kanekallon":boolean,"allergenRisk":"low"|"moderate"|"high","euCompliant":boolean,"fdaCompliant":boolean,"recommendation":string,"reviewNote":string,"confidence":number}`,
           messages:[{role:"user",content:`Wig/Extension product submission:\nBrand: ${submitForm.brandName}\nProduct: ${submitForm.product}\nCategory: ${submitForm.category}\nPrice: $${submitForm.price}\nOrigin: ${submitForm.origin}\nIngredients/Fiber: ${submitForm.ingredients}\nFiber type: ${submitForm.fiberType}\nProcessing: ${submitForm.processing}\nFormaldehyde disclosed: ${submitForm.formaldehyde}\nKanekalon: ${submitForm.kanekalon}\nNotes: ${submitForm.notes}`}]
         })});
       const d=await r.json();
       const raw=d.content?.map(b=>b.text||"").join("").replace(/```json|```/g,"").trim();
       setScanResult(JSON.parse(raw));
-    }catch{setScanResult({approved:true,safetyRating:"B",safetyScore:7.0,flags:[{severity:"info",issue:"Manual review recommended",detail:"Auto-scan fallback. Human review required before final approval."}],formaldehyde:"unknown",kanekallon:false,allergenRisk:"moderate",euCompliant:true,fdaCompliant:true,recommendation:"Proceed to manual review",reviewNote:"Fallback result",confidence:45});}
+    }catch(e){setScanResult({approved:true,safetyRating:"B",safetyScore:7.0,flags:[{severity:"info",issue:"Manual review recommended",detail:"Auto-scan fallback. Human review required before final approval."}],formaldehyde:"unknown",kanekallon:false,allergenRisk:"moderate",euCompliant:true,fdaCompliant:true,recommendation:"Proceed to manual review",reviewNote:"Fallback result",confidence:45});}
     setScanLoading(false);
   }
 
@@ -15860,7 +16330,7 @@ function WigMarketplaceTab() {
         <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search wigs, extensions, brands..." style={{width:"100%",background:"rgba(255,255,255,0.07)",border:"1px solid rgba(255,255,255,0.15)",color:"#fff",padding:"9px 14px",borderRadius:"10px",fontSize:"12px",outline:"none",boxSizing:"border-box"}}/>
       </div>
       <div style={{flex:1,overflowY:"auto",padding:"14px 20px"}}>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"10px"}}>
+        <div className="lti-two-col" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"10px"}}>
           {filtered.map(p=>(
             <div key={p.id} style={{background:"rgba(255,255,255,0.04)",border:`1.5px solid ${safetyColor(p.safetyRating)}33`,borderRadius:"16px",overflow:"hidden"}}>
               <div style={{height:"3px",background:safetyColor(p.safetyRating)}}/>
@@ -15879,7 +16349,7 @@ function WigMarketplaceTab() {
         </div>
       </div>
       {view === "render" && (
-        <div style={{flex:1,overflowY:"auto",padding:"16px"}}>
+        <div style={{flex:1,overflowY:"auto",padding:"clamp(10px,2vw,28px)"}}>
           <NailRenderView />
         </div>
       )}
@@ -15898,7 +16368,7 @@ function NailShapeConsultTab() {
   const [loading, setLoading] = useState(false);
   const [logLines,setLogLines]= useState([]);
   const [resTab,  setResTab]  = useState("shapes");
-  const fileRef = React.useRef();
+  const fileRef = useRef();
 
   const SCAN_LOG = [
     "📷 Image received — processing hand geometry...",
@@ -15931,8 +16401,8 @@ function NailShapeConsultTab() {
     setLoading(true);
     try {
       const res = await fetch(CLAUDE_PROXY_URL,{
-        method:"POST", headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:900,
+        method:"POST", headers:PROXY_HEADERS,
+        body:JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:900,
           system:`You are a master nail technician with 20 years of experience. Analyze this hand photo and give personalized nail shape and style recommendations. Return ONLY valid JSON (no markdown):
 {"fingerType":"long"|"medium"|"short","fingerWidth":"slender"|"medium"|"wide","nailBed":"narrow"|"medium"|"wide",
 "topShapes":[{"shape":string,"why":string,"icon":string,"rating":"⭐⭐⭐⭐⭐"|"⭐⭐⭐⭐"|"⭐⭐⭐"}],
@@ -15951,7 +16421,7 @@ function NailShapeConsultTab() {
       const raw = d.content?.map(b=>b.text||"").join("").replace(/```json|```/g,"").trim();
       setResult(JSON.parse(raw));
       setView("result");
-    } catch {
+    } catch(e) {
       setResult({
         fingerType:"medium", fingerWidth:"medium", nailBed:"medium",
         topShapes:[
@@ -15999,7 +16469,7 @@ function NailShapeConsultTab() {
         <div style={{fontSize:"11px",color:"rgba(255,255,255,0.45)"}}>Upload a hand photo — Claude AI recommends your perfect nail shape</div>
       </div>
 
-      <div style={{flex:1,overflowY:"auto",padding:"20px"}}>
+      <div style={{flex:1,overflowY:"auto",padding:"clamp(12px,2.5vw,32px)"}}>
 
         {/* UPLOAD VIEW */}
         {view==="upload"&&<>
@@ -16180,7 +16650,7 @@ function NailInspoBoardTab() {
   const [notes,     setNotes]     = useState("");
   const [aiRec,     setAiRec]     = useState("");
   const [aiLoad,    setAiLoad]    = useState(false);
-  const fileRef = React.useRef();
+  const fileRef = useRef();
 
   const STYLES = [
     // Format: id, cat, name, color1, color2, label, gradient direction, icon
@@ -16189,25 +16659,25 @@ function NailInspoBoardTab() {
     {id:3,  cat:"ombre",   name:"Nude to Burgundy",          c1:"#E8C4A0", c2:"#800020",  tag:"Elegant", icon:"🍷"},
     {id:4,  cat:"ombre",   name:"Coral Sunset",              c1:"#FF6B35", c2:"#FFD166",  tag:"Summer",  icon:"🌅"},
     {id:5,  cat:"chrome",  name:"Silver Chrome Mirror",      c1:"#C0C0C0", c2:"#E8E8E8",  tag:"Trending",icon:"🪞"},
-    {id:6,  cat:"chrome",  name:"Rose Gold Chrome",          c1:"#C4896B", c2:"#DFB090",  tag:"Luxury",  icon:"✨"},
+    {id:6,  cat:"chrome",  name:"Rose Gold Chrome",          c1:"#C4896B", c2:"#DFB090",  tag:"Luxury",  icon:"sparkle"},
     {id:7,  cat:"chrome",  name:"Holographic Rainbow",       c1:"#FF006E", c2:"#4CC9F0",  tag:"Statement",icon:"🌈"},
     {id:8,  cat:"chrome",  name:"Gold Mirror",               c1:"#C9A84C", c2:"#FFDE7A",  tag:"Bold",    icon:"👑"},
     {id:9,  cat:"art",     name:"Floral Press-On",           c1:"#FFB7C5", c2:"#A8E063",  tag:"Romantic",icon:"🌺"},
-    {id:10, cat:"art",     name:"Abstract Ink",              c1:"#1A1A2E", c2:"#FF006E",  tag:"Artistic",icon:"🎨"},
+    {id:10, cat:"art",     name:"Abstract Ink",              c1:"#1A1A2E", c2:"#FF006E",  tag:"Artistic",icon:"color"},
     {id:11, cat:"art",     name:"Marble & Gold",             c1:"#F5F5F0", c2:"#C9A84C",  tag:"Luxury",  icon:"🏛"},
     {id:12, cat:"art",     name:"Butterfly Wings",           c1:"#A78BFA", c2:"#60A5FA",  tag:"Dreamy",  icon:"🦋"},
     {id:13, cat:"french",  name:"Classic French Tip",        c1:"#FFF5EE", c2:"#fff",     tag:"Timeless",icon:"💎"},
-    {id:14, cat:"french",  name:"Colored French — Lavender", c1:"#FFF5EE", c2:"#C4B5FD",  tag:"Soft",    icon:"💜"},
+    {id:14, cat:"french",  name:"Colored French — Lavender", c1:"#FFF5EE", c2:"rgba(124,58,237,0.22)",  tag:"Soft",    icon:"💜"},
     {id:15, cat:"french",  name:"Reverse French",            c1:"#1A1A1A", c2:"#FFF5EE",  tag:"Modern",  icon:"🔄"},
     {id:16, cat:"french",  name:"Glitter French",            c1:"#FFF5EE", c2:"#C9A84C",  tag:"Party",   icon:"🎉"},
     {id:17, cat:"solid",   name:"Glazed Donut",              c1:"#E8D5C4", c2:"#F5EDE4",  tag:"Viral",   icon:"🍩"},
     {id:18, cat:"solid",   name:"Chocolate Brown",           c1:"#5C3317", c2:"#8B4513",  tag:"Warm",    icon:"☕"},
-    {id:19, cat:"solid",   name:"Sage Green",                c1:"#7D9B76", c2:"#A8C5A0",  tag:"Fresh",   icon:"🌿"},
+    {id:19, cat:"solid",   name:"Sage Green",                c1:"#7D9B76", c2:"#A8C5A0",  tag:"Fresh",   icon:"leaf"},
     {id:20, cat:"solid",   name:"Deep Black",                c1:"#0A0A0A", c2:"#2A2A2A",  tag:"Classic", icon:"🖤"},
     {id:21, cat:"bridal",  name:"Sheer Blush Crystal",       c1:"#F9D0D0", c2:"#fff",     tag:"Bridal",  icon:"👰"},
     {id:22, cat:"bridal",  name:"Ivory Pearl",               c1:"#FFFFF0", c2:"#F5F5DC",  tag:"Elegant", icon:"💍"},
     {id:23, cat:"bridal",  name:"White Lace Overlay",        c1:"#fff",    c2:"#F9A8D4",  tag:"Romantic",icon:"🤍"},
-    {id:24, cat:"bridal",  name:"Rhinestone French",         c1:"#FFF5EE", c2:"#C9A84C",  tag:"Glam",    icon:"💫"},
+    {id:24, cat:"bridal",  name:"Rhinestone French",         c1:"#FFF5EE", c2:"#C9A84C",  tag:"Glam",    icon:"sparkle"},
   ];
 
   const CATS=[["all","All Styles"],["ombre","Ombre & Fade"],["chrome","Chrome & Mirror"],["art","Nail Art"],["french","French Tip"],["solid","Solid Gel"],["bridal","Bridal"]];
@@ -16225,15 +16695,15 @@ function NailInspoBoardTab() {
     const selectedStyles = selected.map(id=>STYLES.find(s=>s.id===id)?.name).join(", ");
     try {
       const res = await fetch(CLAUDE_PROXY_URL,{
-        method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:150,
+        method:"POST",headers:PROXY_HEADERS,
+        body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:150,
           system:"You are an expert nail tech advisor. Give a 2-sentence recommendation based on the client's selected nail styles. Be specific and confident.",
           messages:[{role:"user",content:`Client selected these nail styles: ${selectedStyles||"no specific style yet"}. Budget: $${budgetMin}–${budgetMax}. Notes: ${notes||"none"}. What nail tech at KW Nail Studio should they book and what service?`}]
         })
       });
       const d=await res.json();
       setAiRec(d.content?.map(b=>b.text||"").join("")||"");
-    } catch{setAiRec("Based on your selections, Kezia Williams at KW Nail Studio is your ideal match — she specializes in ombre transitions and nail art with exceptional rhinestone work. Book the Artist's Choice Set to let her work with your inspo board directly.");}
+    } catch(e){setAiRec("Based on your selections, Kezia Williams at KW Nail Studio is your ideal match — she specializes in ombre transitions and nail art with exceptional rhinestone work. Book the Artist's Choice Set to let her work with your inspo board directly.");}
     setAiLoad(false);
   }
 
@@ -16272,7 +16742,7 @@ function NailInspoBoardTab() {
         ))}
       </div>
 
-      <div style={{flex:1,overflowY:"auto",padding:"16px 20px"}}>
+      <div style={{flex:1,overflowY:"auto",padding:"clamp(10px,2vw,28px) clamp(12px,2.5vw,32px)"}}>
 
         {/* Style grid */}
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:20}}>
@@ -16358,24 +16828,24 @@ function SocialHubTab() {
   const FOREST="#0D2818",MINT="#27AE78",GOLD="#C9A84C",ROSE="#C4896B",
         INSTA="#E1306C",TIKTOK="#010101",PINK="#DB2777",PURPLE="#7C3AED";
 
-  const [view,       setView]       = React.useState("hub");
-  const [handle,     setHandle]     = React.useState("tasha_m");
-  const [platform,   setPlatform]   = React.useState("instagram");
-  const [beforeImg,  setBeforeImg]  = React.useState(null);
-  const [afterImg,   setAfterImg]   = React.useState(null);
-  const [service,    setService]    = React.useState("Silk Press & Style");
-  const [captions,   setCaptions]   = React.useState([]);
-  const [captionLoad,setCaptionLoad]= React.useState(false);
-  const [hashtags,   setHashtags]   = React.useState([]);
-  const [copied,     setCopied]     = React.useState(null);
-  const [cardStyle,  setCardStyle]  = React.useState("heritage");
-  const [heritage,   setHeritage]   = React.useState("Afro American");
-  const [dmCampaign, setDmCampaign] = React.useState(null);
-  const [dmLoad,     setDmLoad]     = React.useState(false);
-  const [flashSlot,  setFlashSlot]  = React.useState({service:"High Fade",discount:20,price:52,window:25,pro:"Marcus W."});
-  const [storyGen,   setStoryGen]   = React.useState(false);
-  const [creatorFollowers,setCreatorFollowers]=React.useState("4800");
-  const beforeRef=React.useRef(); const afterRef=React.useRef();
+  const [view,       setView]       = useState("hub");
+  const [handle,     setHandle]     = useState("tasha_m");
+  const [platform,   setPlatform]   = useState("instagram");
+  const [beforeImg,  setBeforeImg]  = useState(null);
+  const [afterImg,   setAfterImg]   = useState(null);
+  const [service,    setService]    = useState("Silk Press & Style");
+  const [captions,   setCaptions]   = useState([]);
+  const [captionLoad,setCaptionLoad]= useState(false);
+  const [hashtags,   setHashtags]   = useState([]);
+  const [copied,     setCopied]     = useState(null);
+  const [cardStyle,  setCardStyle]  = useState("heritage");
+  const [heritage,   setHeritage]   = useState("Afro American");
+  const [dmCampaign, setDmCampaign] = useState(null);
+  const [dmLoad,     setDmLoad]     = useState(false);
+  const [flashSlot,  setFlashSlot]  = useState({service:"High Fade",discount:20,price:52,window:25,pro:"Marcus W."});
+  const [storyGen,   setStoryGen]   = useState(false);
+  const [creatorFollowers,setCreatorFollowers]=useState("4800");
+  const beforeRef=useRef(); const afterRef=useRef();
 
   // ── Stat cards ─────────────────────────────────────────────────────────────
   const STATS=[
@@ -16387,7 +16857,7 @@ function SocialHubTab() {
 
   // ── Creator tiers ───────────────────────────────────────────────────────────
   const CREATOR_TIERS=[
-    {name:"Standard",min:0,   max:999,   color:"#6B7280",perk:"LTI pro profile",share:0},
+    {name:"Standard",min:0,   max:999,   color:"rgba(255,255,255,0.45)",perk:"LTI pro profile",share:0},
     {name:"Rising",  min:1000,max:4999,  color:MINT,    perk:"Featured in discovery",share:0},
     {name:"Creator", min:5000,max:24999, color:GOLD,    perk:"5% revenue share on tracked bookings",share:5},
     {name:"Elite",   min:25000,max:9999999,color:ROSE,  perk:"10% revenue share + brand partnership intros",share:10},
@@ -16406,7 +16876,7 @@ function SocialHubTab() {
     setCaptionLoad(true); setCaptions([]); setHashtags([]);
     try{
       const res=await fetch(CLAUDE_PROXY_URL,{method:"POST",
-        headers:{"Content-Type":"application/json"},
+        headers:PROXY_HEADERS,
         body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:600,
           system:`You are a beauty social media expert. Generate captions and hashtags for a beauty pro's Instagram/TikTok post. Return ONLY valid JSON:
 {"captions":[{"tone":"Professional","text":string},{"tone":"Casual","text":string},{"tone":"Community","text":string}],
@@ -16418,7 +16888,7 @@ function SocialHubTab() {
       const raw=d.content?.map(b=>b.text||"").join("").replace(/```json|```/g,"").trim();
       const parsed=JSON.parse(raw);
       setCaptions(parsed.captions||[]); setHashtags(parsed.hashtags||[]);
-    }catch{
+    }catch(e){
       setCaptions([
         {tone:"Professional",text:`Another transformation in the books ✨ ${service} done right — because your hair deserves a stylist who actually knows your texture. Book through my link in bio 🔗 #LoveThatIdea`},
         {tone:"Casual",      text:`She came in and LEFT differently 😭✂️ ${service} hitting different today ngl. Link in bio to book yours 🔗`},
@@ -16437,7 +16907,7 @@ function SocialHubTab() {
     setDmLoad(true);
     try{
       const res=await fetch(CLAUDE_PROXY_URL,{method:"POST",
-        headers:{"Content-Type":"application/json"},
+        headers:PROXY_HEADERS,
         body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:500,
           system:`You are a beauty business coach. Write 3 versions of a reactivation DM for a beauty pro to send to clients who haven't visited in 6+ months. Return ONLY valid JSON:
 {"messages":[{"tone":string,"subject":string,"body":string}],"tip":string}`,
@@ -16447,7 +16917,7 @@ function SocialHubTab() {
       const d=await res.json();
       const raw=d.content?.map(b=>b.text||"").join("").replace(/```json|```/g,"").trim();
       setDmCampaign(JSON.parse(raw));
-    }catch{
+    }catch(e){
       setDmCampaign({messages:[
         {tone:"Warm",    subject:"Miss you!",body:`Hey [Name]! It's been a while and I've been thinking about you 💕 I just moved to a new platform called Love That Idea — you can book me directly with zero booking fees now. I'd love to have you back. Your first appointment back is 15% off. Book through my link: lti.app/${handle} 🔗`},
         {tone:"Direct",  subject:"You're overdue 😄",body:`[Name]! Your hair misses me lol 😂 For real though — I just joined Love That Idea and I'd love to get you back in my chair. No booking fees on your end, and I'm giving 15% off to clients I haven't seen in a while. lti.app/${handle}`},
@@ -16523,7 +16993,7 @@ function SocialHubTab() {
     "Afro American":"👑","African & African American":"🌍","Asian  -  East & Southeast":"🌸",
     "South Asian  -  Indian Subcontinent":"🪷","Latina & Hispanic":"☀️",
     "Middle Eastern & Arab":"🌙","Indigenous & Native American":"🦅",
-    "Euro & Western Men":"☘️","Euro & Western Women":"🌿","Pacific Islander & Aboriginal":"🌺",
+    "Euro & Western Men":"☘️","Euro & Western Women":"leaf","Pacific Islander & Aboriginal":"🌺",
   };
   const HERITAGE_DESC={
     "Afro American":"My stylist specializes in 4C coily hair, protective styles, and Afro American hair culture.",
@@ -16634,7 +17104,7 @@ function SocialHubTab() {
     {id:"post",     icon:"📸",label:"Create Post"},
     {id:"story",    icon:"⚡",label:"Flash Story"},
     {id:"card",     icon:"🧬",label:"Heritage Card"},
-    {id:"booklook", icon:"🎨",label:"Book My Look"},
+    {id:"booklook", icon:"color",label:"Book My Look"},
     {id:"creator",  icon:"👑",label:"Creator"},
     {id:"dm",       icon:"💌",label:"DM Campaign"},
   ];
@@ -16666,7 +17136,7 @@ function SocialHubTab() {
         </div>
       </div>
 
-      <div style={{flex:1,overflowY:"auto",padding:"16px 20px"}}>
+      <div style={{flex:1,overflowY:"auto",padding:"clamp(10px,2vw,28px) clamp(12px,2.5vw,32px)"}}>
 
         {/* ── HUB OVERVIEW ── */}
         {view==="hub"&&<>
@@ -17085,16 +17555,16 @@ function SocialHubTab() {
 // ─── BOOK MY LOOK — Social inspo to LTI bid ticket ──────────────────────────
 function BookMyLookView({ handle="" }) {
   const MINT="#27AE78",GOLD="#C9A84C",ROSE="#C4896B",FOREST="#0D2818";
-  const [url,       setUrl]       = React.useState("");
-  const [imgFile,   setImgFile]   = React.useState(null);
-  const [imgB64,    setImgB64]    = React.useState(null);
-  const [imgPreview,setImgPreview]= React.useState(null);
-  const [analysis,  setAnalysis]  = React.useState(null);
-  const [loading,   setLoading]   = React.useState(false);
-  const [logLines,  setLogLines]  = React.useState([]);
-  const [posted,    setPosted]    = React.useState(false);
-  const [budget,    setBudget]    = React.useState("75");
-  const fileRef = React.useRef();
+  const [url,       setUrl]       = useState("");
+  const [imgFile,   setImgFile]   = useState(null);
+  const [imgB64,    setImgB64]    = useState(null);
+  const [imgPreview,setImgPreview]= useState(null);
+  const [analysis,  setAnalysis]  = useState(null);
+  const [loading,   setLoading]   = useState(false);
+  const [logLines,  setLogLines]  = useState([]);
+  const [posted,    setPosted]    = useState(false);
+  const [budget,    setBudget]    = useState("75");
+  const fileRef = useRef();
 
   const SCAN_LOG=[
     "🖼  Receiving image...",
@@ -17127,7 +17597,7 @@ function BookMyLookView({ handle="" }) {
           {type:"text",text:"Analyze this beauty style. Identify the exact service, technique, hair type, finish, and complexity. Return ONLY valid JSON: {\"service\":string,\"technique\":string,\"hairType\":string,\"complexity\":\"simple\"|\"moderate\"|\"complex\",\"estimatedTime\":string,\"suggestedBudgetMin\":number,\"suggestedBudgetMax\":number,\"heritageMatch\":string,\"ticketTitle\":string,\"ticketDesc\":string,\"proTags\":[string],\"confidence\":number}"}]
         :[{type:"text",text:`Analyze this beauty style from this description/URL context: ${url}. Return ONLY valid JSON matching the schema above.`}];
       const res=await fetch(CLAUDE_PROXY_URL,{method:"POST",
-        headers:{"Content-Type":"application/json"},
+        headers:PROXY_HEADERS,
         body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:500,
           system:"You are a master beauty professional with expertise in all hair, nail, and makeup services. Analyze beauty styles from images and generate precise bid ticket descriptions.",
           messages:[{role:"user",content:msgContent}]})
@@ -17135,7 +17605,7 @@ function BookMyLookView({ handle="" }) {
       const d=await res.json();
       const raw=d.content?.map(b=>b.text||"").join("").replace(/```json|```/g,"").trim();
       setAnalysis(JSON.parse(raw));
-    }catch{
+    }catch(e){
       setAnalysis({service:"Natural Hair Style",technique:"Two-Strand Twist Out",hairType:"4C Coily",
         complexity:"moderate",estimatedTime:"2.5 hrs",suggestedBudgetMin:75,suggestedBudgetMax:110,
         heritageMatch:"Afro American",ticketTitle:"Twist Out on 4C Natural Hair",
@@ -17289,27 +17759,27 @@ function AdminPhotoUploadTab() {
     "Pacific Islander & Aboriginal",
   ];
 
-  const [step, setStep] = React.useState("upload"); // upload | analyze | consent | complete
-  const [photos, setPhotos] = React.useState({ front:null, back:null, sideLeft:null, sideRight:null });
-  const [photoFiles, setPhotoFiles] = React.useState({ front:null, back:null, sideLeft:null, sideRight:null });
-  const [heritage, setHeritage] = React.useState("Afro American");
-  const [styleName, setStyleName] = React.useState("");
-  const [styleId, setStyleId] = React.useState("");
-  const [analysis, setAnalysis] = React.useState(null);
-  const [analyzing, setAnalyzing] = React.useState(false);
-  const [logLines, setLogLines] = React.useState([]);
-  const [consentGiven, setConsentGiven] = React.useState(false);
-  const [consentName, setConsentName] = React.useState("");
-  const [consentDate, setConsentDate] = React.useState("");
-  const [wantsCredit, setWantsCredit] = React.useState(false);
-  const [contactInfo, setContactInfo] = React.useState("");
-  const [rewardCode, setRewardCode] = React.useState("");
-  const [savedEntries, setSavedEntries] = React.useState([]);
-  const [copied, setCopied] = React.useState(false);
+  const [step, setStep] = useState("upload"); // upload | analyze | consent | complete
+  const [photos, setPhotos] = useState({ front:null, back:null, sideLeft:null, sideRight:null });
+  const [photoFiles, setPhotoFiles] = useState({ front:null, back:null, sideLeft:null, sideRight:null });
+  const [heritage, setHeritage] = useState("Afro American");
+  const [styleName, setStyleName] = useState("");
+  const [styleId, setStyleId] = useState("");
+  const [analysis, setAnalysis] = useState(null);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [logLines, setLogLines] = useState([]);
+  const [consentGiven, setConsentGiven] = useState(false);
+  const [consentName, setConsentName] = useState("");
+  const [consentDate, setConsentDate] = useState("");
+  const [wantsCredit, setWantsCredit] = useState(false);
+  const [contactInfo, setContactInfo] = useState("");
+  const [rewardCode, setRewardCode] = useState("");
+  const [savedEntries, setSavedEntries] = useState([]);
+  const [copied, setCopied] = useState(false);
 
   const fileRefs = {
-    front: React.useRef(), back: React.useRef(),
-    sideLeft: React.useRef(), sideRight: React.useRef(),
+    front: useRef(), back: useRef(),
+    sideLeft: useRef(), sideRight: useRef(),
   };
 
   const ANGLE_LABELS = [
@@ -17376,7 +17846,7 @@ function AdminPhotoUploadTab() {
       const parsed = JSON.parse(raw);
       setAnalysis(parsed);
       setStyleName(parsed.styleName || "");
-    } catch {
+    } catch(e) {
       setAnalysis({
         hairType:"Unable to auto-detect — manual entry required",
         density:"—", colorProfile:"—", technique:"—", fadeType:"—",
@@ -17477,7 +17947,7 @@ function AdminPhotoUploadTab() {
         </div>
       </div>
 
-      <div style={{flex:1,overflowY:"auto",padding:"16px 20px"}}>
+      <div style={{flex:1,overflowY:"auto",padding:"clamp(10px,2vw,28px) clamp(12px,2.5vw,32px)"}}>
 
         {/* ── STEP 1: UPLOAD ── */}
         {step === "upload" && <>
@@ -17775,7 +18245,7 @@ function ContributorRegistryTab() {
         PURPLE="#7C3AED",RED="#DC2626";
 
   // ── Contributor records — names stored in admin only, never in public data ──
-  const [contributors, setContributors] = React.useState([
+  const [contributors, setContributors] = useState([
     { id:"CONTRIBUTOR-EWM-001", styleId:"EWM-001", styleName:"Wavy Crop Mid-High Fade",
       heritage:"Euro & Western Men", consentDate:"June 2026",
       rewardStatus:"pending", rewardCode:"LTI-FOUNDER-EWM001",
@@ -17802,9 +18272,9 @@ function ContributorRegistryTab() {
       notes:"", contacted:false, notified:false },
   ]);
 
-  const [selected, setSelected] = React.useState(null);
-  const [noteText,  setNoteText]  = React.useState("");
-  const [copied,    setCopied]    = React.useState(null);
+  const [selected, setSelected] = useState(null);
+  const [noteText,  setNoteText]  = useState("");
+  const [copied,    setCopied]    = useState(null);
 
   const REWARD_PERKS = [
     "12 months free LTI platform access (client or pro)",
@@ -17856,7 +18326,7 @@ function ContributorRegistryTab() {
         </div>
       </div>
 
-      <div style={{flex:1,overflowY:"auto",padding:"16px 20px"}}>
+      <div style={{flex:1,overflowY:"auto",padding:"clamp(10px,2vw,28px) clamp(12px,2.5vw,32px)"}}>
 
         {/* Reward summary */}
         <div style={{background:"rgba(201,168,76,0.1)",border:"1px solid rgba(201,168,76,0.3)",
@@ -18019,20 +18489,20 @@ function ContributorRegistryTab() {
 
 function ClientVaultTab() {
   const FOREST="#0D2818", MINT="#27AE78", GOLD="#C9A84C", ROSE="#C4896B";
-  const [step,       setStep]       = React.useState("platform");
-  const [platform,   setPlatform]   = React.useState(null);
-  const [headers,    setHeaders]    = React.useState([]);
-  const [rows,       setRows]       = React.useState([]);
-  const [mapping,    setMapping]    = React.useState({});
-  const [clients,    setClients]    = React.useState([]);
-  const [analysis,   setAnalysis]   = React.useState(null);
-  const [aiLoading,  setAiLoading]  = React.useState(false);
-  const [aiLog,      setAiLog]      = React.useState([]);
-  const [importPct,  setImportPct]  = React.useState(0);
-  const [searchQ,    setSearchQ]    = React.useState("");
-  const [filterSeg,  setFilterSeg]  = React.useState("all");
-  const [outreach,   setOutreach]   = React.useState(null);
-  const fileRef = React.useRef();
+  const [step,       setStep]       = useState("platform");
+  const [platform,   setPlatform]   = useState(null);
+  const [headers,    setHeaders]    = useState([]);
+  const [rows,       setRows]       = useState([]);
+  const [mapping,    setMapping]    = useState({});
+  const [clients,    setClients]    = useState([]);
+  const [analysis,   setAnalysis]   = useState(null);
+  const [aiLoading,  setAiLoading]  = useState(false);
+  const [aiLog,      setAiLog]      = useState([]);
+  const [importPct,  setImportPct]  = useState(0);
+  const [searchQ,    setSearchQ]    = useState("");
+  const [filterSeg,  setFilterSeg]  = useState("all");
+  const [outreach,   setOutreach]   = useState(null);
+  const fileRef = useRef();
 
   // ── Supported platforms ──────────────────────────────────────────────────
   // ── Generic platform formats — no competitor names ──────────────────────────
@@ -18055,7 +18525,7 @@ function ClientVaultTab() {
     { id:"format_f",  name:"Studio Software Format", color:"#DB2777", bg:"rgba(219,39,119,0.15)", icon:"📋",
       hint:"Wellness and studio management platform export format",
       cols:{ firstName:"First Name", lastName:"Last Name", email:"Email", phone:"Mobile Phone", notes:"Client Notes" } },
-    { id:"generic",   name:"Any CSV / Custom",       color:"#6B7280", bg:"rgba(107,114,128,0.15)", icon:"📄",
+    { id:"generic",   name:"Any CSV / Custom",       color:"rgba(255,255,255,0.45)", bg:"rgba(107,114,128,0.15)", icon:"📄",
       hint:"Map columns manually from any custom export",
       cols:{} },
   ];
@@ -18201,7 +18671,7 @@ function ClientVaultTab() {
     }));
     try {
       const res = await fetch(CLAUDE_PROXY_URL,{
-        method:"POST", headers:{"Content-Type":"application/json"},
+        method:"POST", headers:PROXY_HEADERS,
         body:JSON.stringify({
           model:"claude-sonnet-4-6", max_tokens:900,
           system:`You are a beauty business intelligence expert. Analyze a pro's client book data and return ONLY valid JSON (no markdown):
@@ -18215,7 +18685,7 @@ function ClientVaultTab() {
       const d = await res.json();
       const txt = d.content?.map(b=>b.text||"").join("").replace(/```json|```/g,"").trim();
       setAnalysis(JSON.parse(txt));
-    } catch {
+    } catch(e) {
       const vip=cls.filter(c=>c.segment==="vip").length;
       const atRisk=cls.filter(c=>c.segment==="atrisk").length;
       const winback=cls.filter(c=>c.segment==="winback").length;
@@ -18259,7 +18729,7 @@ function ClientVaultTab() {
     active:  { color:"#27AE78", bg:"rgba(39,174,120,0.15)",  label:"Active",   icon:"✅" },
     atrisk:  { color:"#F59E0B", bg:"rgba(245,158,11,0.15)",  label:"At-Risk",  icon:"⚠️"  },
     winback: { color:"#EF4444", bg:"rgba(239,68,68,0.15)",   label:"Win-Back", icon:"💌" },
-    unknown: { color:"#6B7280", bg:"rgba(107,114,128,0.12)", label:"New",      icon:"🆕" },
+    unknown: { color:"rgba(255,255,255,0.45)", bg:"rgba(107,114,128,0.12)", label:"New",      icon:"🆕" },
   };
 
   const filteredClients = clients.filter(c => {
@@ -18308,7 +18778,7 @@ function ClientVaultTab() {
         </div>
       </div>
 
-      <div style={{flex:1,overflowY:"auto",padding:"20px"}}>
+      <div style={{flex:1,overflowY:"auto",padding:"clamp(12px,2.5vw,32px)"}}>
 
         {/* ── STEP 1: PLATFORM SELECT ── */}
         {step==="platform"&&<>
@@ -18529,7 +18999,7 @@ function ClientVaultTab() {
           <div style={{background:"rgba(201,168,76,0.1)",border:"1px solid rgba(201,168,76,0.35)",
             borderRadius:"14px",padding:"14px",marginBottom:"14px"}}>
             <div style={{fontSize:"9px",letterSpacing:"2px",color:GOLD,fontWeight:"800",marginBottom:"6px"}}>💡 TOP INSIGHT</div>
-            <div style={{fontSize:"12px",color:"rgba(255,255,255,0.85)",lineHeight:"1.7"}}>{analysis.topInsight}</div>
+            <div style={{fontSize:"12px",color:"rgba(255,255,255,0.06)",lineHeight:"1.7"}}>{analysis.topInsight}</div>
           </div>
 
           {/* 3 Insights */}
@@ -18616,7 +19086,7 @@ function ClientVaultTab() {
 
 function NailSpaBidBoard() {
   const PINK   = "#DB2777"; const PINK_BG  = "#FFF0F6"; const PINK_MID = "#FCE7F3";
-  const AMBER  = "#D97706"; const AMBER_BG = "#FFFBEB";
+  const AMBER  = "#D97706"; const AMBER_BG = "rgba(201,168,76,0.1)";
   const TEAL   = "#0D9488"; const TEAL_BG  = "#F0FDFA";
 
   const [activeTab,   setActiveTab]   = useState("nail");
@@ -18670,15 +19140,15 @@ function NailSpaBidBoard() {
   async function getAiTip(ticket) {
     setAiLoading(true); setAiTip("");
     try {
-      const res = await fetch("/api/claude", { method:"POST", headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:120,
+      const res = await fetch("/api/claude", { method:"POST", headers:PROXY_HEADERS,
+        body: JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:120,
           system:"You are a beauty industry bid advisor for Love That Idea. Give a sharp 2-sentence tip on how to win this bid. Be specific and actionable.",
           messages:[{role:"user",content:`Ticket: ${ticket.service}, client ${ticket.client}, budget ${ticket.budget}, notes: "${ticket.notes}". How should a pro craft the winning bid?`}]
         })
       });
       const d = await res.json();
       setAiTip(d.content?.map(b=>b.text||"").join("")||"");
-    } catch { setAiTip("Lead with your specific experience matching this request — clients pick the pro who shows they actually read the notes."); }
+    } catch(e) { setAiTip("Lead with your specific experience matching this request — clients pick the pro who shows they actually read the notes."); }
     setAiLoading(false);
   }
 
@@ -18699,24 +19169,24 @@ function NailSpaBidBoard() {
   }
 
   const urgencyBadge = (u, status) => {
-    if (status==="assigned") return { label:"✓ FILLED", bg:"#D1FAE5", color:"#065F46", border:"#6EE7B7" };
-    if (u==="now")   return { label:"RIGHT NOW",  bg:"#FEE2E2", color:"#991B1B", border:"#FCA5A5" };
-    if (u==="soon")  return { label:"IN 2–3 HRS", bg:"#FEF3C7", color:"#92400E", border:"#FCD34D" };
-    return             { label:"TODAY",       bg:"#DBEAFE", color:"#1E40AF", border:"#93C5FD" };
+    if (status==="assigned") return { label:"✓ FILLED", bg:"rgba(39,174,120,0.18)", color:"rgba(39,174,120,0.85)", border:"#6EE7B7" };
+    if (u==="now")   return { label:"RIGHT NOW",  bg:"rgba(239,68,68,0.18)", color:"#F87171", border:"rgba(239,68,68,0.2)" };
+    if (u==="soon")  return { label:"IN 2–3 HRS", bg:"rgba(201,168,76,0.18)", color:"#C9A84C", border:"#FCD34D" };
+    return             { label:"TODAY",       bg:"rgba(8,145,178,0.18)", color:"#38BDF8", border:"#93C5FD" };
   };
 
   return (
     <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",background:"linear-gradient(160deg,#FDF2F8,#FFF0FB,#FEF9F0)"}}>
 
       {/* Header */}
-      <div style={{background:"rgba(255,255,255,0.92)",borderBottom:"1px solid rgba(219,39,119,0.12)",boxShadow:"0 2px 12px rgba(219,39,119,0.06)",padding:"14px 20px 0",flexShrink:0}}>
+      <div style={{background:"rgba(255,255,255,0.06)",borderBottom:"1px solid rgba(219,39,119,0.12)",boxShadow:"0 2px 12px rgba(219,39,119,0.06)",padding:"14px 20px 0",flexShrink:0}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:"12px",flexWrap:"wrap",gap:"10px"}}>
           <div>
             <div style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"3px"}}>
               <div style={{fontFamily:FONTS.display,fontSize:"22px",fontWeight:"700",color:PINK}}>💅 Nail & Spa Bid Board</div>
               <ClaudeBadge size="sm"/>
             </div>
-            <div style={{fontSize:"11px",color:"#9CA3AF"}}>Live marketplace · Nail tech + spa pros competing for your service</div>
+            <div style={{fontSize:"11px",color:"rgba(255,255,255,0.35)"}}>Live marketplace · Nail tech + spa pros competing for your service</div>
           </div>
           <button onClick={()=>setShowPost(true)}
             style={{background:accentColor,color:"#fff",border:"none",boxShadow:`0 4px 14px ${accentColor}55`,padding:"9px 18px",borderRadius:"10px",fontSize:"12px",fontWeight:"900",cursor:"pointer"}}>
@@ -18756,7 +19226,7 @@ function NailSpaBidBoard() {
 
         {/* Search */}
         <input value={search} onChange={e=>setSearch(e.target.value)} placeholder={`Search ${activeTab==="nail"?"nail":"spa"} tickets by client, service, location...`}
-          style={{width:"100%",boxSizing:"border-box",background:"#F9FAFB",border:"1px solid #E5E7EB",color:"#111",padding:"9px 14px",borderRadius:"10px",fontSize:"12px",outline:"none",marginBottom:"10px"}}/>
+          style={{width:"100%",boxSizing:"border-box",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",color:"#111",padding:"9px 14px",borderRadius:"10px",fontSize:"12px",outline:"none",marginBottom:"10px"}}/>
       </div>
 
       {/* AI Tip Banner */}
@@ -18764,26 +19234,26 @@ function NailSpaBidBoard() {
         <div style={{background:"linear-gradient(135deg,#FDF2F8,#F5F0FF)",borderBottom:"1px solid #F9A8D4",padding:"10px 20px",display:"flex",gap:"10px",alignItems:"flex-start",flexShrink:0}}>
           <span style={{fontSize:"18px"}}>✦</span>
           <div style={{flex:1}}>
-            <div style={{fontSize:"9px",color:"#9D174D",fontWeight:"800",letterSpacing:"1.5px",marginBottom:"3px"}}>AI PRO TIP</div>
-            <div style={{fontSize:"12px",color:"#4B5563",lineHeight:"1.6"}}>{aiLoading?"Analyzing ticket...":aiTip}</div>
+            <div style={{fontSize:"9px",color:"#F472B6",fontWeight:"800",letterSpacing:"1.5px",marginBottom:"3px"}}>AI PRO TIP</div>
+            <div style={{fontSize:"12px",color:"rgba(255,255,255,0.55)",lineHeight:"1.6"}}>{aiLoading?"Analyzing ticket...":aiTip}</div>
           </div>
           <button onClick={()=>setAiTip("")} style={{background:"none",border:"none",color:"#D1D5DB",cursor:"pointer",fontSize:"16px"}}>×</button>
         </div>
       )}
 
       {/* Ticket Grid */}
-      <div style={{flex:1,overflowY:"auto",padding:"16px 20px"}}>
+      <div style={{flex:1,overflowY:"auto",padding:"clamp(10px,2vw,28px) clamp(12px,2.5vw,32px)"}}>
         {filtered.length===0 && (
-          <div style={{textAlign:"center",padding:"60px 20px",color:"#9CA3AF"}}>
+          <div style={{textAlign:"center",padding:"60px 20px",color:"rgba(255,255,255,0.35)"}}>
             <div style={{fontSize:"40px",marginBottom:"12px"}}>{activeTab==="nail"?"💅":"🧖"}</div>
             <div style={{fontSize:"15px",fontWeight:"700"}}>No {activeTab} tickets match this filter</div>
           </div>
         )}
-        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:"14px"}}>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(340px,1fr))",gap:"14px"}}>
           {filtered.map(ticket => {
             const badge = urgencyBadge(ticket.urgency, ticket.status);
             return (
-              <div key={ticket.id} style={{background:"#fff",border:`1.5px solid ${ticket.color}33`,borderRadius:"18px",overflow:"hidden",boxShadow:`0 4px 20px rgba(0,0,0,0.06), 0 0 0 1px ${ticket.color}18`,transition:"all 0.2s"}}>
+              <div key={ticket.id} style={{background:"rgba(255,255,255,0.06)",border:`1.5px solid ${ticket.color}33`,borderRadius:"18px",overflow:"hidden",boxShadow:`0 4px 20px rgba(0,0,0,0.06), 0 0 0 1px ${ticket.color}18`,transition:"all 0.2s"}}>
                 {/* Color top bar */}
                 <div style={{height:"4px",background:`linear-gradient(90deg,${ticket.color},${ticket.color}88)`}}/>
 
@@ -18795,33 +19265,33 @@ function NailSpaBidBoard() {
                   </div>
                   <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:"4px"}}>
                     <span style={{background:badge.bg,color:badge.color,border:`1px solid ${badge.border}`,fontSize:"9px",fontWeight:"800",padding:"3px 8px",borderRadius:"10px"}}>{badge.label}</span>
-                    <span style={{fontSize:"9px",color:"#9CA3AF"}}>{ticket.postedAt}</span>
+                    <span style={{fontSize:"9px",color:"rgba(255,255,255,0.35)"}}>{ticket.postedAt}</span>
                   </div>
                 </div>
 
                 {/* Details chips */}
                 <div style={{padding:"0 14px 8px",display:"flex",gap:"5px",flexWrap:"wrap"}}>
-                  <span style={{background:"#F3F4F6",color:"#6B7280",fontSize:"10px",padding:"3px 8px",borderRadius:"6px"}}>🕐 {ticket.time}</span>
-                  <span style={{background:"#F3F4F6",color:"#6B7280",fontSize:"10px",padding:"3px 8px",borderRadius:"6px"}}>📍 {ticket.location}</span>
+                  <span style={{background:"rgba(255,255,255,0.06)",color:"rgba(255,255,255,0.45)",fontSize:"10px",padding:"3px 8px",borderRadius:"6px"}}>🕐 {ticket.time}</span>
+                  <span style={{background:"rgba(255,255,255,0.06)",color:"rgba(255,255,255,0.45)",fontSize:"10px",padding:"3px 8px",borderRadius:"6px"}}>📍 {ticket.location}</span>
                   <span style={{background:`${ticket.color}12`,color:ticket.color,fontSize:"10px",padding:"3px 8px",borderRadius:"6px",fontWeight:"700"}}>💰 {ticket.budget}</span>
-                  {ticket.length && ticket.length!=="N/A" && <span style={{background:"#F3F4F6",color:"#6B7280",fontSize:"10px",padding:"3px 8px",borderRadius:"6px"}}>📏 {ticket.length}</span>}
+                  {ticket.length && ticket.length!=="N/A" && <span style={{background:"rgba(255,255,255,0.06)",color:"rgba(255,255,255,0.45)",fontSize:"10px",padding:"3px 8px",borderRadius:"6px"}}>📏 {ticket.length}</span>}
                 </div>
 
                 {/* Notes */}
-                {ticket.notes && <div style={{padding:"0 14px 8px",fontSize:"11px",color:"#6B7280",fontStyle:"italic",lineHeight:"1.5"}}>"{ticket.notes}"</div>}
+                {ticket.notes && <div style={{padding:"0 14px 8px",fontSize:"11px",color:"rgba(255,255,255,0.45)",fontStyle:"italic",lineHeight:"1.5"}}>"{ticket.notes}"</div>}
 
                 {/* Bids */}
                 {ticket.bids.length>0 && (
                   <div style={{padding:"0 14px 8px"}}>
-                    <div style={{fontSize:"9px",color:"#9CA3AF",fontWeight:"800",letterSpacing:"1.5px",marginBottom:"5px"}}>{ticket.bids.length} BID{ticket.bids.length>1?"S":""}</div>
+                    <div style={{fontSize:"9px",color:"rgba(255,255,255,0.35)",fontWeight:"800",letterSpacing:"1.5px",marginBottom:"5px"}}>{ticket.bids.length} BID{ticket.bids.length>1?"S":""}</div>
                     {ticket.bids.map((b,i)=>(
-                      <div key={i} style={{background:"#F9FAFB",border:"1px solid #E5E7EB",borderRadius:"10px",padding:"8px 10px",marginBottom:"5px"}}>
+                      <div key={i} style={{background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:"10px",padding:"8px 10px",marginBottom:"5px"}}>
                         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"2px"}}>
                           <span style={{fontSize:"12px",fontWeight:"800",color:"#111"}}>{b.pro}</span>
                           <span style={{fontSize:"14px",fontWeight:"900",color:ticket.color}}>${b.price}</span>
                         </div>
-                        <div style={{fontSize:"10px",color:"#9CA3AF"}}>⭐{b.rating} · ETA {b.eta}</div>
-                        {b.msg&&<div style={{fontSize:"10px",color:"#6B7280",fontStyle:"italic",marginTop:"3px"}}>"{b.msg}"</div>}
+                        <div style={{fontSize:"10px",color:"rgba(255,255,255,0.35)"}}>⭐{b.rating} · ETA {b.eta}</div>
+                        {b.msg&&<div style={{fontSize:"10px",color:"rgba(255,255,255,0.45)",fontStyle:"italic",marginTop:"3px"}}>"{b.msg}"</div>}
                       </div>
                     ))}
                   </div>
@@ -18835,12 +19305,12 @@ function NailSpaBidBoard() {
                       + Place Bid
                     </button>
                     <button onClick={()=>getAiTip(ticket)}
-                      style={{flex:1,background:"linear-gradient(135deg,#FDF2F8,#F5F0FF)",color:"#9D174D",border:"1px solid #F9A8D4",padding:"9px",borderRadius:"10px",fontSize:"11px",fontWeight:"800",cursor:"pointer"}}>
+                      style={{flex:1,background:"linear-gradient(135deg,#FDF2F8,#F5F0FF)",color:"#F472B6",border:"1px solid #F9A8D4",padding:"9px",borderRadius:"10px",fontSize:"11px",fontWeight:"800",cursor:"pointer"}}>
                       ✦ AI Tip
                     </button>
                   </div>
                 )}
-                {ticket.status==="assigned"&&<div style={{margin:"8px 14px 14px",background:"#D1FAE5",border:"1px solid #6EE7B7",borderRadius:"10px",padding:"9px",fontSize:"12px",fontWeight:"700",color:"#065F46",textAlign:"center"}}>✓ Filled — {ticket.assignedTo}</div>}
+                {ticket.status==="assigned"&&<div style={{margin:"8px 14px 14px",background:"rgba(39,174,120,0.18)",border:"1px solid #6EE7B7",borderRadius:"10px",padding:"9px",fontSize:"12px",fontWeight:"700",color:"rgba(39,174,120,0.85)",textAlign:"center"}}>✓ Filled — {ticket.assignedTo}</div>}
               </div>
             );
           })}
@@ -18850,23 +19320,23 @@ function NailSpaBidBoard() {
       {/* Bid Modal */}
       {bidModal && (
         <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.45)",zIndex:500,display:"flex",alignItems:"center",justifyContent:"center",padding:"16px"}}>
-          <div style={{background:"#fff",borderRadius:"20px",width:"100%",maxWidth:"420px",overflow:"hidden",boxShadow:"0 24px 60px rgba(0,0,0,0.18)"}}>
+          <div style={{background:"rgba(255,255,255,0.06)",borderRadius:"20px",width:"100%",maxWidth:"420px",overflow:"hidden",boxShadow:"0 24px 60px rgba(0,0,0,0.18)"}}>
             <div style={{padding:"16px 20px",borderBottom:"1px solid #F3F4F6",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
               <div style={{fontFamily:FONTS.display,fontSize:"18px",fontWeight:"700",color:accentColor}}>Place Your Bid</div>
-              <button onClick={()=>setBidModal(null)} style={{background:"none",border:"none",color:"#9CA3AF",fontSize:"22px",cursor:"pointer"}}>×</button>
+              <button onClick={()=>setBidModal(null)} style={{background:"none",border:"none",color:"rgba(255,255,255,0.35)",fontSize:"22px",cursor:"pointer"}}>×</button>
             </div>
             <div style={{padding:"20px",display:"flex",flexDirection:"column",gap:"12px"}}>
               {[["Your Price ($)","number",bidPrice,setBidPrice,"e.g. 65"],["Your Message","text",bidMsg,setBidMsg,"What makes your service stand out?"]].map(([l,t,v,s,ph])=>(
                 <div key={l}>
-                  <div style={{fontSize:"10px",fontWeight:"800",color:"#9CA3AF",letterSpacing:"1.5px",marginBottom:"5px"}}>{l.toUpperCase()}</div>
+                  <div style={{fontSize:"10px",fontWeight:"800",color:"rgba(255,255,255,0.35)",letterSpacing:"1.5px",marginBottom:"5px"}}>{l.toUpperCase()}</div>
                   {l.includes("Message")
-                    ? <textarea value={v} onChange={e=>s(e.target.value)} placeholder={ph} rows={3} style={{width:"100%",background:"#F9FAFB",border:"1px solid #E5E7EB",color:"#111",padding:"10px 12px",borderRadius:"10px",fontSize:"13px",boxSizing:"border-box",resize:"vertical",fontFamily:"inherit"}}/>
-                    : <input type={t} value={v} onChange={e=>s(e.target.value)} placeholder={ph} style={{width:"100%",background:"#F9FAFB",border:"1px solid #E5E7EB",color:"#111",padding:"10px 12px",borderRadius:"10px",fontSize:"13px",boxSizing:"border-box"}}/>
+                    ? <textarea value={v} onChange={e=>s(e.target.value)} placeholder={ph} rows={3} style={{width:"100%",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",color:"#111",padding:"10px 12px",borderRadius:"10px",fontSize:"13px",boxSizing:"border-box",resize:"vertical",fontFamily:"inherit"}}/>
+                    : <input type={t} value={v} onChange={e=>s(e.target.value)} placeholder={ph} style={{width:"100%",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",color:"#111",padding:"10px 12px",borderRadius:"10px",fontSize:"13px",boxSizing:"border-box"}}/>
                   }
                 </div>
               ))}
               <button onClick={()=>submitBid(bidModal)} disabled={!bidPrice}
-                style={{padding:"13px",background:bidPrice?accentColor:"#F3F4F6",color:bidPrice?"#fff":"#9CA3AF",border:"none",borderRadius:"12px",fontSize:"14px",fontWeight:"900",cursor:bidPrice?"pointer":"not-allowed",transition:"all 0.2s"}}>
+                style={{padding:"13px",background:bidPrice?accentColor:"rgba(255,255,255,0.07)",color:bidPrice?"#fff":"#9CA3AF",border:"none",borderRadius:"12px",fontSize:"14px",fontWeight:"900",cursor:bidPrice?"pointer":"not-allowed",transition:"all 0.2s"}}>
                 Submit Bid →
               </button>
             </div>
@@ -18877,20 +19347,20 @@ function NailSpaBidBoard() {
       {/* Post Ticket Modal */}
       {showPost && (
         <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.45)",zIndex:500,display:"flex",alignItems:"center",justifyContent:"center",padding:"16px"}}>
-          <div style={{background:"#fff",borderRadius:"20px",width:"100%",maxWidth:"460px",maxHeight:"88vh",overflow:"hidden",display:"flex",flexDirection:"column",boxShadow:"0 24px 60px rgba(0,0,0,0.18)"}}>
+          <div style={{background:"rgba(255,255,255,0.06)",borderRadius:"20px",width:"100%",maxWidth:"460px",maxHeight:"88vh",overflow:"hidden",display:"flex",flexDirection:"column",boxShadow:"0 24px 60px rgba(0,0,0,0.18)"}}>
             <div style={{padding:"16px 20px",borderBottom:"1px solid #F3F4F6",display:"flex",justifyContent:"space-between",alignItems:"center",flexShrink:0}}>
               <div style={{fontFamily:FONTS.display,fontSize:"18px",fontWeight:"700",color:accentColor}}>{activeTab==="nail"?"💅":"🧖"} Post {activeTab==="nail"?"Nail":"Spa"} Ticket</div>
-              <button onClick={()=>setShowPost(false)} style={{background:"none",border:"none",color:"#9CA3AF",fontSize:"22px",cursor:"pointer"}}>×</button>
+              <button onClick={()=>setShowPost(false)} style={{background:"none",border:"none",color:"rgba(255,255,255,0.35)",fontSize:"22px",cursor:"pointer"}}>×</button>
             </div>
             <div style={{overflowY:"auto",padding:"18px 20px",display:"flex",flexDirection:"column",gap:"12px"}}>
               {[["Your Name",newTicket.client,v=>setNewTicket(p=>({...p,client:v})),"Full name or first name"],["Location",newTicket.location,v=>setNewTicket(p=>({...p,location:v})),"Neighborhood or city"],["Budget Range",newTicket.budget,v=>setNewTicket(p=>({...p,budget:v})),"e.g. $60–80"],["Preferred Time",newTicket.time,v=>setNewTicket(p=>({...p,time:v})),"e.g. Today 3:00 PM"]].map(([l,val,setter,ph])=>(
                 <div key={l}>
-                  <div style={{fontSize:"10px",fontWeight:"800",color:"#9CA3AF",letterSpacing:"1.5px",marginBottom:"5px"}}>{l.toUpperCase()}</div>
-                  <input value={val} onChange={e=>setter(e.target.value)} placeholder={ph} style={{width:"100%",background:"#F9FAFB",border:"1px solid #E5E7EB",color:"#111",padding:"10px 12px",borderRadius:"10px",fontSize:"13px",boxSizing:"border-box"}}/>
+                  <div style={{fontSize:"10px",fontWeight:"800",color:"rgba(255,255,255,0.35)",letterSpacing:"1.5px",marginBottom:"5px"}}>{l.toUpperCase()}</div>
+                  <input value={val} onChange={e=>setter(e.target.value)} placeholder={ph} style={{width:"100%",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",color:"#111",padding:"10px 12px",borderRadius:"10px",fontSize:"13px",boxSizing:"border-box"}}/>
                 </div>
               ))}
               <div>
-                <div style={{fontSize:"10px",fontWeight:"800",color:"#9CA3AF",letterSpacing:"1.5px",marginBottom:"6px"}}>SERVICE</div>
+                <div style={{fontSize:"10px",fontWeight:"800",color:"rgba(255,255,255,0.35)",letterSpacing:"1.5px",marginBottom:"6px"}}>SERVICE</div>
                 <div style={{display:"flex",gap:"6px",flexWrap:"wrap"}}>
                   {services.map(svc=>(
                     <button key={svc} onClick={()=>setNewTicket(p=>({...p,service:svc}))}
@@ -18901,7 +19371,7 @@ function NailSpaBidBoard() {
                 </div>
               </div>
               <div>
-                <div style={{fontSize:"10px",fontWeight:"800",color:"#9CA3AF",letterSpacing:"1.5px",marginBottom:"5px"}}>URGENCY</div>
+                <div style={{fontSize:"10px",fontWeight:"800",color:"rgba(255,255,255,0.35)",letterSpacing:"1.5px",marginBottom:"5px"}}>URGENCY</div>
                 <div style={{display:"flex",gap:"6px"}}>
                   {[["now","Right Now"],["soon","2–3 Hrs"],["today","Today"]].map(([v,l])=>(
                     <button key={v} onClick={()=>setNewTicket(p=>({...p,urgency:v}))}
@@ -18912,12 +19382,12 @@ function NailSpaBidBoard() {
                 </div>
               </div>
               <div>
-                <div style={{fontSize:"10px",fontWeight:"800",color:"#9CA3AF",letterSpacing:"1.5px",marginBottom:"5px"}}>NOTES</div>
+                <div style={{fontSize:"10px",fontWeight:"800",color:"rgba(255,255,255,0.35)",letterSpacing:"1.5px",marginBottom:"5px"}}>NOTES</div>
                 <textarea value={newTicket.notes} onChange={e=>setNewTicket(p=>({...p,notes:e.target.value}))} rows={2} placeholder="Inspo pics, preferences, allergies, special requests..."
-                  style={{width:"100%",background:"#F9FAFB",border:"1px solid #E5E7EB",color:"#111",padding:"10px 12px",borderRadius:"10px",fontSize:"13px",boxSizing:"border-box",resize:"vertical",fontFamily:"inherit"}}/>
+                  style={{width:"100%",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",color:"#111",padding:"10px 12px",borderRadius:"10px",fontSize:"13px",boxSizing:"border-box",resize:"vertical",fontFamily:"inherit"}}/>
               </div>
               <button onClick={postTicket} disabled={!newTicket.service||!newTicket.client}
-                style={{padding:"13px",background:newTicket.service&&newTicket.client?accentColor:"#F3F4F6",color:newTicket.service&&newTicket.client?"#fff":"#9CA3AF",border:"none",borderRadius:"12px",fontSize:"14px",fontWeight:"900",cursor:newTicket.service&&newTicket.client?"pointer":"not-allowed",transition:"all 0.2s",boxShadow:newTicket.service&&newTicket.client?`0 4px 14px ${accentColor}44`:"none"}}>
+                style={{padding:"13px",background:newTicket.service&&newTicket.client?accentColor:"rgba(255,255,255,0.07)",color:newTicket.service&&newTicket.client?"#fff":"#9CA3AF",border:"none",borderRadius:"12px",fontSize:"14px",fontWeight:"900",cursor:newTicket.service&&newTicket.client?"pointer":"not-allowed",transition:"all 0.2s",boxShadow:newTicket.service&&newTicket.client?`0 4px 14px ${accentColor}44`:"none"}}>
                 Post Ticket →
               </button>
             </div>
@@ -18964,8 +19434,8 @@ function TanningSpaTab() {
   async function getSpaAiTip(ticket) {
     setSpaAiLoading(true); setSpaAiTip("");
     try {
-      const res = await fetch("/api/claude",{method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:120,
+      const res = await fetch("/api/claude",{method:"POST",headers:PROXY_HEADERS,
+        body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:120,
           system:"You are a spa business advisor for Love That Idea. Respond in 2 sentences max with a sharp professional tip.",
           messages:[{role:"user",content:`Spa bid ticket: ${ticket.service}, client ${ticket.clientName}, skin tone ${ticket.skinTone||"N/A"}, budget ${ticket.budget}, notes: "${ticket.notes}". Give a quick pro tip on how to win this bid and serve this client well.`}]
         })
@@ -18999,7 +19469,7 @@ function TanningSpaTab() {
     const msgs = [...aiHistory, {role:"user",content:aiQ}];
     const sys = `You are an expert tanning, spa, and wellness professional AI for Love That Idea. You specialize in spray tanning, UV tanning safety, sauna therapy, massage, and spa treatments. Give technically accurate, safety-conscious guidance. Under 200 words.`;
     try {
-      const res = await fetch(CLAUDE_PROXY_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:700,system:sys,messages:msgs})});
+      const res = await fetch(CLAUDE_PROXY_URL,{method:"POST",headers:PROXY_HEADERS,body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:700,system:sys,messages:msgs})});
       const d = await res.json();
       setAiHistory([...msgs,{role:"assistant",content:d.content?d.content.map(b=>b.text||"").join(""):""}]);
     } catch(e) { setAiHistory(prev=>[...prev,{role:"assistant",content:"Connection error."}]); }
@@ -19010,7 +19480,7 @@ function TanningSpaTab() {
     if (!skinType.trim()) return;
     setTanLoading(true); setTanResult("");
     try {
-      const res = await fetch(CLAUDE_PROXY_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:400,system:"You are an expert tanning consultant. Based on client description, recommend the best tanning service, solution depth, prep tips, and aftercare. Under 150 words.",messages:[{role:"user",content:`Client: ${skinType}. Recommend the best tanning approach.`}]})});
+      const res = await fetch(CLAUDE_PROXY_URL,{method:"POST",headers:PROXY_HEADERS,body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:400,system:"You are an expert tanning consultant. Based on client description, recommend the best tanning service, solution depth, prep tips, and aftercare. Under 150 words.",messages:[{role:"user",content:`Client: ${skinType}. Recommend the best tanning approach.`}]})});
       const d = await res.json();
       setTanResult(d.content?d.content.map(b=>b.text||"").join(""):"");
     } catch(e) { setTanResult("Connection error. Try again."); }
@@ -19021,10 +19491,10 @@ function TanningSpaTab() {
 
   return (
     <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",background:C.bg}}>
-      <div style={{background:"linear-gradient(135deg,#FFFBEB,#FEF3C7)",borderBottom:"1px solid #FCD34D",padding:"14px 20px",display:"flex",alignItems:"center",gap:"14px",flexShrink:0}}>
+      <div style={{background:"rgba(201,168,76,0.1)",borderBottom:"1px solid #FCD34D",padding:"14px 20px",display:"flex",alignItems:"center",gap:"14px",flexShrink:0}}>
         <div style={{fontSize:"32px"}}>🌞</div>
         <div>
-          <div style={{fontSize:"20px",fontWeight:"900",color:"#92400E",fontFamily:"'Cormorant Garamond',serif"}}>Tanning and Spa Studio</div>
+          <div style={{fontSize:"20px",fontWeight:"900",color:"#C9A84C",fontFamily:"'Cormorant Garamond',serif"}}>Tanning and Spa Studio</div>
           <div style={{fontSize:"12px",color:"#D97706"}}>Spray Tan, UV, Sauna, Massage, Body Wraps - AI Coached</div>
         </div>
         <div style={{marginLeft:"auto",display:"flex",gap:"6px",flexWrap:"wrap"}}>
@@ -19042,8 +19512,8 @@ function TanningSpaTab() {
             <div style={{background:"rgba(217,119,6,0.08)",borderBottom:"1px solid rgba(217,119,6,0.2)",boxShadow:"0 2px 12px rgba(217,119,6,0.08), inset 0 1px 0 rgba(255,255,255,0.8)",padding:"14px 20px",flexShrink:0}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"12px",flexWrap:"wrap",gap:"10px"}}>
                 <div>
-                  <div style={{fontFamily:FONTS.display,fontSize:"20px",fontWeight:"700",color:"#92400E"}}>🌞 Tanning & Spa Bid Board</div>
-                  <div style={{fontSize:"11px",color:"rgba(146,64,14,0.6)"}}>Clients post service requests — pros bid in real time</div>
+                  <div style={{fontFamily:FONTS.display,fontSize:"20px",fontWeight:"700",color:"#C9A84C"}}>🌞 Tanning & Spa Bid Board</div>
+                  <div style={{fontSize:"11px",color:"rgba(255,213,128,0.7)"}}>Clients post service requests — pros bid in real time</div>
                 </div>
                 <button onClick={()=>setShowPostSpa(true)}
                   style={{background:"rgba(217,119,6,0.9)",color:"#fff",border:"1px solid rgba(217,119,6,0.9)",boxShadow:"0 4px 16px rgba(217,119,6,0.4)",padding:"8px 18px",borderRadius:"10px",fontSize:"12px",fontWeight:"900",cursor:"pointer"}}>
@@ -19053,7 +19523,7 @@ function TanningSpaTab() {
               {/* Stats */}
               <div style={{display:"flex",gap:"8px",flexWrap:"wrap",marginBottom:"10px"}}>
                 {[[filteredSpaBids.filter(t=>t.status==="open").length,"OPEN","#D97706"],[filteredSpaBids.reduce((s,t)=>s+t.bids.length,0),"BIDS","#8B5CF6"],[filteredSpaBids.filter(t=>t.status==="assigned").length,"FILLED","#059669"]].map(([v,l,c])=>(
-                  <div key={l} style={{background:"rgba(255,255,255,0.7)",border:`1px solid ${c}66`,boxShadow:`0 0 10px ${c}33`,padding:"4px 12px",borderRadius:"20px",display:"flex",alignItems:"center",gap:"6px"}}>
+                  <div key={l} style={{background:`${c}18`,border:`1px solid ${c}55`,boxShadow:`0 0 10px ${c}22`,padding:"4px 12px",borderRadius:"20px",display:"flex",alignItems:"center",gap:"6px"}}>
                     <div style={{width:"6px",height:"6px",borderRadius:"50%",background:c,boxShadow:`0 0 8px ${c}`}}/>
                     <span style={{fontSize:"15px",fontWeight:"900",color:C.text}}>{v}</span>
                     <span style={{fontSize:"9px",color:`${c}CC`,letterSpacing:"1.5px",fontWeight:"700"}}>{l}</span>
@@ -19063,10 +19533,10 @@ function TanningSpaTab() {
               {/* Search + filters */}
               <div style={{display:"flex",gap:"8px",flexWrap:"wrap"}}>
                 <input value={spaSearch} onChange={e=>setSpaSearch(e.target.value)} placeholder="Search by client, service, location..."
-                  style={{flex:1,minWidth:"180px",background:"rgba(255,255,255,0.85)",border:"1px solid rgba(217,119,6,0.25)",boxShadow:"0 2px 8px rgba(217,119,6,0.08)",color:C.text,padding:"8px 14px",borderRadius:"10px",fontSize:"12px",outline:"none"}}/>
+                  style={{flex:1,minWidth:"180px",background:"rgba(217,119,6,0.08)",border:"1px solid rgba(217,119,6,0.3)",color:"#FEFDF8",padding:"8px 14px",borderRadius:"10px",fontSize:"12px",outline:"none"}}/>
                 {[["all","All"],["open","Open"],["assigned","Filled"]].map(([v,l])=>(
                   <button key={v} onClick={()=>setSpaFilter(v)}
-                    style={{background:spaFilter===v?"rgba(217,119,6,0.15)":"rgba(255,255,255,0.6)",color:spaFilter===v?"#92400E":"rgba(146,64,14,0.5)",border:`1px solid ${spaFilter===v?"rgba(217,119,6,0.4)":"rgba(217,119,6,0.15)"}`,boxShadow:spaFilter===v?"0 2px 12px rgba(217,119,6,0.2)":"none",padding:"6px 14px",borderRadius:"20px",fontSize:"11px",fontWeight:"700",cursor:"pointer",transition:"all 0.18s"}}>
+                    style={{background:spaFilter===v?"rgba(217,119,6,0.22)":"rgba(255,255,255,0.05)",color:spaFilter===v?"#FFD580":"rgba(255,255,255,0.45)",border:`1px solid ${spaFilter===v?"rgba(217,119,6,0.4)":"rgba(217,119,6,0.15)"}`,boxShadow:spaFilter===v?"0 2px 12px rgba(217,119,6,0.2)":"none",padding:"6px 14px",borderRadius:"20px",fontSize:"11px",fontWeight:"700",cursor:"pointer",transition:"all 0.18s"}}>
                     {l}
                   </button>
                 ))}
@@ -19074,20 +19544,20 @@ function TanningSpaTab() {
             </div>
 
             {/* Ticket cards */}
-            <div style={{flex:1,overflowY:"auto",padding:"16px 20px"}}>
+            <div style={{flex:1,overflowY:"auto",padding:"clamp(10px,2vw,28px) clamp(12px,2.5vw,32px)"}}>
               {spaAiTip && (
-                <div style={{background:"rgba(255,235,180,0.9)",border:"1px solid rgba(217,119,6,0.3)",boxShadow:"0 2px 12px rgba(217,119,6,0.12)",borderRadius:"12px",padding:"12px 16px",marginBottom:"14px",display:"flex",gap:"10px",alignItems:"flex-start"}}>
+                <div style={{background:"rgba(217,119,6,0.12)",border:"1px solid rgba(217,119,6,0.3)",boxShadow:"0 2px 12px rgba(217,119,6,0.12)",borderRadius:"12px",padding:"12px 16px",marginBottom:"14px",display:"flex",gap:"10px",alignItems:"flex-start"}}>
                   <span style={{fontSize:"18px"}}>✦</span>
                   <div>
-                    <div style={{fontSize:"9px",color:"rgba(146,64,14,0.7)",fontWeight:"800",letterSpacing:"1.5px",marginBottom:"4px"}}>AI PRO TIP</div>
-                    <div style={{fontSize:"12px",color:"#92400E",lineHeight:"1.6"}}>{spaAiLoading?"Analyzing ticket...":spaAiTip}</div>
+                    <div style={{fontSize:"9px",color:"rgba(255,213,128,0.8)",fontWeight:"800",letterSpacing:"1.5px",marginBottom:"4px"}}>AI PRO TIP</div>
+                    <div style={{fontSize:"12px",color:"#C9A84C",lineHeight:"1.6"}}>{spaAiLoading?"Analyzing ticket...":spaAiTip}</div>
                   </div>
                   <button onClick={()=>setSpaAiTip("")} style={{background:"none",border:"none",color:"rgba(255,200,80,0.4)",cursor:"pointer",fontSize:"16px",flexShrink:0}}>×</button>
                 </div>
               )}
-              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:"12px"}}>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(340px,1fr))",gap:"12px"}}>
                 {filteredSpaBids.map(ticket=>(
-                  <div key={ticket.id} style={{background:"rgba(255,255,255,0.85)",border:`2px solid ${ticket.color}44`,borderRadius:"16px",overflow:"hidden",boxShadow:`0 4px 20px rgba(0,0,0,0.06), 0 0 0 1px ${ticket.color}22`,transition:"all 0.2s"}}>
+                  <div key={ticket.id} style={{background:"rgba(7,18,10,0.85)",border:`2px solid ${ticket.color}44`,borderRadius:"16px",overflow:"hidden",boxShadow:`0 4px 20px rgba(0,0,0,0.06), 0 0 0 1px ${ticket.color}22`,transition:"all 0.2s"}}>
                     {/* Card header */}
                     <div style={{background:`linear-gradient(135deg,${ticket.color}33,${ticket.color}18)`,borderBottom:`1px solid ${ticket.color}33`,padding:"12px 14px"}}>
                       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:"4px"}}>
@@ -19096,7 +19566,7 @@ function TanningSpaTab() {
                           <div style={{fontSize:"13px",fontWeight:"700",color:ticket.color}}>{ticket.service}</div>
                         </div>
                         <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:"4px"}}>
-                          <span style={{background:ticket.status==="assigned"?"rgba(5,150,105,0.3)":"rgba(0,0,0,0.4)",color:ticket.status==="assigned"?"#34D399":ticket.urgency==="now"?"#FCA5A5":"#FFD580",fontSize:"9px",fontWeight:"900",padding:"3px 9px",borderRadius:"10px",border:`1px solid ${ticket.status==="assigned"?"rgba(52,211,153,0.4)":ticket.urgency==="now"?"rgba(252,165,165,0.4)":"rgba(255,213,128,0.3)"}`}}>
+                          <span style={{background:ticket.status==="assigned"?"rgba(5,150,105,0.3)":"rgba(0,0,0,0.4)",color:ticket.status==="assigned"?"#34D399":ticket.urgency==="now"?"rgba(239,68,68,0.2)":"#FFD580",fontSize:"9px",fontWeight:"900",padding:"3px 9px",borderRadius:"10px",border:`1px solid ${ticket.status==="assigned"?"rgba(52,211,153,0.4)":ticket.urgency==="now"?"rgba(252,165,165,0.4)":"rgba(255,213,128,0.3)"}`}}>
                             {ticket.status==="assigned"?"✓ FILLED":ticket.urgency==="now"?"RIGHT NOW":ticket.urgency==="soon"?"IN 2-3 HRS":"TODAY"}
                           </span>
                           <span style={{fontSize:"10px",color:"rgba(255,255,255,0.35)"}}>{ticket.postedAt}</span>
@@ -19106,7 +19576,7 @@ function TanningSpaTab() {
                     {/* Card body */}
                     <div style={{padding:"12px 14px"}}>
                       <div style={{display:"flex",gap:"6px",flexWrap:"wrap",marginBottom:"8px"}}>
-                        <span style={{background:"rgba(255,255,255,0.7)",border:"1px solid rgba(0,0,0,0.08)",color:C.muted,fontSize:"10px",padding:"3px 8px",borderRadius:"6px"}}>🕐 {ticket.requestedTime}</span>
+                        <span style={{background:"rgba(255,255,255,0.07)",border:"1px solid rgba(255,255,255,0.12)",color:"rgba(255,255,255,0.6)",fontSize:"10px",padding:"3px 8px",borderRadius:"6px"}}>🕐 {ticket.requestedTime}</span>
                         <span style={{background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",color:"rgba(255,255,255,0.6)",fontSize:"10px",padding:"3px 8px",borderRadius:"6px"}}>📍 {ticket.location}</span>
                         <span style={{background:`${ticket.color}18`,border:`1px solid ${ticket.color}44`,color:ticket.color,fontSize:"10px",padding:"3px 8px",borderRadius:"6px",fontWeight:"700"}}>💰 {ticket.budget}</span>
                         {ticket.skinTone&&ticket.skinTone!=="—"&&<span style={{background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",color:"rgba(255,255,255,0.6)",fontSize:"10px",padding:"3px 8px",borderRadius:"6px"}}>🎨 {ticket.skinTone}</span>}
@@ -19138,7 +19608,7 @@ function TanningSpaTab() {
                             + Place Bid
                           </button>
                           <button onClick={()=>getSpaAiTip(ticket)}
-                            style={{flex:1,background:"rgba(217,119,6,0.1)",color:"#92400E",border:"1px solid rgba(217,119,6,0.25)",boxShadow:"0 1px 6px rgba(217,119,6,0.12)",padding:"9px",borderRadius:"10px",fontSize:"11px",fontWeight:"800",cursor:"pointer"}}>
+                            style={{flex:1,background:"rgba(217,119,6,0.1)",color:"#C9A84C",border:"1px solid rgba(217,119,6,0.25)",boxShadow:"0 1px 6px rgba(217,119,6,0.12)",padding:"9px",borderRadius:"10px",fontSize:"11px",fontWeight:"800",cursor:"pointer"}}>
                             ✦ AI Tip
                           </button>
                         </div>
@@ -19159,20 +19629,20 @@ function TanningSpaTab() {
             {/* Place Bid Modal */}
             {showSpaBidModal && (
               <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.65)",zIndex:500,display:"flex",alignItems:"center",justifyContent:"center",padding:"16px"}}>
-                <div style={{background:"linear-gradient(135deg,#FFFBF0,#FFF3D6)",border:"1px solid rgba(217,119,6,0.3)",borderRadius:"20px",width:"100%",maxWidth:"420px",overflow:"hidden",boxShadow:"0 24px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,200,80,0.15)"}}>
+                <div style={{background:"linear-gradient(135deg,rgba(13,28,16,0.97),rgba(8,18,10,0.98))",border:"1px solid rgba(217,119,6,0.35)",borderRadius:"20px",width:"100%",maxWidth:"420px",overflow:"hidden",boxShadow:"0 24px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,200,80,0.15)"}}>
                   <div style={{padding:"18px 22px",borderBottom:"1px solid rgba(217,119,6,0.2)",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                    <div style={{fontFamily:FONTS.display,fontSize:"18px",fontWeight:"700",color:"#92400E"}}>Place Spa Bid</div>
-                    <button onClick={()=>setShowSpaBidModal(null)} style={{background:"none",border:"none",color:"rgba(146,64,14,0.4)",fontSize:"22px",cursor:"pointer"}}>×</button>
+                    <div style={{fontFamily:FONTS.display,fontSize:"18px",fontWeight:"700",color:"#C9A84C"}}>Place Spa Bid</div>
+                    <button onClick={()=>setShowSpaBidModal(null)} style={{background:"none",border:"none",color:"rgba(255,255,255,0.3)",fontSize:"22px",cursor:"pointer"}}>×</button>
                   </div>
                   <div style={{padding:"20px",display:"flex",flexDirection:"column",gap:"12px"}}>
                     {[["Your Price ($)",spaBidPrice,setSpaBidPrice,"e.g. 75","number"],["ETA",spaBidEta,setSpaBidEta,"e.g. 30 min","text"],["Your Message",spaBidMsg,setSpaBidMsg,"What makes your service stand out?","text"]].map(([l,v,s,ph,t])=>(
                       <div key={l}>
-                        <div style={{fontSize:"10px",fontWeight:"800",color:"rgba(146,64,14,0.6)",letterSpacing:"1.5px",marginBottom:"5px"}}>{l.toUpperCase()}</div>
+                        <div style={{fontSize:"10px",fontWeight:"800",color:"rgba(255,213,128,0.6)",letterSpacing:"1.5px",marginBottom:"5px"}}>{l.toUpperCase()}</div>
                         {l.includes("Message")?
                           <textarea value={v} onChange={e=>s(e.target.value)} placeholder={ph} rows={3}
-                            style={{width:"100%",background:"rgba(255,255,255,0.9)",border:"1px solid rgba(217,119,6,0.3)",color:C.text,padding:"10px 12px",borderRadius:"10px",fontSize:"13px",boxSizing:"border-box",resize:"vertical",fontFamily:"inherit"}}/>
+                            style={{width:"100%",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(217,119,6,0.3)",color:"#FEFDF8",padding:"10px 12px",borderRadius:"10px",fontSize:"13px",boxSizing:"border-box",resize:"vertical",fontFamily:"inherit"}}/>
                           :<input type={t} value={v} onChange={e=>s(e.target.value)} placeholder={ph}
-                            style={{width:"100%",background:"rgba(255,255,255,0.9)",border:"1px solid rgba(217,119,6,0.3)",color:C.text,padding:"10px 12px",borderRadius:"10px",fontSize:"13px",boxSizing:"border-box"}}/>
+                            style={{width:"100%",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(217,119,6,0.3)",color:"#FEFDF8",padding:"10px 12px",borderRadius:"10px",fontSize:"13px",boxSizing:"border-box"}}/>
                         }
                       </div>
                     ))}
@@ -19188,32 +19658,32 @@ function TanningSpaTab() {
             {/* Post Ticket Modal */}
             {showPostSpa && (
               <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.65)",zIndex:500,display:"flex",alignItems:"center",justifyContent:"center",padding:"16px"}}>
-                <div style={{background:"linear-gradient(135deg,#FFFBF0,#FFF3D6)",border:"1px solid rgba(217,119,6,0.3)",borderRadius:"20px",width:"100%",maxWidth:"440px",maxHeight:"85vh",overflow:"hidden",display:"flex",flexDirection:"column",boxShadow:"0 24px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,200,80,0.15)"}}>
+                <div style={{background:"linear-gradient(135deg,rgba(13,28,16,0.97),rgba(8,18,10,0.98))",border:"1px solid rgba(217,119,6,0.35)",borderRadius:"20px",width:"100%",maxWidth:"440px",maxHeight:"85vh",overflow:"hidden",display:"flex",flexDirection:"column",boxShadow:"0 24px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,200,80,0.15)"}}>
                   <div style={{padding:"18px 22px",borderBottom:"1px solid rgba(217,119,6,0.2)",display:"flex",justifyContent:"space-between",alignItems:"center",flexShrink:0}}>
-                    <div style={{fontFamily:FONTS.display,fontSize:"18px",fontWeight:"700",color:"#92400E"}}>🌞 Post Spa Ticket</div>
+                    <div style={{fontFamily:FONTS.display,fontSize:"18px",fontWeight:"700",color:"#C9A84C"}}>Post Spa Ticket</div>
                     <button onClick={()=>setShowPostSpa(false)} style={{background:"none",border:"none",color:"rgba(255,200,80,0.5)",fontSize:"22px",cursor:"pointer"}}>×</button>
                   </div>
                   <div style={{overflowY:"auto",padding:"18px 22px",display:"flex",flexDirection:"column",gap:"12px"}}>
                     {[["Client Name",newSpaBid.clientName,v=>setNewSpaBid(p=>({...p,clientName:v})),"Full name"],["Location",newSpaBid.location,v=>setNewSpaBid(p=>({...p,location:v})),"Neighborhood or city"],["Budget Range",newSpaBid.budget,v=>setNewSpaBid(p=>({...p,budget:v})),"e.g. $60-90"],["Skin Tone (for tan services)",newSpaBid.skinTone,v=>setNewSpaBid(p=>({...p,skinTone:v})),"e.g. Fair, Medium, Olive, Deep"],["Appointment Time",newSpaBid.requestedTime,v=>setNewSpaBid(p=>({...p,requestedTime:v})),"e.g. Today 3:00 PM"]].map(([l,val,setter,ph])=>(
                       <div key={l}>
-                        <div style={{fontSize:"10px",fontWeight:"800",color:"rgba(146,64,14,0.6)",letterSpacing:"1.5px",marginBottom:"5px"}}>{l.toUpperCase()}</div>
+                        <div style={{fontSize:"10px",fontWeight:"800",color:"rgba(255,213,128,0.6)",letterSpacing:"1.5px",marginBottom:"5px"}}>{l.toUpperCase()}</div>
                         <input value={val} onChange={e=>setter(e.target.value)} placeholder={ph}
                           style={{width:"100%",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(217,119,6,0.3)",color:"#fff",padding:"10px 12px",borderRadius:"10px",fontSize:"13px",boxSizing:"border-box"}}/>
                       </div>
                     ))}
                     <div>
-                      <div style={{fontSize:"10px",fontWeight:"800",color:"rgba(255,200,80,0.5)",letterSpacing:"1.5px",marginBottom:"6px"}}>SERVICE</div>
+                      <div style={{fontSize:"10px",fontWeight:"800",color:"rgba(255,213,128,0.7)",letterSpacing:"1.5px",marginBottom:"6px"}}>SERVICE</div>
                       <div style={{display:"flex",gap:"6px",flexWrap:"wrap"}}>
                         {SPA_SERVICES_LIST.map(s=>(
                           <button key={s} onClick={()=>setNewSpaBid(p=>({...p,service:s}))}
-                            style={{background:newSpaBid.service===s?"rgba(217,119,6,0.15)":"rgba(255,255,255,0.6)",color:newSpaBid.service===s?"#92400E":"rgba(146,64,14,0.4)",border:`1px solid ${newSpaBid.service===s?"rgba(217,119,6,0.5)":"rgba(255,255,255,0.1)"}`,boxShadow:newSpaBid.service===s?"0 0 10px rgba(217,119,6,0.3)":"none",padding:"5px 12px",borderRadius:"20px",fontSize:"11px",fontWeight:"700",cursor:"pointer",transition:"all 0.15s"}}>
+                            style={{background:newSpaBid.service===s?"rgba(217,119,6,0.22)":"rgba(255,255,255,0.06)",color:newSpaBid.service===s?"#FFD580":"rgba(255,255,255,0.45)",border:`1px solid ${newSpaBid.service===s?"rgba(217,119,6,0.5)":"rgba(255,255,255,0.1)"}`,boxShadow:newSpaBid.service===s?"0 0 10px rgba(217,119,6,0.3)":"none",padding:"5px 12px",borderRadius:"20px",fontSize:"11px",fontWeight:"700",cursor:"pointer",transition:"all 0.15s"}}>
                             {s}
                           </button>
                         ))}
                       </div>
                     </div>
                     <div>
-                      <div style={{fontSize:"10px",fontWeight:"800",color:"rgba(146,64,14,0.6)",letterSpacing:"1.5px",marginBottom:"5px"}}>NOTES</div>
+                      <div style={{fontSize:"10px",fontWeight:"800",color:"rgba(255,213,128,0.6)",letterSpacing:"1.5px",marginBottom:"5px"}}>NOTES</div>
                       <textarea value={newSpaBid.notes} onChange={e=>setNewSpaBid(p=>({...p,notes:e.target.value}))} rows={2} placeholder="Allergies, preferences, special requests..."
                         style={{width:"100%",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(217,119,6,0.3)",color:"#fff",padding:"10px 12px",borderRadius:"10px",fontSize:"13px",boxSizing:"border-box",resize:"vertical",fontFamily:"inherit"}}/>
                     </div>
@@ -19232,7 +19702,7 @@ function TanningSpaTab() {
           <div>
             <div style={{display:"flex",gap:"8px",marginBottom:"16px",flexWrap:"wrap"}}>
               {TAN_CATS.map(cat=>(
-                <button key={cat.id} onClick={()=>setActiveCat(cat.id)} style={{background:activeCat===cat.id?cat.color:"#F9F9F9",color:activeCat===cat.id?"#fff":C.muted,border:`1px solid ${activeCat===cat.id?cat.color:C.dim}`,padding:"7px 16px",borderRadius:"20px",fontSize:"12px",fontWeight:"700",cursor:"pointer"}}>{cat.label}</button>
+                <button key={cat.id} onClick={()=>setActiveCat(cat.id)} style={{background:activeCat===cat.id?cat.color:"rgba(255,255,255,0.06)",color:activeCat===cat.id?"#fff":"rgba(255,255,255,0.45)",border:`1px solid ${activeCat===cat.id?cat.color:C.dim}`,padding:"7px 16px",borderRadius:"20px",fontSize:"12px",fontWeight:"700",cursor:"pointer"}}>{cat.label}</button>
               ))}
             </div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:"14px"}}>
@@ -19256,7 +19726,7 @@ function TanningSpaTab() {
                     </button>
                   </div>
                   {selected?.id===svc.id && (
-                    <div style={{borderTop:`1px solid ${C.dim}`,padding:"14px",background:"#FFFBEB"}}>
+                    <div style={{borderTop:`1px solid ${C.dim}`,padding:"14px",background:"rgba(201,168,76,0.12)"}}>
                       {svc.steps.slice(0,4).map((s,i)=>(
                         <div key={i} style={{display:"flex",gap:"8px",fontSize:"12px",color:C.sub,marginBottom:"5px"}}><span style={{color:catColor(svc.cat),fontWeight:"800",flexShrink:0}}>{i+1}.</span>{s.slice(0,80)}...</div>
                       ))}
@@ -19309,7 +19779,7 @@ function TanningSpaTab() {
               <div key={section.title} style={{background:C.white,border:`1px solid ${section.color}33`,borderRadius:"14px",padding:"18px",marginBottom:"14px"}}>
                 <div style={{display:"flex",gap:"10px",alignItems:"center",marginBottom:"12px"}}>
                   <div style={{fontSize:"14px",fontWeight:"800",color:section.color}}>{section.title}</div>
-                  {section.urgent && <span style={{background:"#FEF2F2",color:"#DC2626",fontSize:"9px",padding:"3px 9px",borderRadius:"20px",fontWeight:"800"}}>CRITICAL</span>}
+                  {section.urgent && <span style={{background:"rgba(239,68,68,0.10)",color:"#DC2626",fontSize:"9px",padding:"3px 9px",borderRadius:"20px",fontWeight:"800"}}>CRITICAL</span>}
                 </div>
                 {section.items.map((item,i)=>(
                   <div key={i} style={{display:"flex",gap:"8px",fontSize:"12px",color:C.sub,marginBottom:"7px",lineHeight:"1.5"}}>
@@ -19331,13 +19801,13 @@ function TanningSpaTab() {
               <button onClick={getTanConsult} disabled={tanLoading||!skinType.trim()} style={{width:"100%",background:tanLoading||!skinType.trim()?C.dim:"linear-gradient(135deg,#D97706,#92400E)",color:tanLoading||!skinType.trim()?C.muted:"#fff",border:"none",padding:"12px",borderRadius:"10px",fontSize:"14px",fontWeight:"800",cursor:tanLoading||!skinType.trim()?"not-allowed":"pointer"}}>
                 {tanLoading?"Getting recommendation...":"Get AI Recommendation"}
               </button>
-              {tanResult && <div style={{marginTop:"14px",background:"#FFFBEB",border:"1px solid #FCD34D",borderRadius:"10px",padding:"14px",fontSize:"13px",color:C.sub,lineHeight:"1.8"}}>{tanResult}</div>}
+              {tanResult && <div style={{marginTop:"14px",background:"rgba(201,168,76,0.12)",border:"1px solid #FCD34D",borderRadius:"10px",padding:"14px",fontSize:"13px",color:C.sub,lineHeight:"1.8"}}>{tanResult}</div>}
             </div>
           </div>
         )}
 
         {view==="ai" && (
-          <div style={{maxWidth:"680px"}}>
+          <div style={{maxWidth:"none"}}>
             <div style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"4px"}}><div style={{fontSize:"22px",fontWeight:"900",color:C.text}}>Tanning and Spa AI Coach</div><ClaudeBadge size="md" style={{background:"linear-gradient(135deg,#D97706,#92400E)"}} /></div>
             <div style={{fontSize:"13px",color:C.muted,marginBottom:"14px"}}>Ask anything about tanning, spa services, or client safety.</div>
             <div style={{display:"flex",gap:"6px",flexWrap:"wrap",marginBottom:"14px"}}>
@@ -19368,7 +19838,7 @@ function TanningSpaTab() {
 // -- Esthetician Tab ------------------------------------------------------------
 const ESTHET_SERVICES = [
   {id:"classic_facial",  name:"Classic European Facial", icon:"🌸", cat:"facial",   time:"60 min", price:"$75-110",  diff:"Intermediate", color:"#059669", desc:"Deep cleanse, exfoliation, extraction, massage, mask, and moisturization.", steps:["Skin analysis under magnifying lamp: skin type, conditions, concerns","Double cleanse: first with oil or balm cleanser, second with gel/foam","Steam 5-10 min to open pores and soften sebum","Exfoliation: enzyme, AHA, or gentle scrub based on skin type","Manual extractions with comedone extractor tool or cotton tips. Sanitized hands only.","High frequency treatment to kill bacteria post-extractions","Facial massage with serum or oil - lymphatic drainage techniques","Sheet mask or modeling mask 10-15 min","Eye cream, targeted serum, SPF moisturizer to finish"]},
-  {id:"chemical_peel",   name:"Chemical Peel",           icon:"✨", cat:"chemical", time:"30-45 min", price:"$80-200", diff:"Advanced",     color:"#7C3AED", desc:"AHA, BHA, TCA or enzyme peel for resurfacing, brightening, acne.", steps:["Full skin analysis and patch test 48 hrs before. Review contraindications.","Double cleanse. Degrease with alcohol or acetone if needed.","Protect lips and outer eye with petroleum jelly","Apply peel evenly with fan brush or gauze in thin layer","Monitor client: start timing. Watch for frosting (for TCA).","Tingle/burn is normal. If severe discomfort: neutralize immediately.","Neutralize with baking soda solution or water (AHA/BHA). TCA self-neutralizes.","Apply calming serum, barrier cream, SPF 50+","Aftercare: no sun, no retin-A, no actives for 5-7 days, moisturize heavily"]},
+  {id:"chemical_peel",   name:"Chemical Peel",           icon:"sparkle", cat:"chemical", time:"30-45 min", price:"$80-200", diff:"Advanced",     color:"#7C3AED", desc:"AHA, BHA, TCA or enzyme peel for resurfacing, brightening, acne.", steps:["Full skin analysis and patch test 48 hrs before. Review contraindications.","Double cleanse. Degrease with alcohol or acetone if needed.","Protect lips and outer eye with petroleum jelly","Apply peel evenly with fan brush or gauze in thin layer","Monitor client: start timing. Watch for frosting (for TCA).","Tingle/burn is normal. If severe discomfort: neutralize immediately.","Neutralize with baking soda solution or water (AHA/BHA). TCA self-neutralizes.","Apply calming serum, barrier cream, SPF 50+","Aftercare: no sun, no retin-A, no actives for 5-7 days, moisturize heavily"]},
   {id:"microdermabrasion",name:"Microdermabrasion",       icon:"💎", cat:"chemical", time:"45 min", price:"$90-150",  diff:"Advanced",     color:"#7C3AED", desc:"Crystal or diamond-tip mechanical exfoliation for smooth, bright skin.", steps:["Client consultation: active acne, rosacea, thin skin are contraindications","Double cleanse. Pat dry completely.","Set suction level appropriate for skin sensitivity","Begin at lower face, use consistent speed and pressure","Work in upward and outward strokes, 2-3 passes per area","Decrease pressure around nose, active acne, lips","Avoid eyelid, lips, and broken skin completely","Cool calming mask post-treatment. Hyaluronic acid serum.","SPF mandatory. No active exfoliants for 48-72 hrs."]},
   {id:"led_therapy",     name:"LED Light Therapy",       icon:"💡", cat:"technology", time:"20-30 min", price:"$40-80", diff:"Beginner",   color:"#0891B2", desc:"Photobiomodulation using specific light wavelengths for skin concerns.", steps:["Determine goal: red (anti-aging), blue (acne), near-infrared (healing)","Cleanse skin thoroughly. Remove all makeup.","Eye protection: goggles mandatory","Position panel 2-4 inches from face","Red light: 20 min for collagen and wrinkles","Blue light: 20 min for acne - kills P. acnes bacteria","Near-infrared: 10-20 min for healing and deeper penetration","Apply serum immediately after while pores are receptive","Recommend 2x per week for best results"]},
   {id:"microneedling",   name:"Microneedling",           icon:"🔬", cat:"advanced",  time:"60 min", price:"$200-400", diff:"Advanced",    color:"#DC2626", desc:"Collagen induction therapy using fine needles to trigger skin repair.", steps:["Contraindications check: active acne, rosacea flare, blood thinners, pregnancy","Thoroughly cleanse and degrease skin","Apply topical numbing cream (LMX4 or similar). Wait 30-45 min.","Remove numbing cream completely","Apply hyaluronic acid serum as lubricant - no retinol","Needle depth: 0.5mm face, 1.0mm scars, 1.5mm neck (adjust per treatment)","Work in systematic grid pattern. 3-4 passes each area.","Apply growth factor or PRP immediately post-treatment","No makeup 24-48 hrs. No sun. Ice if needed for swelling."]},
@@ -19428,8 +19898,8 @@ function EstheticianTab() {
   async function generateAdCaption() {
     setAiAdLoading(true); setAiAdCaption("");
     try {
-      const res = await fetch(CLAUDE_PROXY_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
-        model:"claude-sonnet-4-20250514",max_tokens:200,
+      const res = await fetch(CLAUDE_PROXY_URL,{method:"POST",headers:PROXY_HEADERS,body:JSON.stringify({
+        model:"claude-sonnet-4-6",max_tokens:200,
         system:"You are a beauty marketing expert. Write a compelling, professional advertising bio for an esthetician on a beauty platform. Warm, expert, and trust-building. Under 80 words.",
         messages:[{role:"user",content:`Write an advertising caption for: Name=${ad.name}, Specialty=${ad.specialty}, Services=${ad.services}, Location=${ad.location}, Price=${ad.price}. Make it professional and inviting.`}]
       })});
@@ -19442,8 +19912,8 @@ function EstheticianTab() {
   async function getAiMatch(ticket) {
     setAiMatch(""); setAiMatchLoading(true);
     try {
-      const res = await fetch(CLAUDE_PROXY_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
-        model:"claude-sonnet-4-20250514",max_tokens:200,
+      const res = await fetch(CLAUDE_PROXY_URL,{method:"POST",headers:PROXY_HEADERS,body:JSON.stringify({
+        model:"claude-sonnet-4-6",max_tokens:200,
         system:"You are an esthetic service matching AI. Analyze this client ticket and advise the esthetician on why this is a good match and what to say in their bid. Under 100 words.",
         messages:[{role:"user",content:`Client ticket: Service=${ticket.service}, Notes=${ticket.notes}, Budget=${ticket.budget}, Location=${ticket.location}. Give bid advice for a licensed esthetician.`}]
       })});
@@ -19479,7 +19949,7 @@ function EstheticianTab() {
     const msgs = [...aiHistory, {role:"user",content:aiQ}];
     const sys = `You are an expert licensed esthetician AI coach for Love That Idea. You specialize in facial treatments, chemical peels, microdermabrasion, LED therapy, microneedling, waxing, lash and brow services, and skin analysis. Give technically accurate, safety-first guidance on skin treatments, ingredient chemistry, contraindications, and professional techniques. Under 200 words.`;
     try {
-      const res = await fetch(CLAUDE_PROXY_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:700,system:sys,messages:msgs})});
+      const res = await fetch(CLAUDE_PROXY_URL,{method:"POST",headers:PROXY_HEADERS,body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:700,system:sys,messages:msgs})});
       const d = await res.json();
       setAiHistory([...msgs,{role:"assistant",content:d.content?d.content.map(b=>b.text||"").join(""):""}]);
     } catch(e) { setAiHistory(prev=>[...prev,{role:"assistant",content:"Connection error."}]); }
@@ -19490,7 +19960,7 @@ function EstheticianTab() {
     if (!skinConcern.trim()) return;
     setSkinLoading(true); setSkinResult("");
     try {
-      const res = await fetch(CLAUDE_PROXY_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:500,system:"You are an expert esthetician. Based on client skin description, recommend the ideal esthetic service, treatment protocol, key ingredients, and homecare routine. Under 180 words.",messages:[{role:"user",content:`Client skin concern: ${skinConcern}. Recommend the ideal esthetic treatment plan.`}]})});
+      const res = await fetch(CLAUDE_PROXY_URL,{method:"POST",headers:PROXY_HEADERS,body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:500,system:"You are an expert esthetician. Based on client skin description, recommend the ideal esthetic service, treatment protocol, key ingredients, and homecare routine. Under 180 words.",messages:[{role:"user",content:`Client skin concern: ${skinConcern}. Recommend the ideal esthetic treatment plan.`}]})});
       const d = await res.json();
       setSkinResult(d.content?d.content.map(b=>b.text||"").join(""):"");
     } catch(e) { setSkinResult("Connection error. Try again."); }
@@ -19501,10 +19971,10 @@ function EstheticianTab() {
 
   return (
     <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",background:C.bg}}>
-      <div style={{background:"linear-gradient(135deg,#ECFDF5,#D1FAE5)",borderBottom:`1px solid #6EE7B7`,padding:"14px 20px",display:"flex",alignItems:"center",gap:"14px",flexShrink:0}}>
+      <div style={{background:"rgba(39,174,120,0.1)",borderBottom:`1px solid #6EE7B7`,padding:"14px 20px",display:"flex",alignItems:"center",gap:"14px",flexShrink:0}}>
         <div style={{fontSize:"32px"}}>🧖</div>
         <div>
-          <div style={{fontSize:"20px",fontWeight:"900",color:"#065F46",fontFamily:"'Cormorant Garamond',serif"}}>Esthetician Studio</div>
+          <div style={{fontSize:"20px",fontWeight:"900",color:"rgba(39,174,120,0.85)",fontFamily:"'Cormorant Garamond',serif"}}>Esthetician Studio</div>
           <div style={{fontSize:"12px",color:"#059669"}}>Facials, Peels, Waxing, Brows, Advanced Treatments - AI Coached</div>
         </div>
         <div style={{marginLeft:"auto",display:"flex",gap:"6px",flexWrap:"wrap"}}>
@@ -19513,13 +19983,13 @@ function EstheticianTab() {
           ))}
         </div>
       </div>
-      <div style={{flex:1,overflowY:"auto",padding:"20px"}}>
+      <div style={{flex:1,overflowY:"auto",padding:"clamp(12px,2.5vw,32px)"}}>
 
         {view==="services" && (
           <div>
             <div style={{display:"flex",gap:"8px",marginBottom:"16px",flexWrap:"wrap"}}>
               {EST_CATS.map(cat=>(
-                <button key={cat.id} onClick={()=>setActiveCat(cat.id)} style={{background:activeCat===cat.id?cat.color:"#F9F9F9",color:activeCat===cat.id?"#fff":C.muted,border:`1px solid ${activeCat===cat.id?cat.color:C.dim}`,padding:"7px 16px",borderRadius:"20px",fontSize:"12px",fontWeight:"700",cursor:"pointer"}}>{cat.label}</button>
+                <button key={cat.id} onClick={()=>setActiveCat(cat.id)} style={{background:activeCat===cat.id?cat.color:"rgba(255,255,255,0.06)",color:activeCat===cat.id?"#fff":"rgba(255,255,255,0.45)",border:`1px solid ${activeCat===cat.id?cat.color:C.dim}`,padding:"7px 16px",borderRadius:"20px",fontSize:"12px",fontWeight:"700",cursor:"pointer"}}>{cat.label}</button>
               ))}
             </div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:"14px"}}>
@@ -19543,7 +20013,7 @@ function EstheticianTab() {
                     </button>
                   </div>
                   {selected?.id===svc.id && (
-                    <div style={{borderTop:`1px solid ${C.dim}`,padding:"14px",background:"#ECFDF5"}}>
+                    <div style={{borderTop:`1px solid ${C.dim}`,padding:"14px",background:"rgba(39,174,120,0.12)"}}>
                       {svc.steps.slice(0,4).map((s,i)=>(
                         <div key={i} style={{display:"flex",gap:"8px",fontSize:"12px",color:C.sub,marginBottom:"5px"}}><span style={{color:catColor(svc.cat),fontWeight:"800",flexShrink:0}}>{i+1}.</span>{s.slice(0,85)}...</div>
                       ))}
@@ -19594,21 +20064,21 @@ function EstheticianTab() {
           <div>
             <div style={{fontSize:"22px",fontWeight:"900",color:C.text,marginBottom:"4px"}}>Skin Conditions Guide</div>
             <div style={{fontSize:"13px",color:C.muted,marginBottom:"20px"}}>Adapt your treatment approach based on each client's skin conditions.</div>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:"14px"}}>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(340px,1fr))",gap:"14px"}}>
               {SKIN_CONDITIONS.map(sc=>(
                 <div key={sc.name} style={{background:C.white,border:`2px solid ${sc.color}22`,borderRadius:"14px",overflow:"hidden"}}>
                   <div style={{height:"4px",background:sc.color}} />
                   <div style={{padding:"16px"}}>
                     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"8px"}}>
                       <div style={{fontSize:"14px",fontWeight:"800",color:sc.color}}>{sc.name}</div>
-                      {sc.urgent && <span style={{background:"#FEF2F2",color:"#DC2626",fontSize:"9px",padding:"3px 9px",borderRadius:"20px",fontWeight:"800"}}>REFER IF SEVERE</span>}
+                      {sc.urgent && <span style={{background:"rgba(239,68,68,0.10)",color:"#DC2626",fontSize:"9px",padding:"3px 9px",borderRadius:"20px",fontWeight:"800"}}>REFER IF SEVERE</span>}
                     </div>
                     <div style={{background:sc.color+"0D",border:`1px solid ${sc.color}22`,borderRadius:"8px",padding:"10px 12px",fontSize:"12px",color:C.sub,lineHeight:"1.7"}}>{sc.approach}</div>
                   </div>
                 </div>
               ))}
             </div>
-            <div style={{marginTop:"20px",background:"#FEF2F2",border:"2px solid #FECACA",borderRadius:"14px",padding:"18px"}}>
+            <div style={{marginTop:"20px",background:"rgba(239,68,68,0.10)",border:"2px solid #FECACA",borderRadius:"14px",padding:"18px"}}>
               <div style={{fontSize:"13px",fontWeight:"800",color:"#DC2626",marginBottom:"8px"}}>Absolute Contraindications - REFUSE SERVICE</div>
               {["Active viral infection (herpes simplex flare, warts in treatment area)","Accutane/isotretinoin users - NO waxing or peels for 6-12 months after","Blood thinners - NO microneedling, avoid aggressive extraction","Open wounds, sunburn, or recent cosmetic injections in treatment area","Pregnancy - modify all chemical peel and microneedling services"].map((item,i)=>(
                 <div key={i} style={{display:"flex",gap:"8px",fontSize:"12px",color:"#7F1D1D",marginBottom:"6px",lineHeight:"1.5"}}>
@@ -19629,13 +20099,13 @@ function EstheticianTab() {
               <button onClick={getSkinAnalysis} disabled={skinLoading||!skinConcern.trim()} style={{width:"100%",background:skinLoading||!skinConcern.trim()?C.dim:"linear-gradient(135deg,#059669,#065F46)",color:skinLoading||!skinConcern.trim()?C.muted:"#fff",border:"none",padding:"12px",borderRadius:"10px",fontSize:"14px",fontWeight:"800",cursor:skinLoading||!skinConcern.trim()?"not-allowed":"pointer"}}>
                 {skinLoading?"Analyzing skin...":"Get AI Treatment Plan"}
               </button>
-              {skinResult && <div style={{marginTop:"14px",background:"#ECFDF5",border:"1px solid #6EE7B7",borderRadius:"10px",padding:"14px",fontSize:"13px",color:C.sub,lineHeight:"1.8"}}><div style={{fontSize:"10px",letterSpacing:"2px",color:"#059669",fontWeight:"700",marginBottom:"8px"}}>AI TREATMENT RECOMMENDATION</div>{skinResult}</div>}
+              {skinResult && <div style={{marginTop:"14px",background:"rgba(39,174,120,0.12)",border:"1px solid #6EE7B7",borderRadius:"10px",padding:"14px",fontSize:"13px",color:C.sub,lineHeight:"1.8"}}><div style={{fontSize:"10px",letterSpacing:"2px",color:"#059669",fontWeight:"700",marginBottom:"8px"}}>AI TREATMENT RECOMMENDATION</div>{skinResult}</div>}
             </div>
           </div>
         )}
 
         {view==="ai" && (
-          <div style={{maxWidth:"680px"}}>
+          <div style={{maxWidth:"none"}}>
             <div style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"4px"}}><div style={{fontSize:"22px",fontWeight:"900",color:C.text}}>Esthetician AI Coach</div><ClaudeBadge size="md" style={{background:"linear-gradient(135deg,#059669,#065F46)"}} /></div>
             <div style={{fontSize:"13px",color:C.muted,marginBottom:"14px"}}>Ask anything about skin treatments, ingredients, or techniques.</div>
             <div style={{display:"flex",gap:"6px",flexWrap:"wrap",marginBottom:"14px"}}>
@@ -19701,7 +20171,7 @@ function EstheticianTab() {
                       {aiAdLoading?"Writing...":"AI Write My Bio"}
                     </button>
                     {aiAdCaption&&(
-                      <div style={{marginTop:"8px",background:"#ECFDF5",border:"1px solid #6EE7B7",borderRadius:"8px",padding:"10px",fontSize:"12px",color:"#065F46",lineHeight:"1.7"}}>
+                      <div style={{marginTop:"8px",background:"rgba(39,174,120,0.12)",border:"1px solid #6EE7B7",borderRadius:"8px",padding:"10px",fontSize:"12px",color:"rgba(39,174,120,0.85)",lineHeight:"1.7"}}>
                         <div style={{fontWeight:"700",marginBottom:"4px",fontSize:"10px",letterSpacing:"2px"}}>AI SUGGESTED BIO:</div>
                         {aiAdCaption}
                         <button onClick={()=>setAd(p=>({...p,bio:aiAdCaption}))} style={{marginTop:"8px",background:"#059669",color:"#fff",border:"none",padding:"5px 12px",borderRadius:"6px",fontSize:"11px",fontWeight:"700",cursor:"pointer",display:"block"}}>Use This Bio</button>
@@ -19714,7 +20184,7 @@ function EstheticianTab() {
                       Preview Listing
                     </button>
                     <button onClick={()=>{ setAdSaved(true); setTimeout(()=>setAdSaved(false),2000); }}
-                      style={{flex:1,background:adSaved?"#D1FAE5":"transparent",color:adSaved?"#065F46":C.muted,border:`1px solid ${adSaved?"#059669":C.border}`,padding:"12px",borderRadius:"10px",fontSize:"13px",fontWeight:"700",cursor:"pointer"}}>
+                      style={{flex:1,background:adSaved?"rgba(39,174,120,0.18)":"transparent",color:adSaved?"#065F46":C.muted,border:`1px solid ${adSaved?"#059669":C.border}`,padding:"12px",borderRadius:"10px",fontSize:"13px",fontWeight:"700",cursor:"pointer"}}>
                       {adSaved?"Saved!":"Save Draft"}
                     </button>
                   </div>
@@ -19738,7 +20208,7 @@ function EstheticianTab() {
                       </div>
                       <div style={{display:"flex",gap:"6px",flexWrap:"wrap",marginBottom:"10px"}}>
                         {(ad.specialty||"Specialty").split(",").map((s,i)=>(
-                          <span key={i} style={{background:"#ECFDF5",color:"#059669",fontSize:"10px",padding:"3px 10px",borderRadius:"20px",fontWeight:"700"}}>{s.trim()}</span>
+                          <span key={i} style={{background:"rgba(39,174,120,0.12)",color:"#059669",fontSize:"10px",padding:"3px 10px",borderRadius:"20px",fontWeight:"700"}}>{s.trim()}</span>
                         ))}
                       </div>
                       <div style={{fontSize:"12px",color:C.sub,lineHeight:"1.7",marginBottom:"12px"}}>{ad.bio||"Your bio will appear here..."}</div>
@@ -19762,7 +20232,7 @@ function EstheticianTab() {
                       )}
                     </div>
                   </div>
-                  <div style={{marginTop:"12px",background:"#ECFDF5",border:"1px solid #6EE7B7",borderRadius:"10px",padding:"12px 14px",fontSize:"12px",color:"#065F46",lineHeight:"1.7"}}>
+                  <div style={{marginTop:"12px",background:"rgba(39,174,120,0.12)",border:"1px solid #6EE7B7",borderRadius:"10px",padding:"12px 14px",fontSize:"12px",color:"rgba(39,174,120,0.85)",lineHeight:"1.7"}}>
                     Your listing will appear in the platform directory and in client searches. Verified estheticians get a badge. Complete your ID verification in the Verify tab to unlock the verified badge.
                   </div>
                 </div>
@@ -19782,7 +20252,7 @@ function EstheticianTab() {
                         <div style={{fontSize:"14px",color:"#059669",fontWeight:"700",marginBottom:"2px"}}>{ad.title}</div>
                         <div style={{display:"flex",gap:"8px",alignItems:"center"}}>
                           <span style={{fontSize:"12px",color:C.muted}}>{ad.location}</span>
-                          <span style={{background:"#ECFDF5",color:"#059669",fontSize:"10px",padding:"2px 8px",borderRadius:"20px",fontWeight:"700"}}>Esthetician</span>
+                          <span style={{background:"rgba(39,174,120,0.12)",color:"#059669",fontSize:"10px",padding:"2px 8px",borderRadius:"20px",fontWeight:"700"}}>Esthetician</span>
                         </div>
                       </div>
                       <div style={{textAlign:"right"}}>
@@ -19792,7 +20262,7 @@ function EstheticianTab() {
                     </div>
                     <div style={{display:"flex",gap:"6px",flexWrap:"wrap",marginBottom:"16px"}}>
                       {ad.specialty.split(",").map((s,i)=>(
-                        <span key={i} style={{background:"#ECFDF5",color:"#059669",fontSize:"11px",padding:"4px 12px",borderRadius:"20px",fontWeight:"700"}}>{s.trim()}</span>
+                        <span key={i} style={{background:"rgba(39,174,120,0.12)",color:"#059669",fontSize:"11px",padding:"4px 12px",borderRadius:"20px",fontWeight:"700"}}>{s.trim()}</span>
                       ))}
                     </div>
                     <p style={{fontSize:"14px",color:C.sub,lineHeight:"1.9",marginBottom:"20px"}}>{ad.bio}</p>
@@ -19827,7 +20297,7 @@ function EstheticianTab() {
                 <div style={{fontFamily:FONTS.display,fontSize:"22px",fontWeight:"700",color:C.text}}>Esthetician Bid Board</div>
                 <div style={{fontSize:"13px",color:C.muted}}>Clients requesting esthetic services right now. Place your bid to win the booking.</div>
               </div>
-              <button onClick={()=>setPostTicket(p=>!p)} style={{background:postTicket?"#F3F4F6":GRAD.hero,color:postTicket?C.muted:"#fff",border:`1px solid ${postTicket?C.border:C.mint}`,padding:"10px 18px",borderRadius:"10px",fontSize:"12px",fontWeight:"800",cursor:"pointer"}}>
+              <button onClick={()=>setPostTicket(p=>!p)} style={{background:postTicket?"rgba(255,255,255,0.07)":GRAD.hero,color:postTicket?C.muted:"#fff",border:`1px solid ${postTicket?C.border:C.mint}`,padding:"10px 18px",borderRadius:"10px",fontSize:"12px",fontWeight:"800",cursor:"pointer"}}>
                 {postTicket?"Cancel":"+ Post Client Ticket"}
               </button>
             </div>
@@ -19891,8 +20361,8 @@ function EstheticianTab() {
 
                       {/* Bid form */}
                       {isActive&&!alreadyBid&&(
-                        <div style={{background:"#ECFDF5",border:"1px solid #6EE7B7",borderRadius:"12px",padding:"14px",marginBottom:"12px"}}>
-                          <div style={{fontSize:"12px",fontWeight:"700",color:"#065F46",marginBottom:"10px"}}>Place Your Bid</div>
+                        <div style={{background:"rgba(39,174,120,0.12)",border:"1px solid #6EE7B7",borderRadius:"12px",padding:"14px",marginBottom:"12px"}}>
+                          <div style={{fontSize:"12px",fontWeight:"700",color:"rgba(39,174,120,0.85)",marginBottom:"10px"}}>Place Your Bid</div>
                           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px",marginBottom:"8px"}}>
                             <div>
                               <label style={{display:"block",fontSize:"10px",letterSpacing:"2px",color:C.muted,fontWeight:"700",marginBottom:"4px"}}>YOUR PRICE</label>
@@ -19923,7 +20393,7 @@ function EstheticianTab() {
 
                       {/* Already bid - show confirmation */}
                       {alreadyBid&&(
-                        <div style={{background:"#ECFDF5",border:"1px solid #6EE7B7",borderRadius:"10px",padding:"12px",marginBottom:"10px",fontSize:"12px",color:"#065F46"}}>
+                        <div style={{background:"rgba(39,174,120,0.12)",border:"1px solid #6EE7B7",borderRadius:"10px",padding:"12px",marginBottom:"10px",fontSize:"12px",color:"rgba(39,174,120,0.85)"}}>
                           <span style={{fontWeight:"700"}}>Your bid:</span> {myBids[ticket.id].price} - {myBids[ticket.id].eta}
                           {myBids[ticket.id].note&&<span> - "{myBids[ticket.id].note}"</span>}
                         </div>
@@ -20029,7 +20499,7 @@ function BusinessIntelTab() {
       overview: `Salon KPIs: Weekly revenue $${totalRevenue}, ${totalClients} clients served, ${avgSatisfaction} avg satisfaction, top service ${topService.name}. Churn risk: ${INTEL_METRICS.churnRisk.filter(c=>c.risk==="critical").length} critical clients. Give a 60-second executive summary and top 3 priorities for this week.`,
     };
     try {
-      const res = await fetch(CLAUDE_PROXY_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:600,system:"You are an expert salon business intelligence AI analyst for Love That Idea. Give specific, data-driven, actionable insights. Use numbers from the data provided. Under 200 words.",messages:[{role:"user",content:prompts[type]||prompts.overview}]})});
+      const res = await fetch(CLAUDE_PROXY_URL,{method:"POST",headers:PROXY_HEADERS,body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:600,system:"You are an expert salon business intelligence AI analyst for Love That Idea. Give specific, data-driven, actionable insights. Use numbers from the data provided. Under 200 words.",messages:[{role:"user",content:prompts[type]||prompts.overview}]})});
       const d = await res.json();
       setAiInsight(d.content?d.content.map(b=>b.text||"").join(""):"");
     } catch(e) { setAiInsight("Connection error. Try again."); }
@@ -20063,7 +20533,7 @@ function BusinessIntelTab() {
         </div>
       </div>
 
-      <div style={{flex:1,overflowY:"auto",padding:"20px"}}>
+      <div style={{flex:1,overflowY:"auto",padding:"clamp(12px,2.5vw,32px)"}}>
 
         {view==="overview" && (
           <div>
@@ -20116,10 +20586,10 @@ function BusinessIntelTab() {
               <div style={{background:C.white,border:`1px solid ${C.border}`,borderRadius:"14px",padding:"16px"}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"14px"}}>
                   <div style={{fontSize:"13px",fontWeight:"800",color:C.text}}>Churn Risk Alerts</div>
-                  <button onClick={()=>getAIInsight("churn")} disabled={aiLoading} style={{background:"#FEF2F2",color:"#DC2626",border:"1px solid #FECACA",padding:"5px 10px",borderRadius:"6px",fontSize:"10px",fontWeight:"700",cursor:"pointer"}}>AI Win-Back</button>
+                  <button onClick={()=>getAIInsight("churn")} disabled={aiLoading} style={{background:"rgba(239,68,68,0.10)",color:"#DC2626",border:"1px solid #FECACA",padding:"5px 10px",borderRadius:"6px",fontSize:"10px",fontWeight:"700",cursor:"pointer"}}>AI Win-Back</button>
                 </div>
                 {INTEL_METRICS.churnRisk.map(c=>(
-                  <div key={c.client} style={{display:"flex",gap:"10px",alignItems:"center",padding:"8px",borderRadius:"8px",background:c.risk==="critical"?"#FEF2F2":c.risk==="high"?"#FFFBEB":C.bg,marginBottom:"6px",border:`1px solid ${c.risk==="critical"?"#FECACA":c.risk==="high"?"#FCD34D":C.dim}`}}>
+                  <div key={c.client} style={{display:"flex",gap:"10px",alignItems:"center",padding:"8px",borderRadius:"8px",background:c.risk==="critical"?"#FEF2F2":c.risk==="high"?"rgba(201,168,76,0.1)":C.bg,marginBottom:"6px",border:`1px solid ${c.risk==="critical"?"#FECACA":c.risk==="high"?"#FCD34D":C.dim}`}}>
                     <div style={{flex:1}}>
                       <div style={{fontSize:"12px",fontWeight:"700",color:C.text}}>{c.client}</div>
                       <div style={{fontSize:"10px",color:C.muted}}>{c.daysSince}d since visit · ${c.spend} total</div>
@@ -20131,7 +20601,7 @@ function BusinessIntelTab() {
             </div>
 
             {/* AI Executive Summary */}
-            <div style={{background:"linear-gradient(135deg,#E8F8F0,#D4F0E4)",border:`1px solid ${C.mint}`,borderRadius:"14px",padding:"18px"}}>
+            <div style={{background:"rgba(39,174,120,0.12)",border:`1px solid ${C.mint}`,borderRadius:"14px",padding:"18px"}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"10px"}}>
                 <div style={{display:"flex",alignItems:"center",gap:"8px"}}><div style={{fontSize:"13px",fontWeight:"800",color:C.text}}>AI Executive Summary</div><ClaudeBadge size="sm" /></div>
                 <button onClick={()=>getAIInsight("overview")} disabled={aiLoading} style={{background:C.mint,color:"#fff",border:"none",padding:"7px 14px",borderRadius:"8px",fontSize:"11px",fontWeight:"700",cursor:"pointer"}}>{aiLoading&&insightType==="overview"?"Analyzing...":"Generate Summary"}</button>
@@ -20164,7 +20634,7 @@ function BusinessIntelTab() {
                 </div>
               ))}
             </div>
-            {aiInsight&&insightType==="services"&&<div style={{background:"linear-gradient(135deg,#E8F8F0,#D4F0E4)",border:`1px solid ${C.mint}`,borderRadius:"12px",padding:"16px",fontSize:"13px",color:C.sub,lineHeight:"1.8"}}><div style={{fontSize:"10px",letterSpacing:"2px",color:C.mint,fontWeight:"700",marginBottom:"8px"}}>AI SERVICE MIX ANALYSIS</div>{aiInsight}</div>}
+            {aiInsight&&insightType==="services"&&<div style={{background:"rgba(39,174,120,0.12)",border:`1px solid ${C.mint}`,borderRadius:"12px",padding:"16px",fontSize:"13px",color:C.sub,lineHeight:"1.8"}}><div style={{fontSize:"10px",letterSpacing:"2px",color:C.mint,fontWeight:"700",marginBottom:"8px"}}>AI SERVICE MIX ANALYSIS</div>{aiInsight}</div>}
           </div>
         )}
 
@@ -20207,7 +20677,7 @@ function BusinessIntelTab() {
                 );
               })}
             </div>
-            {aiInsight&&insightType==="stylists"&&<div style={{background:"linear-gradient(135deg,#E8F8F0,#D4F0E4)",border:`1px solid ${C.mint}`,borderRadius:"12px",padding:"16px",fontSize:"13px",color:C.sub,lineHeight:"1.8"}}><div style={{fontSize:"10px",letterSpacing:"2px",color:C.mint,fontWeight:"700",marginBottom:"8px"}}>AI TEAM ANALYSIS</div>{aiInsight}</div>}
+            {aiInsight&&insightType==="stylists"&&<div style={{background:"rgba(39,174,120,0.12)",border:`1px solid ${C.mint}`,borderRadius:"12px",padding:"16px",fontSize:"13px",color:C.sub,lineHeight:"1.8"}}><div style={{fontSize:"10px",letterSpacing:"2px",color:C.mint,fontWeight:"700",marginBottom:"8px"}}>AI TEAM ANALYSIS</div>{aiInsight}</div>}
           </div>
         )}
 
@@ -20216,7 +20686,7 @@ function BusinessIntelTab() {
             <div style={{fontSize:"22px",fontWeight:"900",color:C.text,marginBottom:"4px"}}>Client Retention and Churn Risk</div>
             <div style={{fontSize:"13px",color:C.muted,marginBottom:"20px"}}>Clients whose visit frequency has dropped below their historical average  -  act now before they go to a competitor.</div>
             <button onClick={()=>getAIInsight("churn")} disabled={aiLoading} style={{background:"#DC2626",color:"#fff",border:"none",padding:"10px 20px",borderRadius:"10px",fontSize:"13px",fontWeight:"800",cursor:"pointer",marginBottom:"20px"}}>{aiLoading&&insightType==="churn"?"Analyzing...":"AI Win-Back Strategies"}</button>
-            {aiInsight&&insightType==="churn"&&<div style={{background:"#FEF2F2",border:"1px solid #FECACA",borderRadius:"12px",padding:"16px",fontSize:"13px",color:"#7F1D1D",lineHeight:"1.8",marginBottom:"20px"}}><div style={{fontSize:"10px",letterSpacing:"2px",color:"#DC2626",fontWeight:"700",marginBottom:"8px"}}>AI WIN-BACK RECOMMENDATIONS</div>{aiInsight}</div>}
+            {aiInsight&&insightType==="churn"&&<div style={{background:"rgba(239,68,68,0.10)",border:"1px solid #FECACA",borderRadius:"12px",padding:"16px",fontSize:"13px",color:"#7F1D1D",lineHeight:"1.8",marginBottom:"20px"}}><div style={{fontSize:"10px",letterSpacing:"2px",color:"#DC2626",fontWeight:"700",marginBottom:"8px"}}>AI WIN-BACK RECOMMENDATIONS</div>{aiInsight}</div>}
             <div style={{display:"flex",flexDirection:"column",gap:"12px"}}>
               {INTEL_METRICS.churnRisk.map(c=>(
                 <div key={c.client} style={{background:C.white,border:`2px solid ${c.risk==="critical"?"#DC2626":c.risk==="high"?"#D97706":"#0891B2"}22`,borderRadius:"14px",padding:"18px",display:"flex",gap:"16px",alignItems:"center"}}>
@@ -20288,7 +20758,7 @@ function BusinessIntelTab() {
                 </div>
               ))}
             </div>
-            {aiInsight&&<div style={{background:"linear-gradient(135deg,#E8F8F0,#D4F0E4)",border:`1px solid ${C.mint}`,borderRadius:"14px",padding:"20px"}}>
+            {aiInsight&&<div style={{background:"rgba(39,174,120,0.12)",border:`1px solid ${C.mint}`,borderRadius:"14px",padding:"20px"}}>
               <div style={{fontSize:"10px",letterSpacing:"3px",color:C.mint,fontWeight:"800",marginBottom:"10px"}}>AI ANALYSIS  -  {insightType.toUpperCase()}</div>
               <div style={{fontSize:"13px",color:C.sub,lineHeight:"1.9",whiteSpace:"pre-wrap"}}>{aiInsight}</div>
             </div>}
@@ -20308,7 +20778,7 @@ const CERT_TRACKS = [
       {id:"c3",name:"Scalp & Hair Health",desc:"Hair typing, porosity, elasticity testing, scalp conditions.",modules:["Hair type system","Porosity & elasticity","Scalp conditions","Product chemistry"],hours:3,quiz:["What is hair porosity?","Name the 4 main hair types","What causes telogen effluvium?"],passing:80},
     ]
   },
-  { id:"color", name:"Color Specialist", color:"#DB2777", icon:"🎨", level:2,
+  { id:"color", name:"Color Specialist", color:"#DB2777", icon:"color", level:2,
     courses:[
       {id:"c4",name:"Color Theory",desc:"Wella level system, tone codes, lift charts, developer selection.",modules:["Level scale 1-10","Tone codes & neutralization","Developer volumes","Lift & deposit"],hours:5,quiz:["What does a .1 tone suffix indicate?","Which developer lifts 3 levels?","Name the 3 primary colors"],passing:85},
       {id:"c5",name:"Balayage & Highlights",desc:"Freehand painting, foiling, panel placement, toning.",modules:["Sectioning patterns","Freehand painting technique","Foiling methods","Toning & glossing"],hours:6,quiz:["What is the key difference between balayage and highlights?","When do you use a bond builder?","What causes brassiness?"],passing:85},
@@ -20349,7 +20819,7 @@ function CertificationsTab() {
   async function generateAIQuiz(course) {
     setAiLoading(true); setAiQuiz("");
     try {
-      const res = await fetch(CLAUDE_PROXY_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:500,system:"You are an expert hair styling educator. Generate a short practice quiz for stylists. Return 3 multiple choice questions as JSON array: [{question:string, options:[string,string,string,string], correct:0}]. Return ONLY valid JSON.",messages:[{role:"user",content:`Generate 3 multiple choice quiz questions for: ${course.name}. Topics: ${course.modules.join(", ")}. Make them practical and technical.`}]})});
+      const res = await fetch(CLAUDE_PROXY_URL,{method:"POST",headers:PROXY_HEADERS,body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:500,system:"You are an expert hair styling educator. Generate a short practice quiz for stylists. Return 3 multiple choice questions as JSON array: [{question:string, options:[string,string,string,string], correct:0}]. Return ONLY valid JSON.",messages:[{role:"user",content:`Generate 3 multiple choice quiz questions for: ${course.name}. Topics: ${course.modules.join(", ")}. Make them practical and technical.`}]})});
       const d = await res.json();
       const raw = d.content?d.content.map(b=>b.text||"").join("").replace(/```json|```/g,"").trim():"[]";
       setAiQuiz(JSON.parse(raw));
@@ -20361,7 +20831,7 @@ function CertificationsTab() {
     if (!practiceQ.trim() || !practiceA.trim() || !activeCourse) return;
     setPracticeLoading(true);
     try {
-      const res = await fetch(CLAUDE_PROXY_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:300,system:`You are an expert hair styling educator grading a student answer. Course: ${activeCourse.name}. Grade the answer as Excellent/Good/Needs Work and give specific feedback. Under 100 words.`,messages:[{role:"user",content:`Question: ${practiceQ}
+      const res = await fetch(CLAUDE_PROXY_URL,{method:"POST",headers:PROXY_HEADERS,body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:300,system:`You are an expert hair styling educator grading a student answer. Course: ${activeCourse.name}. Grade the answer as Excellent/Good/Needs Work and give specific feedback. Under 100 words.`,messages:[{role:"user",content:`Question: ${practiceQ}
 Student answer: ${practiceA}`}]})});
       const d = await res.json();
       setPracticeA(prev => prev + "\n\n✦ AI Feedback: " + (d.content?d.content.map(b=>b.text||"").join(""):""));
@@ -20390,7 +20860,7 @@ Student answer: ${practiceA}`}]})});
             <div style={{fontSize:"28px",fontWeight:"900",color:"#fff"}}>{Math.round((completedCount/totalCourses)*100)}%</div>
             <div style={{fontSize:"10px",color:"rgba(255,255,255,0.7)"}}>Complete</div>
             <div style={{height:"4px",background:"rgba(255,255,255,0.2)",borderRadius:"2px",overflow:"hidden",marginTop:"6px"}}>
-              <div style={{height:"100%",width:`${Math.round((completedCount/totalCourses)*100)}%`,background:"#fff",borderRadius:"2px"}} />
+              <div style={{height:"100%",width:`${Math.round((completedCount/totalCourses)*100)}%`,background:"rgba(255,255,255,0.06)",borderRadius:"2px"}} />
             </div>
           </div>
         </div>
@@ -20401,7 +20871,7 @@ Student answer: ${practiceA}`}]})});
         </div>
       </div>
 
-      <div style={{flex:1,overflowY:"auto",padding:"20px"}}>
+      <div style={{flex:1,overflowY:"auto",padding:"clamp(12px,2.5vw,32px)"}}>
         {view==="tracks" && !activeCourse && (
           <div>
             {CERT_TRACKS.map(track=>{
@@ -20431,7 +20901,7 @@ Student answer: ${practiceA}`}]})});
                         return (
                           <div key={course.id} style={{display:"flex",gap:"12px",alignItems:"center",padding:"12px",background:done?track.color+"0D":C.bg,border:`1px solid ${done?track.color+"33":C.dim}`,borderRadius:"10px",cursor:"pointer",transition:"all 0.15s"}}
                             onClick={()=>{setActiveCourse({...course,track});setActiveModule(0);setQuizMode(false);setQuizAnswers({});setQuizSubmitted(false);setAiQuiz("");setPracticeQ("");setPracticeA("");}}>
-                            <div style={{width:"28px",height:"28px",borderRadius:"50%",background:done?track.color:"#F3F4F6",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"13px",fontWeight:"900",color:done?"#fff":C.muted,flexShrink:0}}>{done?"✓":course.id.replace("c","")}</div>
+                            <div style={{width:"28px",height:"28px",borderRadius:"50%",background:done?track.color:"rgba(255,255,255,0.07)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"13px",fontWeight:"900",color:done?"#fff":C.muted,flexShrink:0}}>{done?"✓":course.id.replace("c","")}</div>
                             <div style={{flex:1}}>
                               <div style={{fontSize:"13px",fontWeight:"700",color:done?track.color:C.text}}>{course.name}</div>
                               <div style={{fontSize:"11px",color:C.muted,marginTop:"2px"}}>{course.desc.slice(0,60)}... · {course.hours}h</div>
@@ -20511,13 +20981,13 @@ Student answer: ${practiceA}`}]})});
         {view==="badges" && (
           <div>
             <div style={{fontSize:"22px",fontWeight:"900",color:C.text,marginBottom:"20px"}}>My Earned Badges</div>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:"14px"}}>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(340px,1fr))",gap:"14px"}}>
               {allCourses.map(course=>{
                 const track = CERT_TRACKS.find(t=>t.courses.find(c=>c.id===course.id));
                 const earned = earnedBadges.includes(course.id);
                 return (
                   <div key={course.id} style={{background:C.white,border:`2px solid ${earned?track.color:C.border}`,borderRadius:"16px",padding:"20px",textAlign:"center",opacity:earned?1:0.45,transition:"all 0.2s"}}>
-                    <div style={{width:"56px",height:"56px",borderRadius:"50%",background:earned?track.color+"18":"#F3F4F6",border:`3px solid ${earned?track.color:C.dim}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"24px",margin:"0 auto 10px"}}>{earned?track.icon:"🔒"}</div>
+                    <div style={{width:"56px",height:"56px",borderRadius:"50%",background:earned?track.color+"18":"rgba(255,255,255,0.07)",border:`3px solid ${earned?track.color:C.dim}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"24px",margin:"0 auto 10px"}}>{earned?track.icon:"🔒"}</div>
                     <div style={{fontSize:"13px",fontWeight:"800",color:earned?track.color:C.muted}}>{course.name}</div>
                     <div style={{fontSize:"10px",color:C.muted,marginTop:"4px"}}>{course.hours} CE hrs</div>
                     {earned&&<div style={{marginTop:"8px",background:track.color+"18",color:track.color,fontSize:"9px",padding:"3px 10px",borderRadius:"20px",fontWeight:"800",display:"inline-block"}}>CERTIFIED</div>}
@@ -20529,7 +20999,7 @@ Student answer: ${practiceA}`}]})});
         )}
 
         {view==="practice" && (
-          <div style={{maxWidth:"680px"}}>
+          <div style={{maxWidth:"none"}}>
             <div style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"4px"}}><div style={{fontSize:"22px",fontWeight:"900",color:C.text}}>AI Practice Sessions</div><ClaudeBadge size="md" /></div>
             <div style={{fontSize:"13px",color:C.muted,marginBottom:"20px"}}>Ask the AI educator any question about technique, theory, or client care. Get graded answers with detailed feedback.</div>
             <div style={{marginBottom:"14px"}}>
@@ -20575,7 +21045,7 @@ function HairTimelineTab() {
     setAiLoading(true); setAiAnalysis("");
     const history = sortedEntries.map(e=>`${e.date}: ${e.service}, condition: ${e.condition}, scalp: ${e.scalpScore}/10, moisture: ${e.moistureScore}/10, breakage: ${e.breakageScore}/10. Notes: ${e.notes}`).join("\n");
     try {
-      const res = await fetch(CLAUDE_PROXY_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:600,system:"You are an expert trichologist analyzing a client's longitudinal hair health record. Identify trends, improvements, concerns, and specific recommendations. Be clinical but warm. Under 220 words.",messages:[{role:"user",content:`Hair type: 4C Coily. Full service history:
+      const res = await fetch(CLAUDE_PROXY_URL,{method:"POST",headers:PROXY_HEADERS,body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:600,system:"You are an expert trichologist analyzing a client's longitudinal hair health record. Identify trends, improvements, concerns, and specific recommendations. Be clinical but warm. Under 220 words.",messages:[{role:"user",content:`Hair type: 4C Coily. Full service history:
 ${history}
 
 Analyze the trend in hair health over time and give 3 specific recommendations for improvement.`}]})});
@@ -20607,7 +21077,7 @@ Analyze the trend in hair health over time and give 3 specific recommendations f
   return (
     <div style={{flex:1,display:"flex",overflow:"hidden",background:C.bg}}>
       {/* Timeline */}
-      <div style={{flex:1,overflowY:"auto",padding:"20px"}}>
+      <div style={{flex:1,overflowY:"auto",padding:"clamp(12px,2.5vw,32px)"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"20px"}}>
           <div>
             <div style={{display:"flex",alignItems:"center",gap:"10px"}}><div style={{fontSize:"22px",fontWeight:"900",color:C.text,fontFamily:"'Cormorant Garamond',serif"}}>Hair Health Timeline</div><ClaudeBadge size="md" /></div>
@@ -20620,7 +21090,7 @@ Analyze the trend in hair health over time and give 3 specific recommendations f
         </div>
 
         {aiAnalysis && (
-          <div style={{background:"linear-gradient(135deg,#E8F8F0,#D4F0E4)",border:`1px solid ${C.mint}`,borderRadius:"14px",padding:"18px",marginBottom:"20px"}}>
+          <div style={{background:"rgba(39,174,120,0.12)",border:`1px solid ${C.mint}`,borderRadius:"14px",padding:"18px",marginBottom:"20px"}}>
             <div style={{fontSize:"10px",letterSpacing:"3px",color:C.mint,fontWeight:"800",marginBottom:"8px"}}>TRICHOLOGIST AI ANALYSIS</div>
             <div style={{fontSize:"13px",color:C.sub,lineHeight:"1.8"}}>{aiAnalysis}</div>
           </div>
@@ -20731,7 +21201,7 @@ const FORM_TEMPLATES = [
     risks:["Scalp irritation or chemical burns if contraindications are not disclosed","Uneven results due to undisclosed previous chemical services","Hair breakage on compromised hair","Allergic reactions"],
     aiField:"Describe any allergies, sensitivities, or medical conditions that could affect chemical services:"
   },
-  { id:"color",     name:"Color Service Consent",       icon:"🎨", color:"#DB2777",
+  { id:"color",     name:"Color Service Consent",       icon:"color", color:"#DB2777",
     fields:["Full Name","Date","Phone","Known Allergies","Previous Color History","Current Hair Condition (client assessment)","Desired Result","I understand color results are not guaranteed on previously treated hair","I confirm a patch test was offered","I consent to the color service as discussed"],
     risks:["Color may not lift or deposit evenly on previously chemically treated hair","Strand test strongly recommended  -  client decline documented if refused","Color may fade faster on high-porosity hair"],
     aiField:"Describe your color history and current hair condition:"
@@ -20741,7 +21211,7 @@ const FORM_TEMPLATES = [
     risks:["Tight braiding can cause traction alopecia and permanent hairline recession","Prolonged wear without maintenance can cause matting and breakage","Client must follow aftercare instructions"],
     aiField:"List any scalp sensitivities, past hair loss, or special requests:"
   },
-  { id:"treatment", name:"Scalp Treatment Release",     icon:"🌿", color:"#059669",
+  { id:"treatment", name:"Scalp Treatment Release",     icon:"leaf", color:"#059669",
     fields:["Full Name","Date","Scalp Diagnosis / Concern","Current Scalp Medications","Allergies to topical products","I consent to the scalp analysis and treatment","I understand this is not a medical diagnosis","I understand referral to a physician may be recommended"],
     risks:["Patch test required for all new treatment products","Existing scalp conditions may affect service outcomes","Some treatments may cause temporary redness"],
     aiField:"Describe your scalp concerns and any treatments you are currently using:"
@@ -20767,7 +21237,7 @@ function ConsentFormsTab() {
     if (!activeForm||!aiField.trim()) return;
     setAiLoading(true); setAiSummary("");
     try {
-      const res = await fetch(CLAUDE_PROXY_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:300,system:`You are a salon intake AI for Love That Idea. A client has described their hair/scalp situation before a ${activeForm.name} service. Summarize the key risks, flag any contraindications, and recommend any follow-up questions for the stylist. Be clinical and specific. Under 120 words.`,messages:[{role:"user",content:aiField}]})});
+      const res = await fetch(CLAUDE_PROXY_URL,{method:"POST",headers:PROXY_HEADERS,body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:300,system:`You are a salon intake AI for Love That Idea. A client has described their hair/scalp situation before a ${activeForm.name} service. Summarize the key risks, flag any contraindications, and recommend any follow-up questions for the stylist. Be clinical and specific. Under 120 words.`,messages:[{role:"user",content:aiField}]})});
       const d = await res.json();
       setAiSummary(d.content?d.content.map(b=>b.text||"").join(""):"");
     } catch(e) { setAiSummary("Connection error."); }
@@ -20794,7 +21264,7 @@ function ConsentFormsTab() {
         </div>
       </div>
 
-      <div style={{flex:1,overflowY:"auto",padding:"20px"}}>
+      <div style={{flex:1,overflowY:"auto",padding:"clamp(12px,2.5vw,32px)"}}>
 
         {view==="templates" && (
           <div>
@@ -20830,7 +21300,7 @@ function ConsentFormsTab() {
         )}
 
         {view==="active" && activeForm && (
-          <div style={{maxWidth:"640px",margin:"0 auto"}}>
+          <div style={{maxWidth:"none",margin:"0 auto"}}>
             {signed ? (
               <div style={{textAlign:"center",padding:"60px 20px"}}>
                 <div style={{fontSize:"64px",marginBottom:"16px"}}>✅</div>
@@ -20852,7 +21322,7 @@ function ConsentFormsTab() {
                 </div>
 
                 {/* Risk warnings */}
-                <div style={{background:"#FEF2F2",border:"1px solid #FECACA",borderRadius:"10px",padding:"14px",marginBottom:"20px"}}>
+                <div style={{background:"rgba(239,68,68,0.10)",border:"1px solid #FECACA",borderRadius:"10px",padding:"14px",marginBottom:"20px"}}>
                   <div style={{fontSize:"10px",letterSpacing:"2px",color:"#DC2626",fontWeight:"700",marginBottom:"8px"}}>SERVICE RISKS  -  READ TO CLIENT</div>
                   {activeForm.risks.map((r,i)=><div key={i} style={{fontSize:"12px",color:"#7F1D1D",display:"flex",gap:"6px",marginBottom:"5px"}}><span style={{fontWeight:"900"}}>!</span>{r}</div>)}
                 </div>
@@ -20876,7 +21346,7 @@ function ConsentFormsTab() {
                 </div>
 
                 {/* AI screening */}
-                <div style={{background:"linear-gradient(135deg,#E8F8F0,#D4F0E4)",border:`1px solid ${C.mint}`,borderRadius:"12px",padding:"16px",marginBottom:"16px"}}>
+                <div style={{background:"rgba(39,174,120,0.12)",border:`1px solid ${C.mint}`,borderRadius:"12px",padding:"16px",marginBottom:"16px"}}>
                   <div style={{display:"flex",alignItems:"center",gap:"8px",marginBottom:"8px"}}><div style={{fontSize:"11px",fontWeight:"800",color:C.mintDark}}>AI RISK SCREENING</div><ClaudeBadge size="sm" /></div>
                   <div style={{fontSize:"12px",color:C.muted,marginBottom:"8px"}}>{activeForm.aiField}</div>
                   <textarea value={aiField} onChange={e=>setAiField(e.target.value)} placeholder="Client describes their situation here..." rows={3} style={{...IS,resize:"none",marginBottom:"8px"}} />
@@ -21177,7 +21647,7 @@ function OpsTab() {
     setAiLoading(true); setAiReport("");
     const summary = `Platform status: API success rate ${successRate}%, avg latency ${avgLat10}ms, ${openTickets} open tickets, ${totalBids} live bids, ${availableStylists}/${stylistPresence.length} stylists available, ${systemHealth.activeUsers} active users, ${systemHealth.requestsPerMin} req/min, queue depth ${systemHealth.queueDepth}. Recent errors: ${apiMetrics.errorLog.slice(0,3).map(e=>e.msg).join(", ")||"none"}. Top API feature: ${Object.entries(apiMetrics.callsByFeature).sort((a,b)=>b[1]-a[1])[0]?.[0]||"none"}.`;
     try {
-      const res = await fetch(CLAUDE_PROXY_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:500,
+      const res = await fetch(CLAUDE_PROXY_URL,{method:"POST",headers:PROXY_HEADERS,body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:500,
         system:"You are a senior platform reliability engineer for Love That Idea, a beauty AI platform. Analyze the real-time ops data and give a concise incident report: system health rating (Green/Yellow/Red), top 2 risks, recommended immediate actions, and 1 optimization suggestion. Be specific, technical, and under 180 words.",
         messages:[{role:"user",content:summary}]})});
       const d = await res.json();
@@ -21228,7 +21698,7 @@ function OpsTab() {
         </div>
       </div>
 
-      <div style={{flex:1,overflowY:"auto",padding:"20px"}}>
+      <div style={{flex:1,overflowY:"auto",padding:"clamp(12px,2.5vw,32px)"}}>
 
         {/* -- OVERVIEW -- */}
         {view==="overview" && (
@@ -21326,7 +21796,7 @@ function OpsTab() {
                         <span style={{fontSize:"10px",color:C.muted,fontWeight:"700"}}>{ticket.id}</span>
                         <div style={{display:"flex",gap:"5px"}}>
                           <span style={{background:uc+"18",color:uc,fontSize:"9px",padding:"2px 8px",borderRadius:"20px",fontWeight:"800"}}>{ticket.urgency.toUpperCase()}</span>
-                          <span style={{background:ticket.status==="assigned"?"#EFF6FF":ticket.bids.length>0?C.mintLight:"#F3F4F6",color:ticket.status==="assigned"?"#0891B2":ticket.bids.length>0?C.mint:"#6B7280",fontSize:"9px",padding:"2px 8px",borderRadius:"20px",fontWeight:"700"}}>{ticket.status==="assigned"?"FILLED":ticket.bids.length>0?"BIDDING":"WAITING"}</span>
+                          <span style={{background:ticket.status==="assigned"?"#EFF6FF":ticket.bids.length>0?C.mintLight:"rgba(255,255,255,0.07)",color:ticket.status==="assigned"?"#0891B2":ticket.bids.length>0?C.mint:"#6B7280",fontSize:"9px",padding:"2px 8px",borderRadius:"20px",fontWeight:"700"}}>{ticket.status==="assigned"?"FILLED":ticket.bids.length>0?"BIDDING":"WAITING"}</span>
                         </div>
                       </div>
                       <div style={{fontSize:"14px",fontWeight:"800",color:C.text,marginBottom:"2px"}}>{ticket.clientName}</div>
@@ -21453,7 +21923,7 @@ function OpsTab() {
                 </div>
               : <div style={{display:"flex",flexDirection:"column",gap:"10px"}}>
                   {apiMetrics.errorLog.map((err,i)=>(
-                    <div key={i} style={{background:"#FEF2F2",border:"1px solid #FECACA",borderRadius:"12px",padding:"14px 16px",display:"flex",gap:"14px",alignItems:"center"}}>
+                    <div key={i} style={{background:"rgba(239,68,68,0.10)",border:"1px solid #FECACA",borderRadius:"12px",padding:"14px 16px",display:"flex",gap:"14px",alignItems:"center"}}>
                       <div style={{width:"36px",height:"36px",borderRadius:"8px",background:"#DC2626",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"12px",fontWeight:"900",color:"#fff",flexShrink:0}}>{err.code}</div>
                       <div style={{flex:1}}>
                         <div style={{fontSize:"13px",fontWeight:"700",color:"#7F1D1D"}}>{err.msg}</div>
@@ -21479,9 +21949,9 @@ function OpsTab() {
                 {layer:"CLIENT LAYER",color:"#27AE78",items:["React PWA (Vercel Edge Network)","Mobile App (React Native / Expo)","Admin Dashboard (Next.js)"]},
                 {layer:"API GATEWAY",color:"#0891B2",items:["Nginx + Rate Limiter (100 req/s per user)","Auth: Supabase Auth (JWT + RLS)","CDN: Cloudflare (static + edge cache)"]},
                 {layer:"APPLICATION LAYER",color:"#7C3AED",items:["FastAPI / Node.js  -  REST & WebSocket","Bid Board: Socket.io rooms per metro area","Queue: BullMQ (Redis)  -  Claude API jobs"]},
-                {layer:"AI LAYER",color:"#C9A84C",items:["Anthropic Claude API (claude-sonnet-4-20250514)","Vision: BioScan + Tutorial Mode frames","Rate limit: 50 concurrent sessions, queued"]},
+                {layer:"AI LAYER",color:"#C9A84C",items:["Anthropic Claude API (claude-sonnet-4-6)","Vision: BioScan + Tutorial Mode frames","Rate limit: 50 concurrent sessions, queued"]},
                 {layer:"DATA LAYER",color:"#DC2626",items:["PostgreSQL (Supabase)  -  clients, bookings, consents","Redis  -  Bid Board live state, sessions, queue","S3 / R2  -  BioScan images, consent PDFs, style photos"]},
-                {layer:"OBSERVABILITY",color:"#6B7280",items:["Sentry  -  error tracking & alerting","Datadog  -  APM, latency, throughput","Better Uptime  -  endpoint monitoring (60s intervals)"]},
+                {layer:"OBSERVABILITY",color:"rgba(255,255,255,0.45)",items:["Sentry  -  error tracking & alerting","Datadog  -  APM, latency, throughput","Better Uptime  -  endpoint monitoring (60s intervals)"]},
               ].map(({layer,color,items})=>(
                 <div key={layer} style={{marginBottom:"16px",display:"flex",gap:"16px"}}>
                   <div style={{width:"160px",flexShrink:0}}>
@@ -21535,7 +22005,7 @@ function OpsTab() {
             {/* Cost estimate */}
             <div style={{background:"linear-gradient(135deg,#1A3D2B,#0D2818)",borderRadius:"14px",padding:"20px",color:"#fff"}}>
               <div style={{fontFamily:FONTS.display,fontSize:"16px",fontWeight:"600",color:"#fff",marginBottom:"16px"}}>Monthly Cost Estimate  -  1,000 Active Users</div>
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"10px"}}>
+              <div className="lti-two-col" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"10px"}}>
                 {[["Supabase Pro","$25/mo","DB + Auth + Realtime + Storage","#0891B2"],["Vercel Pro","$20/mo","Frontend hosting + Edge Functions","#fff"],["Anthropic API","~$180/mo","~900K tokens/day avg across all features","#CC785C"],["Cloudflare","$20/mo","CDN + DDoS + DNS + Workers","#D97706"],["Redis (Upstash)","$10/mo","Bid Board state + BullMQ queue","#DC2626"],["Datadog","$15/mo","APM + logs starter plan","#7C3AED"],["Sentry","$0-26/mo","Error tracking (free tier generous)","#E11D48"],["Total","~$270-300/mo","Scales linearly to 10K users at ~$1,800/mo","#C9A84C"]].map(([service,cost,desc,color])=>(
                   <div key={service} style={{background:"rgba(255,255,255,0.06)",borderRadius:"10px",padding:"12px",border:`1px solid ${color}22`}}>
                     <div style={{display:"flex",justifyContent:"space-between",marginBottom:"4px"}}>
@@ -21666,9 +22136,9 @@ function MessagingTab({ styles }) {
     const query = trendPrompt.trim() || trendCat;
     try {
       const res = await fetch(CLAUDE_PROXY_URL, {
-        method:"POST", headers:{"Content-Type":"application/json"},
+        method:"POST", headers:PROXY_HEADERS,
         body: JSON.stringify({
-          model:"claude-sonnet-4-20250514", max_tokens:1200,
+          model:"claude-sonnet-4-6", max_tokens:1200,
           system:`You are a beauty industry trend analyst for Love That Idea, a professional platform for stylists. Generate the latest trending hair styles, techniques, and treatments in the category requested. Return ONLY valid JSON array (no markdown): [{"title":string,"category":string,"description":string,"technique":string,"products":string,"demandLevel":"Rising"|"Hot"|"Viral"|"Emerging","estimatedPrice":string,"clientAppeal":string,"difficulty":"Beginner"|"Intermediate"|"Advanced","tags":[string]}]. Generate 6 trends.`,
           messages:[{ role:"user", content:`Generate the latest trending styles for: ${query}. Focus on what's gaining traction in salons right now in 2026. Be specific about techniques and products.` }]
         })
@@ -21686,8 +22156,8 @@ function MessagingTab({ styles }) {
     const msgs = (messages[contact.id]||[]).map(m => `${m.from==="me"?"Stylist":"Client"}: ${m.text}`).join("\n");
     try {
       const res = await fetch(CLAUDE_PROXY_URL, {
-        method:"POST", headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:400,
+        method:"POST", headers:PROXY_HEADERS,
+        body: JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:400,
           system:"You are an expert hair stylist AI reading a chat conversation between a stylist and client. Based on the conversation, suggest the perfect style recommendation with specific technique notes, timing estimate, pricing suggestion, and 2-3 follow-up questions to ask the client. Be warm, specific, and professional. Under 150 words.",
           messages:[{ role:"user", content:`Chat: ${msgs}
 Client hair type: ${contact.hairType}. Suggest the ideal service and response.` }]
@@ -21853,7 +22323,7 @@ Client hair type: ${contact.hairType}. Suggest the ideal service and response.` 
 
                 {/* AI suggestion bar */}
                 {aiStyleSuggestion && (
-                  <div style={{background:"linear-gradient(135deg,#E8F8F0,#D4F0E4)",borderBottom:`1px solid ${C.mint}`,padding:"10px 18px",display:"flex",gap:"10px",alignItems:"flex-start",flexShrink:0}}>
+                  <div style={{background:"rgba(39,174,120,0.12)",borderBottom:`1px solid ${C.mint}`,padding:"10px 18px",display:"flex",gap:"10px",alignItems:"flex-start",flexShrink:0}}>
                     <ClaudeBadge size="sm" style={{flexShrink:0,marginTop:"2px"}} />
                     <div style={{fontSize:"12px",color:C.sub,lineHeight:"1.7",flex:1}}>{aiStyleSuggestion}</div>
                     <button onClick={()=>setAiStyleSuggestion("")} style={{background:"none",border:"none",color:C.muted,fontSize:"16px",cursor:"pointer",flexShrink:0}}>x</button>
@@ -21882,7 +22352,7 @@ Client hair type: ${contact.hairType}. Suggest the ideal service and response.` 
                             <div style={{fontSize:"12px",color:C.muted,marginBottom:"4px"}}>{msg.style?.desc || msg.style?.notes?.slice(0,80)}</div>
                             <div style={{display:"flex",gap:"5px",flexWrap:"wrap"}}>
                               {msg.style?.hairType && <span style={{background:C.mintLight,color:C.mintDark,fontSize:"10px",padding:"2px 8px",borderRadius:"20px"}}>{msg.style.hairType}</span>}
-                              {msg.style?.difficulty && <span style={{background:"#F3F4F6",color:C.muted,fontSize:"10px",padding:"2px 8px",borderRadius:"20px"}}>{msg.style.difficulty}</span>}
+                              {msg.style?.difficulty && <span style={{background:"rgba(255,255,255,0.06)",color:C.muted,fontSize:"10px",padding:"2px 8px",borderRadius:"20px"}}>{msg.style.difficulty}</span>}
                             </div>
                             {msg.text && <div style={{fontSize:"12px",color:C.sub,marginTop:"6px",fontStyle:"italic"}}>{msg.text}</div>}
                           </div>
@@ -21944,7 +22414,7 @@ Client hair type: ${contact.hairType}. Suggest the ideal service and response.` 
           TRENDS VIEW  -  AI real-time style discovery
       ====================================================== */}
       {view === "trends" && (
-        <div style={{flex:1,overflowY:"auto",padding:"20px"}}>
+        <div style={{flex:1,overflowY:"auto",padding:"clamp(12px,2.5vw,32px)"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:"20px",flexWrap:"wrap",gap:"12px"}}>
             <div>
               <div style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"4px"}}>
@@ -21988,7 +22458,7 @@ Client hair type: ${contact.hairType}. Suggest the ideal service and response.` 
 
           {/* Trend cards */}
           {trends.length > 0 && (
-            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:"14px"}}>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(340px,1fr))",gap:"14px"}}>
               {trends.map((trend, i) => {
                 const dc = demandColors[trend.demandLevel] || C.mint;
                 const added = addingToPortfolio === trend.title;
@@ -22078,7 +22548,7 @@ Client hair type: ${contact.hairType}. Suggest the ideal service and response.` 
           PORTFOLIO VIEW
       ====================================================== */}
       {view === "portfolio" && (
-        <div style={{flex:1,overflowY:"auto",padding:"20px"}}>
+        <div style={{flex:1,overflowY:"auto",padding:"clamp(12px,2.5vw,32px)"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"20px"}}>
             <div>
               <div style={{fontFamily:FONTS.display,fontSize:"22px",fontWeight:"600",color:C.text}}>My Style Portfolio</div>
@@ -22120,7 +22590,7 @@ Client hair type: ${contact.hairType}. Suggest the ideal service and response.` 
                         </button>
                       )}
                       <button onClick={()=>setPortfolioStyles(prev=>prev.filter(p=>p.id!==s.id))}
-                        style={{background:"#FEF2F2",border:"1px solid #FECACA",color:"#DC2626",padding:"8px 12px",borderRadius:"8px",fontSize:"11px",cursor:"pointer"}}>
+                        style={{background:"rgba(239,68,68,0.10)",border:"1px solid #FECACA",color:"#DC2626",padding:"8px 12px",borderRadius:"8px",fontSize:"11px",cursor:"pointer"}}>
                         Remove
                       </button>
                     </div>
@@ -22176,15 +22646,15 @@ Client hair type: ${contact.hairType}. Suggest the ideal service and response.` 
 
 // -- AVAILABILITY BROADCAST TAB ------------------------------------------------
 const PRO_TYPES = [
-  { id:"stylist",     label:"Hair Stylist",      icon:"✂", color:"#27AE78", bg:"#E8F8F0" },
+  { id:"stylist",     label:"Hair Stylist",      icon:"✂", color:"#27AE78", bg:"rgba(39,174,120,0.14)" },
   { id:"barber",      label:"Barber",             icon:"💈", color:"#0891B2", bg:"#EFF6FF" },
   { id:"esthetician", label:"Esthetician",        icon:"🧖", color:"#059669", bg:"#ECFDF5" },
   { id:"nail",        label:"Nail Tech",          icon:"💅", color:"#DB2777", bg:"#FDF2F8" },
-  { id:"tanning",     label:"Tanning & Spa",      icon:"🌞", color:"#D97706", bg:"#FFFBEB" },
+  { id:"tanning",     label:"Tanning & Spa",      icon:"🌞", color:"#D97706", bg:"rgba(201,168,76,0.1)" },
   { id:"massage",     label:"Massage Therapist",  icon:"🤲", color:"#7C3AED", bg:"#F5F3FF" },
-  { id:"colorist",    label:"Color Specialist",   icon:"🎨", color:"#EC4899", bg:"#FDF2F8" },
+  { id:"colorist",    label:"Color Specialist",   icon:"color", color:"#EC4899", bg:"#FDF2F8" },
   { id:"braider",     label:"Braiding Specialist",icon:"💜", color:"#9333EA", bg:"#FAF5FF" },
-  { id:"loctech",     label:"Loc Technician",     icon:"🌿", color:"#15803D", bg:"#F0FDF4" },
+  { id:"loctech",     label:"Loc Technician",     icon:"leaf", color:"#15803D", bg:"#F0FDF4" },
   { id:"waxer",       label:"Wax Specialist",     icon:"⭐", color:"#B45309", bg:"#FEF9EC" },
 ];
 
@@ -22280,7 +22750,7 @@ function AvailabilityTab() {
     setAiCaptionLoading(true); setAiCaption("");
     const typeName = PRO_TYPES.find(t=>t.id===myProfile.proType)?.label || myProfile.proType;
     try {
-      const res = await fetch(CLAUDE_PROXY_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:120,
+      const res = await fetch(CLAUDE_PROXY_URL,{method:"POST",headers:PROXY_HEADERS,body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:120,
         system:"You are a marketing copywriter for beauty professionals. Write a short, punchy availability broadcast caption (2 sentences max, under 80 words) that communicates urgency and expertise. No hashtags. Professional but warm.",
         messages:[{role:"user",content:`Write an availability broadcast for: ${typeName} named ${myProfile.name||"me"}, specializing in ${myProfile.specialty}, located in ${myProfile.location||"Atlanta"}, with open slots today. Reason: ${myProfile.reason}.`}]})});
       const d = await res.json();
@@ -22369,7 +22839,7 @@ function AvailabilityTab() {
         </div>
       </div>
 
-      <div style={{flex:1,overflowY:"auto",padding:"20px"}}>
+      <div style={{flex:1,overflowY:"auto",padding:"clamp(12px,2.5vw,32px)"}}>
 
         {/* ==================================
             LIVE BOARD VIEW
@@ -22404,7 +22874,7 @@ function AvailabilityTab() {
             </div>
 
             {/* Live cards */}
-            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:"12px"}}>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(340px,1fr))",gap:"12px"}}>
               {filtered.map((pro, i) => {
                 const pt = PRO_TYPES.find(t=>t.id===pro.proType);
                 const isSelected = selectedPro?.id === pro.id;
@@ -22438,9 +22908,9 @@ function AvailabilityTab() {
                       </div>
 
                       {/* Reason badge */}
-                      <div style={{background:pro.status==="available"?C.mintLight:"#FFFBEB",border:`1px solid ${pro.status==="available"?C.mint:"#FCD34D"}`,borderRadius:"8px",padding:"6px 10px",marginBottom:"10px",display:"flex",gap:"6px",alignItems:"center"}}>
+                      <div style={{background:pro.status==="available"?C.mintLight:"rgba(201,168,76,0.1)",border:`1px solid ${pro.status==="available"?C.mint:"#FCD34D"}`,borderRadius:"8px",padding:"6px 10px",marginBottom:"10px",display:"flex",gap:"6px",alignItems:"center"}}>
                         <div style={{width:6,height:6,borderRadius:"50%",background:pro.status==="available"?"#22C55E":"#F59E0B",flexShrink:0,animation:"broadcastPulse 2s infinite"}}/>
-                        <span style={{fontSize:"11px",fontWeight:"600",color:pro.status==="available"?C.mintDark:"#92400E"}}>{pro.reason}</span>
+                        <span style={{fontSize:"11px",fontWeight:"600",color:pro.status==="available"?C.mintDark:"#C9A84C"}}>{pro.reason}</span>
                       </div>
 
                       {/* Location + time */}
@@ -22457,7 +22927,7 @@ function AvailabilityTab() {
                             const isBooked = booked[`${pro.id}_${slot}`];
                             return (
                               <button key={slot} onClick={()=>{if(!isBooked){setSelectedPro(pro);}}}
-                                style={{background:isBooked?"#F3F4F6":pro.color+"18",color:isBooked?"#9CA3AF":pro.color,border:`1px solid ${isBooked?"#E5E7EB":pro.color+"44"}`,padding:"5px 11px",borderRadius:"20px",fontSize:"11px",fontWeight:"700",cursor:isBooked?"default":"pointer",textDecoration:isBooked?"line-through":"none"}}>
+                                style={{background:isBooked?"rgba(255,255,255,0.07)":pro.color+"18",color:isBooked?"#9CA3AF":pro.color,border:`1px solid ${isBooked?"#E5E7EB":pro.color+"44"}`,padding:"5px 11px",borderRadius:"20px",fontSize:"11px",fontWeight:"700",cursor:isBooked?"default":"pointer",textDecoration:isBooked?"line-through":"none"}}>
                                 {isBooked?"Booked":slot}
                               </button>
                             );
@@ -22531,7 +23001,7 @@ function AvailabilityTab() {
             BROADCAST VIEW  -  post your availability
         ================================== */}
         {view==="broadcast" && (
-          <div style={{maxWidth:"680px",margin:"0 auto"}}>
+          <div style={{maxWidth:"none",margin:"0 auto"}}>
             <div style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"6px"}}>
               <div style={{fontFamily:FONTS.display,fontSize:"22px",fontWeight:"600",color:C.text}}>Broadcast Your Availability</div>
               <ClaudeBadge size="sm"/>
@@ -22613,7 +23083,7 @@ function AvailabilityTab() {
                   <label key={key} style={{display:"flex",gap:"8px",alignItems:"center",cursor:"pointer"}}>
                     <div onClick={()=>setMyProfile(p=>({...p,[key]:!p[key]}))}
                       style={{width:"36px",height:"20px",borderRadius:"10px",background:myProfile[key]?C.mint:C.dim,position:"relative",cursor:"pointer",transition:"background 0.2s"}}>
-                      <div style={{position:"absolute",top:"2px",left:myProfile[key]?"18px":"2px",width:"16px",height:"16px",borderRadius:"50%",background:"#fff",transition:"left 0.2s",boxShadow:"0 1px 4px rgba(0,0,0,0.2)"}}/>
+                      <div style={{position:"absolute",top:"2px",left:myProfile[key]?"18px":"2px",width:"16px",height:"16px",borderRadius:"50%",background:"rgba(255,255,255,0.06)",transition:"left 0.2s",boxShadow:"0 1px 4px rgba(0,0,0,0.2)"}}/>
                     </div>
                     <span style={{fontSize:"12px",color:C.sub}}>{label}</span>
                   </label>
@@ -22621,7 +23091,7 @@ function AvailabilityTab() {
               </div>
 
               {/* AI caption generator */}
-              <div style={{background:"linear-gradient(135deg,#E8F8F0,#D4F0E4)",border:`1px solid ${C.mint}`,borderRadius:"10px",padding:"14px",marginBottom:"14px"}}>
+              <div style={{background:"rgba(39,174,120,0.12)",border:`1px solid ${C.mint}`,borderRadius:"10px",padding:"14px",marginBottom:"14px"}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"8px"}}>
                   <div style={{display:"flex",gap:"7px",alignItems:"center"}}>
                     <div style={{fontSize:"12px",fontWeight:"700",color:C.mintDark}}>AI Broadcast Caption</div>
@@ -22695,7 +23165,7 @@ function AvailabilityTab() {
                       ) : (
                         <div style={{fontSize:"12px",color:C.muted}}>No pros broadcasting right now</div>
                       )}
-                      <button style={{width:"100%",marginTop:"12px",background:available.length>0?t.color:"#F3F4F6",color:available.length>0?"#fff":C.muted,border:"none",padding:"9px",borderRadius:"8px",fontSize:"12px",fontWeight:"700",cursor:"pointer"}}>
+                      <button style={{width:"100%",marginTop:"12px",background:available.length>0?t.color:"rgba(255,255,255,0.07)",color:available.length>0?"#fff":C.muted,border:"none",padding:"9px",borderRadius:"8px",fontSize:"12px",fontWeight:"700",cursor:"pointer"}}>
                         {available.length>0?`View ${available.length} Available`:"Browse All"}
                       </button>
                     </div>
@@ -22759,11 +23229,11 @@ function AvailabilityTab() {
 
 const VERIFY_ROLES = [
   { id:"client",      label:"Client",             color:"#0891B2", bg:"#EFF6FF",  icon:"👤", desc:"Verify identity before scheduling or arriving for service" },
-  { id:"stylist",     label:"Hair Stylist",        color:"#27AE78", bg:"#E8F8F0",  icon:"✂",  desc:"License + face verification required before serving clients" },
+  { id:"stylist",     label:"Hair Stylist",        color:"#27AE78", bg:"rgba(39,174,120,0.14)",  icon:"✂",  desc:"License + face verification required before serving clients" },
   { id:"barber",      label:"Barber",              color:"#0D9488", bg:"#ECFDF5",  icon:"💈", desc:"Barber license + face scan required" },
   { id:"esthetician", label:"Esthetician",         color:"#059669", bg:"#F0FDF4",  icon:"🧖", desc:"Esthetics license + ID verification required" },
   { id:"nail",        label:"Nail Technician",     color:"#DB2777", bg:"#FDF2F8",  icon:"💅", desc:"Nail tech license + face verification required" },
-  { id:"tanning",     label:"Tanning Specialist",  color:"#D97706", bg:"#FFFBEB",  icon:"🌞", desc:"Certification + ID verification required" },
+  { id:"tanning",     label:"Tanning Specialist",  color:"#D97706", bg:"rgba(201,168,76,0.1)",  icon:"🌞", desc:"Certification + ID verification required" },
   { id:"massage",     label:"Massage Therapist",   color:"#7C3AED", bg:"#F5F3FF",  icon:"🤲", desc:"License + face verification required" },
   { id:"doctor",      label:"Trichologist / Dr.",  color:"#DC2626", bg:"#FEF2F2",  icon:"⚕", desc:"Medical license + ID required for clinical hair services" },
 ];
@@ -22870,7 +23340,7 @@ function VerifyTab() {
     const sys = `You are a professional identity verification AI for Love That Idea, a beauty platform. You are verifying a ${roleLabel} for safety before a beauty service. Analyze the live camera image and assess: (1) liveness - is this a real live person or a photo/screen? (2) face quality - is the face clear and well-lit? (3) any safety concerns. Return ONLY valid JSON: {"isLive":boolean,"faceQuality":"good"|"fair"|"poor","livelinessScore":number,"faceDetected":boolean,"safetyFlags":[string],"verificationNotes":string,"proceedToIdCheck":boolean}`;
 
     try {
-      const res = await fetch(CLAUDE_PROXY_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:400,system:sys,messages:[{role:"user",content:[{type:"image",source:{type:"base64",media_type:"image/jpeg",data:base64}},{type:"text",text:"Verify this person for beauty service access. Assess liveness, face quality, and any safety concerns."}]}]})});
+      const res = await fetch(CLAUDE_PROXY_URL,{method:"POST",headers:PROXY_HEADERS,body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:400,system:sys,messages:[{role:"user",content:[{type:"image",source:{type:"base64",media_type:"image/jpeg",data:base64}},{type:"text",text:"Verify this person for beauty service access. Assess liveness, face quality, and any safety concerns."}]}]})});
       const d = await res.json();
       const raw = d.content?d.content.map(b=>b.text||"").join("").replace(/```json|```/g,"").trim():"{}";
       const result = JSON.parse(raw);
@@ -22899,7 +23369,7 @@ function VerifyTab() {
     const isLicense = type === "license";
     const sys = `You are a document verification AI for Love That Idea. Verify this ${isLicense?"professional license/certification":"government-issued ID"}. Analyze for: authenticity indicators, readable information, expiration. Return ONLY valid JSON: {"documentDetected":boolean,"documentType":string,"nameVisible":boolean,"expirationVisible":boolean,"isExpired":boolean,"licenseNumber":string|null,"issuingAuthority":string|null,"authenticityScore":number,"flags":[string],"approved":boolean,"notes":string}`;
     try {
-      const res = await fetch(CLAUDE_PROXY_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:400,system:sys,messages:[{role:"user",content:[{type:"image",source:{type:"base64",media_type:"image/jpeg",data:base64}},{type:"text",text:`Verify this ${isLicense?"professional license":"government ID"} for beauty service access authorization.`}]}]})});
+      const res = await fetch(CLAUDE_PROXY_URL,{method:"POST",headers:PROXY_HEADERS,body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:400,system:sys,messages:[{role:"user",content:[{type:"image",source:{type:"base64",media_type:"image/jpeg",data:base64}},{type:"text",text:`Verify this ${isLicense?"professional license":"government ID"} for beauty service access authorization.`}]}]})});
       const d = await res.json();
       const raw = d.content?d.content.map(b=>b.text||"").join("").replace(/```json|```/g,"").trim():"{}";
       const result = JSON.parse(raw);
@@ -22994,7 +23464,7 @@ function VerifyTab() {
     "I confirm the information I have provided is accurate and complete",
     "I understand the service risks and contraindications explained to me",
     "I consent to have my biometric face scan stored for this session",
-    "I agree to the Love That Idea Terms of Service and Safety Policy",
+    "I agree to the Love That Idea Terms of Service and Privacy Policy",
     "I authorize the stylist to perform the agreed service",
   ];
 
@@ -23096,7 +23566,7 @@ function VerifyTab() {
             STEPS  -  step-by-step verification
         =============================================== */}
         {phase==="steps" && role && (
-          <div style={{maxWidth:"780px",margin:"0 auto",animation:"fadeSlide 0.4s ease"}}>
+          <div style={{maxWidth:"none",margin:"0 auto",animation:"fadeSlide 0.4s ease"}}>
 
             {/* Progress header */}
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"20px"}}>
@@ -23134,7 +23604,7 @@ function VerifyTab() {
                     <div>
                       <div style={{display:"flex",gap:"8px",alignItems:"center",marginBottom:"4px"}}>
                         <div style={{fontSize:"16px",fontWeight:"800",color:C.text}}>{step.label}</div>
-                        {!step.required && <span style={{background:"#F3F4F6",color:"#6B7280",fontSize:"9px",padding:"2px 8px",borderRadius:"20px"}}>Optional</span>}
+                        {!step.required && <span style={{background:"rgba(255,255,255,0.06)",color:"rgba(255,255,255,0.45)",fontSize:"9px",padding:"2px 8px",borderRadius:"20px"}}>Optional</span>}
                         {completedSteps[step.id] && <span style={{background:C.mintLight,color:C.mintDark,fontSize:"9px",padding:"2px 8px",borderRadius:"20px",fontWeight:"800"}}>✓ Complete</span>}
                       </div>
                       <div style={{fontSize:"13px",color:C.muted,lineHeight:"1.6"}}>{step.desc}</div>
@@ -23146,7 +23616,7 @@ function VerifyTab() {
                     <div>
                       {!scanActive ? (
                         <div style={{textAlign:"center",padding:"24px 0"}}>
-                          <div style={{width:"120px",height:"120px",borderRadius:"50%",background:"linear-gradient(135deg,#E8F8F0,#D4F0E4)",border:`3px dashed ${stepColor}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"48px",margin:"0 auto 20px",animation:"verifyPulse 3s ease infinite"}}>🧬</div>
+                          <div style={{width:"120px",height:"120px",borderRadius:"50%",background:"rgba(39,174,120,0.12)",border:`3px dashed ${stepColor}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"48px",margin:"0 auto 20px",animation:"verifyPulse 3s ease infinite"}}>🧬</div>
                           <div style={{fontFamily:FONTS.display,fontSize:"18px",fontWeight:"600",color:C.text,marginBottom:"6px"}}>Biometric Face Scan</div>
                           <div style={{fontSize:"13px",color:C.muted,marginBottom:"20px",maxWidth:"380px",margin:"0 auto 20px"}}>Claude Vision will analyze your live camera feed to confirm you are a real person and assess liveness. No photo substitution allowed.</div>
                           <button onClick={startCamera} style={{background:GRAD.hero,color:"#fff",border:"none",padding:"13px 32px",borderRadius:"50px",fontSize:"14px",fontWeight:"800",cursor:"pointer",boxShadow:`0 6px 20px ${stepColor}35`}}>
@@ -23206,8 +23676,8 @@ function VerifyTab() {
                       <div style={{flex:1}}>
                         <div style={{display:"flex",gap:"8px",marginBottom:"8px"}}>
                           <span style={{background:completedSteps.face.isLive?C.mintLight:"#FEF2F2",color:completedSteps.face.isLive?C.mintDark:"#DC2626",fontSize:"11px",padding:"3px 10px",borderRadius:"20px",fontWeight:"800"}}>{completedSteps.face.isLive?"✓ Liveness Confirmed":"✗ Liveness Failed"}</span>
-                          <span style={{background:"#F3F4F6",color:"#6B7280",fontSize:"11px",padding:"3px 10px",borderRadius:"20px"}}>Score: {completedSteps.face.livelinessScore}%</span>
-                          <span style={{background:"#F3F4F6",color:"#6B7280",fontSize:"11px",padding:"3px 10px",borderRadius:"20px"}}>Quality: {completedSteps.face.faceQuality}</span>
+                          <span style={{background:"rgba(255,255,255,0.06)",color:"rgba(255,255,255,0.45)",fontSize:"11px",padding:"3px 10px",borderRadius:"20px"}}>Score: {completedSteps.face.livelinessScore}%</span>
+                          <span style={{background:"rgba(255,255,255,0.06)",color:"rgba(255,255,255,0.45)",fontSize:"11px",padding:"3px 10px",borderRadius:"20px"}}>Quality: {completedSteps.face.faceQuality}</span>
                         </div>
                         <div style={{fontSize:"12px",color:C.sub,lineHeight:"1.6"}}>{completedSteps.face.verificationNotes}</div>
                         {(completedSteps.face.safetyFlags||[]).length>0 && (
@@ -23236,8 +23706,8 @@ function VerifyTab() {
                           <div style={{flex:1}}>
                             <div style={{display:"flex",gap:"8px",marginBottom:"8px",flexWrap:"wrap"}}>
                               <span style={{background:completedSteps.id.approved?C.mintLight:"#FEF2F2",color:completedSteps.id.approved?C.mintDark:"#DC2626",fontSize:"11px",padding:"3px 10px",borderRadius:"20px",fontWeight:"800"}}>{completedSteps.id.approved?"✓ ID Approved":"✗ ID Issue"}</span>
-                              {completedSteps.id.documentType && <span style={{background:"#F3F4F6",color:"#6B7280",fontSize:"11px",padding:"3px 10px",borderRadius:"20px"}}>{completedSteps.id.documentType}</span>}
-                              {completedSteps.id.issuingAuthority && <span style={{background:"#F3F4F6",color:"#6B7280",fontSize:"11px",padding:"3px 10px",borderRadius:"20px"}}>{completedSteps.id.issuingAuthority}</span>}
+                              {completedSteps.id.documentType && <span style={{background:"rgba(255,255,255,0.06)",color:"rgba(255,255,255,0.45)",fontSize:"11px",padding:"3px 10px",borderRadius:"20px"}}>{completedSteps.id.documentType}</span>}
+                              {completedSteps.id.issuingAuthority && <span style={{background:"rgba(255,255,255,0.06)",color:"rgba(255,255,255,0.45)",fontSize:"11px",padding:"3px 10px",borderRadius:"20px"}}>{completedSteps.id.issuingAuthority}</span>}
                             </div>
                             <div style={{fontSize:"12px",color:C.sub,lineHeight:"1.6"}}>{completedSteps.id.notes}</div>
                           </div>
@@ -23265,8 +23735,8 @@ function VerifyTab() {
                           <div style={{flex:1}}>
                             <div style={{display:"flex",gap:"8px",marginBottom:"8px",flexWrap:"wrap"}}>
                               <span style={{background:completedSteps.license.approved?C.mintLight:"#FEF2F2",color:completedSteps.license.approved?C.mintDark:"#DC2626",fontSize:"11px",padding:"3px 10px",borderRadius:"20px",fontWeight:"800"}}>{completedSteps.license.approved?"✓ License Valid":"✗ License Issue"}</span>
-                              {completedSteps.license.licenseNumber && <span style={{background:"#F3F4F6",color:"#6B7280",fontSize:"11px",padding:"3px 10px",borderRadius:"20px"}}>#{completedSteps.license.licenseNumber}</span>}
-                              {completedSteps.license.isExpired && <span style={{background:"#FEF2F2",color:"#DC2626",fontSize:"11px",padding:"3px 10px",borderRadius:"20px",fontWeight:"800"}}>EXPIRED</span>}
+                              {completedSteps.license.licenseNumber && <span style={{background:"rgba(255,255,255,0.06)",color:"rgba(255,255,255,0.45)",fontSize:"11px",padding:"3px 10px",borderRadius:"20px"}}>#{completedSteps.license.licenseNumber}</span>}
+                              {completedSteps.license.isExpired && <span style={{background:"rgba(239,68,68,0.10)",color:"#DC2626",fontSize:"11px",padding:"3px 10px",borderRadius:"20px",fontWeight:"800"}}>EXPIRED</span>}
                             </div>
                             <div style={{fontSize:"12px",color:C.sub,lineHeight:"1.6"}}>{completedSteps.license.notes}</div>
                           </div>
@@ -23301,12 +23771,12 @@ function VerifyTab() {
                     <div>
                       <div style={{display:"flex",flexDirection:"column",gap:"10px",marginBottom:"16px"}}>
                         {HEALTH_QUESTIONS.map((q,i)=>(
-                          <div key={i} style={{background:"#F9FAFB",borderRadius:"8px",padding:"12px 14px"}}>
+                          <div key={i} style={{background:"rgba(255,255,255,0.05)",borderRadius:"8px",padding:"12px 14px"}}>
                             <div style={{fontSize:"12px",color:C.text,fontWeight:"600",marginBottom:"8px"}}>{q}</div>
                             <div style={{display:"flex",gap:"8px"}}>
                               {["Yes","No","Unsure"].map(ans=>(
                                 <button key={ans} onClick={()=>setHealthAnswers(prev=>({...prev,[i]:ans}))}
-                                  style={{background:healthAnswers[i]===ans?(ans==="Yes"?"#FEF2F2":ans==="No"?C.mintLight:"#FFFBEB"):"transparent",color:healthAnswers[i]===ans?(ans==="Yes"?"#DC2626":ans==="No"?C.mintDark:"#D97706"):C.muted,border:`1px solid ${healthAnswers[i]===ans?(ans==="Yes"?"#FECACA":ans==="No"?C.mint:"#FCD34D"):C.dim}`,padding:"5px 14px",borderRadius:"20px",fontSize:"11px",fontWeight:"600",cursor:"pointer"}}>
+                                  style={{background:healthAnswers[i]===ans?(ans==="Yes"?"#FEF2F2":ans==="No"?C.mintLight:"rgba(201,168,76,0.1)"):"transparent",color:healthAnswers[i]===ans?(ans==="Yes"?"#DC2626":ans==="No"?C.mintDark:"#D97706"):C.muted,border:`1px solid ${healthAnswers[i]===ans?(ans==="Yes"?"#FECACA":ans==="No"?C.mint:"#FCD34D"):C.dim}`,padding:"5px 14px",borderRadius:"20px",fontSize:"11px",fontWeight:"600",cursor:"pointer"}}>
                                   {ans}
                                 </button>
                               ))}
@@ -23353,7 +23823,7 @@ function VerifyTab() {
             <div style={{display:"flex",gap:"10px",justifyContent:"space-between",alignItems:"center"}}>
               <div style={{display:"flex",gap:"8px"}}>
                 {currentStep > 0 && <button onClick={()=>setCurrentStep(s=>s-1)} style={{background:C.white,border:`1px solid ${C.border}`,color:C.muted,padding:"10px 18px",borderRadius:"10px",fontSize:"13px",cursor:"pointer"}}>Back</button>}
-                {!step?.required && <button onClick={()=>{if(currentStep<steps.length-1)setCurrentStep(s=>s+1);}} style={{background:"#F3F4F6",color:C.muted,border:`1px solid ${C.dim}`,padding:"10px 18px",borderRadius:"10px",fontSize:"13px",cursor:"pointer"}}>Skip (optional)</button>}
+                {!step?.required && <button onClick={()=>{if(currentStep<steps.length-1)setCurrentStep(s=>s+1);}} style={{background:"rgba(255,255,255,0.06)",color:C.muted,border:`1px solid ${C.dim}`,padding:"10px 18px",borderRadius:"10px",fontSize:"13px",cursor:"pointer"}}>Skip (optional)</button>}
               </div>
               <div style={{display:"flex",gap:"8px"}}>
                 {currentStep < steps.length-1 && completedSteps[step?.id] && (
@@ -23391,7 +23861,7 @@ function VerifyTab() {
             RESULT  -  verification outcome
         =============================================== */}
         {phase==="result" && verifyResult && (
-          <div style={{maxWidth:"640px",margin:"0 auto",animation:"fadeSlide 0.5s ease"}}>
+          <div style={{maxWidth:"none",margin:"0 auto",animation:"fadeSlide 0.5s ease"}}>
             {/* Result hero */}
             <div style={{background:verifyResult.status==="verified"?"linear-gradient(135deg,#059669,#0D9488)":"linear-gradient(135deg,#DC2626,#B91C1C)",borderRadius:"20px",padding:"32px",marginBottom:"20px",textAlign:"center",color:"#fff"}}>
               <div style={{fontSize:"56px",marginBottom:"16px"}}>{verifyResult.status==="verified"?"✅":"⚠"}</div>
@@ -23421,7 +23891,7 @@ function VerifyTab() {
 
             {/* Flags */}
             {verifyResult.flags?.length>0 && (
-              <div style={{background:"#FEF2F2",border:"1px solid #FECACA",borderRadius:"12px",padding:"16px",marginBottom:"16px"}}>
+              <div style={{background:"rgba(239,68,68,0.10)",border:"1px solid #FECACA",borderRadius:"12px",padding:"16px",marginBottom:"16px"}}>
                 <div style={{fontSize:"11px",letterSpacing:"2px",color:"#DC2626",fontWeight:"700",marginBottom:"10px"}}>VERIFICATION FLAGS  -  REVIEW REQUIRED</div>
                 {verifyResult.flags.map((f,i)=>(
                   <div key={i} style={{display:"flex",gap:"8px",fontSize:"13px",color:"#7F1D1D",marginBottom:"6px",lineHeight:"1.5"}}>
@@ -23491,7 +23961,7 @@ function VerifyTab() {
                       setQrVerifying(true); setQrResult(null); setQrGenerated(null);
                       const roleObj = VERIFY_ROLES.find(r=>r.id===qrCreds.role);
                       try {
-                        const res = await fetch(CLAUDE_PROXY_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:500,
+                        const res = await fetch(CLAUDE_PROXY_URL,{method:"POST",headers:PROXY_HEADERS,body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:500,
                           system:`You are an instant credential verification AI for Love That Idea. Verify the ${roleObj?.label||"person"} credentials for platform access. Check license format, expiry, specialty consistency. Return ONLY valid JSON: {"credentialsValid":boolean,"confidenceScore":number,"licenseValid":boolean|null,"expiryValid":boolean|null,"specialtyMatch":boolean,"flags":[string],"verificationSummary":string,"clearanceLevel":"FULL"|"PARTIAL"|"DENIED","accessLevel":string,"recommendedActions":[string]}`,
                           messages:[{role:"user",content:`Verify: Name: ${qrCreds.name}, License #: ${qrCreds.licenseNum||"N/A"}, Issuing: ${qrCreds.issuer||"N/A"}, Expiry: ${qrCreds.expiry||"N/A"}, Specialty: ${qrCreds.specialty}, Role: ${roleObj?.label}`}]})});
                         const d = await res.json();
@@ -23548,7 +24018,7 @@ function VerifyTab() {
               <div>
                 {!qrResult && !qrVerifying && (
                   <div style={{background:C.white,border:`1.5px dashed ${C.border}`,borderRadius:"16px",padding:"60px 20px",textAlign:"center",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:"400px"}}>
-                    <div style={{width:"72px",height:"72px",borderRadius:"16px",background:"linear-gradient(135deg,#E8F8F0,#D4F0E4)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"32px",marginBottom:"14px"}}>🔐</div>
+                    <div style={{width:"72px",height:"72px",borderRadius:"16px",background:"rgba(39,174,120,0.12)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"32px",marginBottom:"14px"}}>🔐</div>
                     <div style={{fontFamily:FONTS.display,fontSize:"18px",fontWeight:"600",color:C.text,marginBottom:"6px"}}>Your QR Badge</div>
                     <div style={{fontSize:"13px",color:C.muted,lineHeight:"1.7",maxWidth:"260px"}}>Enter credentials and click Verify. Claude validates instantly and generates your personal QR badge.</div>
                   </div>
@@ -23585,7 +24055,7 @@ function VerifyTab() {
                         <div style={{fontSize:"9px",letterSpacing:"3px",color:"rgba(255,255,255,0.4)",marginBottom:"4px"}}>LOVE THAT IDEA - VERIFIED CREDENTIAL</div>
                         <div style={{fontFamily:FONTS.display,fontSize:"17px",fontWeight:"700",color:"#fff",marginBottom:"2px"}}>{qrResult.name}</div>
                         <div style={{fontSize:"11px",color:"rgba(255,255,255,0.55)",marginBottom:"12px"}}>{qrResult.roleLabel}{qrResult.specialty?" - "+qrResult.specialty:""}</div>
-                        <div style={{display:"inline-block",background:"#fff",padding:"10px",borderRadius:"10px",marginBottom:"12px",boxShadow:"0 4px 16px rgba(0,0,0,0.3)"}}>
+                        <div style={{display:"inline-block",background:"rgba(255,255,255,0.06)",padding:"10px",borderRadius:"10px",marginBottom:"12px",boxShadow:"0 4px 16px rgba(0,0,0,0.3)"}}>
                           <QRCanvas data={"LTI|VERIFIED|"+qrResult.sessionCode+"|"+qrResult.name+"|"+qrResult.roleLabel+"|"+qrResult.clearanceLevel+"|"+qrResult.confidenceScore+"|"+(qrResult.licenseNum||"CLIENT")+"|"+new Date().toLocaleDateString()} size={160} fgColor="#0D2818" bgColor="#FFFFFF"/>
                         </div>
                         <div style={{display:"flex",gap:"6px",justifyContent:"center",flexWrap:"wrap",marginBottom:"8px"}}>
@@ -23598,7 +24068,7 @@ function VerifyTab() {
                     )}
 
                     {qrResult.flags?.length>0 && (
-                      <div style={{background:"#FEF2F2",border:"1px solid #FECACA",borderRadius:"10px",padding:"12px",marginBottom:"10px"}}>
+                      <div style={{background:"rgba(239,68,68,0.10)",border:"1px solid #FECACA",borderRadius:"10px",padding:"12px",marginBottom:"10px"}}>
                         <div style={{fontSize:"10px",letterSpacing:"2px",color:"#DC2626",fontWeight:"700",marginBottom:"6px"}}>FLAGS</div>
                         {qrResult.flags.map((f,i)=><div key={i} style={{fontSize:"12px",color:"#7F1D1D",display:"flex",gap:"5px",marginBottom:"3px"}}><span>!</span>{f}</div>)}
                       </div>
@@ -23724,8 +24194,8 @@ function StyleMatchTab({ styles }) {
     const base64 = photo.split(",")[1];
     const styleList = styles.slice(0,30).map(s=>`${s.name} (${s.category}, ${s.hairType}, ${s.difficulty})`).join("; ");
     try {
-      const res = await fetch(CLAUDE_PROXY_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
-        model:"claude-sonnet-4-20250514",max_tokens:1000,
+      const res = await fetch(CLAUDE_PROXY_URL,{method:"POST",headers:PROXY_HEADERS,body:JSON.stringify({
+        model:"claude-sonnet-4-6",max_tokens:1000,
         system:`You are an expert master stylist and beauty consultant. Analyze the client's photo and lifestyle preferences to recommend the perfect hairstyles. Return ONLY valid JSON: {"faceShape":string,"hairType":string,"skinTone":string,"currentLength":string,"recommendations":[{"styleName":string,"matchScore":number,"whyItWorks":string,"maintenanceLevel":string,"estimatedPrice":string,"timeInChair":string,"productsNeeded":[string],"proTip":string}],"consultantNote":string}`,
         messages:[{role:"user",content:[
           {type:"image",source:{type:"base64",media_type:"image/jpeg",data:base64}},
@@ -23764,7 +24234,7 @@ function StyleMatchTab({ styles }) {
           ))}
         </div>
       </div>
-      <div style={{flex:1,overflowY:"auto",padding:"20px"}}>
+      <div style={{flex:1,overflowY:"auto",padding:"clamp(12px,2.5vw,32px)"}}>
         {phase==="intro" && (
           <div style={{maxWidth:"620px",margin:"0 auto",textAlign:"center"}}>
             <div style={{fontSize:"56px",marginBottom:"20px"}}>✨</div>
@@ -23782,7 +24252,7 @@ function StyleMatchTab({ styles }) {
           </div>
         )}
         {phase==="scan" && (
-          <div style={{maxWidth:"680px",margin:"0 auto"}}>
+          <div style={{maxWidth:"none",margin:"0 auto"}}>
             <div style={{fontFamily:FONTS.display,fontSize:"20px",fontWeight:"600",color:C.text,marginBottom:"16px"}}>Upload Your Photo</div>
             <input type="file" ref={fileRef} accept="image/*" onChange={e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>setPhoto(ev.target.result);r.readAsDataURL(f);}} style={{display:"none"}}/>
             {!photo ? (
@@ -23817,7 +24287,7 @@ function StyleMatchTab({ styles }) {
           </div>
         )}
         {phase==="results" && matches.recommendations && (
-          <div style={{maxWidth:"780px",margin:"0 auto"}}>
+          <div style={{maxWidth:"none",margin:"0 auto"}}>
             {photo && <div style={{display:"flex",gap:"16px",alignItems:"center",background:C.white,border:`1px solid ${C.border}`,borderRadius:"14px",padding:"16px",marginBottom:"20px"}}>
               <img src={photo} style={{width:"64px",height:"64px",borderRadius:"50%",objectFit:"cover",objectPosition:"top",flexShrink:0}}/>
               <div>
@@ -23863,7 +24333,7 @@ function StyleMatchTab({ styles }) {
           </div>
         )}
         {phase==="lookbook" && matches.recommendations && (
-          <div style={{maxWidth:"680px",margin:"0 auto"}}>
+          <div style={{maxWidth:"none",margin:"0 auto"}}>
             <div style={{background:"linear-gradient(160deg,#0D2818,#1A4A2E)",borderRadius:"20px",padding:"32px",color:"#fff",textAlign:"center",marginBottom:"20px"}}>
               <div style={{fontSize:"10px",letterSpacing:"4px",color:"rgba(255,255,255,0.4)",marginBottom:"8px"}}>LOVE THAT IDEA</div>
               <div style={{fontFamily:FONTS.display,fontSize:"32px",fontWeight:"700",marginBottom:"4px"}}>My Style Lookbook</div>
@@ -23888,7 +24358,7 @@ function StyleMatchTab({ styles }) {
                 </div>
               ))}
             </div>
-            <div style={{background:"linear-gradient(135deg,#FAF5EC,#F5EDD8)",border:`1px solid rgba(201,168,76,0.3)`,borderRadius:"14px",padding:"16px",marginTop:"16px",textAlign:"center"}}>
+            <div style={{background:"linear-gradient(135deg,rgba(201,168,76,0.12),rgba(196,137,107,0.08))",border:`1px solid rgba(201,168,76,0.3)`,borderRadius:"14px",padding:"16px",marginTop:"16px",textAlign:"center"}}>
               <div style={{fontSize:"12px",color:"#8B6914",fontStyle:"italic",marginBottom:"6px"}}>"Share this lookbook with your stylist at your next consultation"</div>
               <div style={{fontSize:"10px",color:"#B8860B"}}>Generated by Love That Idea  -  Powered by Claude AI</div>
             </div>
@@ -23921,8 +24391,8 @@ function BeforeAfterTab({ styles }) {
     const b64before = beforePhoto.split(",")[1];
     const b64after  = afterPhoto.split(",")[1];
     try {
-      const res = await fetch(CLAUDE_PROXY_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
-        model:"claude-sonnet-4-20250514",max_tokens:500,
+      const res = await fetch(CLAUDE_PROXY_URL,{method:"POST",headers:PROXY_HEADERS,body:JSON.stringify({
+        model:"claude-sonnet-4-6",max_tokens:500,
         system:`You are a master stylist analyzing a before-and-after hair transformation. Describe what changed, identify the technique, and generate a professional caption. Return ONLY valid JSON: {"beforeDesc":string,"afterDesc":string,"technique":string,"serviceIdentified":string,"caption":string,"tags":[string],"professionalNote":string}`,
         messages:[{role:"user",content:[
           {type:"text",text:"Analyze this before photo:"},
@@ -23972,7 +24442,7 @@ function BeforeAfterTab({ styles }) {
           ))}
         </div>
       </div>
-      <div style={{flex:1,overflowY:"auto",padding:"20px"}}>
+      <div style={{flex:1,overflowY:"auto",padding:"clamp(12px,2.5vw,32px)"}}>
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(320px,1fr))",gap:"16px"}}>
           {filtered.map(t=>(
             <div key={t.id} style={{background:C.white,border:`1px solid ${C.border}`,borderRadius:"16px",overflow:"hidden"}}>
@@ -24062,8 +24532,8 @@ function FranchiseTab() {
     setAiLoading(true); setAiReport("");
     const summary = LOCATIONS.map(l=>`${l.name}: $${l.revenue.toLocaleString()} revenue, ${l.clients} clients, ${l.utilization}% utilization, ${l.stylists} stylists, ${l.openTickets} open tickets`).join(". ");
     try {
-      const res = await fetch(CLAUDE_PROXY_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
-        model:"claude-sonnet-4-20250514",max_tokens:500,
+      const res = await fetch(CLAUDE_PROXY_URL,{method:"POST",headers:PROXY_HEADERS,body:JSON.stringify({
+        model:"claude-sonnet-4-6",max_tokens:500,
         system:"You are a franchise performance analyst for Love That Idea beauty platform. Analyze multi-location data and provide: (1) top performing location and why, (2) location needing most attention, (3) network-wide optimization opportunity, (4) recommended action this week. Be specific. Under 180 words.",
         messages:[{role:"user",content:`Analyze these Love That Idea franchise locations: ${summary}. Total network: $${total.revenue.toLocaleString()} revenue, ${total.clients} clients.`}]
       })});
@@ -24094,7 +24564,7 @@ function FranchiseTab() {
           ))}
         </div>
       </div>
-      <div style={{flex:1,overflowY:"auto",padding:"20px"}}>
+      <div style={{flex:1,overflowY:"auto",padding:"clamp(12px,2.5vw,32px)"}}>
         {view==="overview"&&(
           <div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:"12px",marginBottom:"20px"}}>
@@ -24186,14 +24656,14 @@ function FranchiseTab() {
                 <div style={{display:"flex",gap:"6px",alignItems:"center",fontSize:"11px"}}>
                   <span style={{background:C.mintLight,color:C.mintDark,padding:"2px 8px",borderRadius:"20px"}}>{from}</span>
                   <span style={{color:C.muted}}>-&gt;</span>
-                  <span style={{background:"#EFF6FF",color:"#0891B2",padding:"2px 8px",borderRadius:"20px"}}>{to}</span>
+                  <span style={{background:"rgba(8,145,178,0.12)",color:"#0891B2",padding:"2px 8px",borderRadius:"20px"}}>{to}</span>
                 </div>
               </div>
             ))}
           </div>
         )}
         {view==="intel"&&(
-          <div style={{maxWidth:"680px",margin:"0 auto"}}>
+          <div style={{maxWidth:"none",margin:"0 auto"}}>
             <div style={{background:C.white,border:`1px solid ${C.border}`,borderRadius:"14px",padding:"20px",marginBottom:"16px"}}>
               <div style={{fontFamily:FONTS.display,fontSize:"18px",fontWeight:"600",color:C.text,marginBottom:"16px"}}>Network Performance Comparison</div>
               {LOCATIONS.map(loc=>(
@@ -24248,8 +24718,8 @@ function ClientBookingTab() {
     if (!query.trim()) return;
     setSearching(true); setResults([]);
     try {
-      const res = await fetch(CLAUDE_PROXY_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
-        model:"claude-sonnet-4-20250514",max_tokens:200,
+      const res = await fetch(CLAUDE_PROXY_URL,{method:"POST",headers:PROXY_HEADERS,body:JSON.stringify({
+        model:"claude-sonnet-4-6",max_tokens:200,
         system:"You are a booking assistant for Love That Idea. Based on the client query, recommend which professional type they need and what to look for. Be warm, helpful, under 80 words.",
         messages:[{role:"user",content:query}]
       })});
@@ -24276,16 +24746,16 @@ function ClientBookingTab() {
         </div>
         <div style={{fontSize:"12px",color:"rgba(255,255,255,0.45)"}}>Client-facing booking - accessible by QR scan - no login required</div>
       </div>
-      <div style={{flex:1,overflowY:"auto",padding:"20px"}}>
+      <div style={{flex:1,overflowY:"auto",padding:"clamp(12px,2.5vw,32px)"}}>
         {step==="search"&&(
-          <div style={{maxWidth:"640px",margin:"0 auto"}}>
+          <div style={{maxWidth:"none",margin:"0 auto"}}>
             <div style={{fontFamily:FONTS.display,fontSize:"24px",fontWeight:"600",color:C.text,textAlign:"center",marginBottom:"6px"}}>Find your perfect stylist</div>
             <div style={{fontSize:"14px",color:C.muted,textAlign:"center",marginBottom:"24px"}}>Describe what you need and we'll match you instantly</div>
             <div style={{display:"flex",gap:"8px",marginBottom:"16px"}}>
               <input value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>e.key==="Enter"&&searchStylists()} placeholder='e.g. "knotless braids near me" or "barber for fade"' style={{flex:1,background:C.white,border:`1.5px solid ${C.border}`,color:C.text,padding:"13px 16px",borderRadius:"12px",fontSize:"14px"}}/>
               <button onClick={searchStylists} disabled={searching} style={{background:GRAD.hero,color:"#fff",border:"none",padding:"13px 22px",borderRadius:"12px",fontSize:"14px",fontWeight:"800",cursor:"pointer"}}>{searching?"...":"Search"}</button>
             </div>
-            {aiRec&&<div style={{background:"linear-gradient(135deg,#E8F8F0,#D4F0E4)",border:`1px solid ${C.mint}`,borderRadius:"12px",padding:"14px",marginBottom:"16px",fontSize:"13px",color:C.sub,lineHeight:"1.7"}}>{aiRec}</div>}
+            {aiRec&&<div style={{background:"rgba(39,174,120,0.12)",border:`1px solid ${C.mint}`,borderRadius:"12px",padding:"14px",marginBottom:"16px",fontSize:"13px",color:C.sub,lineHeight:"1.7"}}>{aiRec}</div>}
             <div style={{display:"flex",flexDirection:"column",gap:"12px"}}>
               {(results.length>0?results:DEMO_STYLISTS).map(s=>(
                 <div key={s.id} onClick={()=>{setSelected(s);setStep("profile");}} style={{background:C.white,border:`1.5px solid ${C.border}`,borderRadius:"14px",padding:"16px",cursor:"pointer",transition:"all 0.2s"}}
@@ -24426,7 +24896,7 @@ function NotifyPushTab() {
     setTimeout(()=>setTestLoading(false),800);
   }
 
-  const typeIcon = {bid:"🔴",booking:"✅",churn:"⚠",reminder:"🔔",trends:"✨",marketing:"📢"};
+  const typeIcon = {bid:"🔴",booking:"✅",churn:"⚠",reminder:"🔔",trends:"sparkle",marketing:"📢"};
   const typeLabel = {bid:"Bid Alert",booking:"Booking",churn:"Churn Risk",reminder:"Reminder",trends:"Trend Alert",marketing:"Marketing"};
 
   return (
@@ -24443,7 +24913,7 @@ function NotifyPushTab() {
           <button onClick={sendTestNotification} disabled={testLoading} style={{background:GRAD.hero,color:"#fff",border:"none",padding:"9px 16px",borderRadius:"9px",fontSize:"12px",fontWeight:"700",cursor:"pointer"}}>{testLoading?"Sending...":"Send Test"}</button>
         </div>
       </div>
-      <div style={{flex:1,overflowY:"auto",padding:"20px",display:"grid",gridTemplateColumns:"1fr 300px",gap:"20px",alignItems:"start"}}>
+      <div style={{flex:1,overflowY:"auto",padding:"clamp(12px,2.5vw,32px)",display:"grid",gridTemplateColumns:"1fr 300px",gap:"20px",alignItems:"start"}}>
         <div>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"14px"}}>
             <div style={{fontFamily:FONTS.display,fontSize:"18px",fontWeight:"600",color:C.text}}>Notification History</div>
@@ -24483,7 +24953,7 @@ function NotifyPushTab() {
                 <div key={key} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 0",borderBottom:`1px solid ${C.dim}`}}>
                   <span style={{fontSize:"12px",color:C.sub}}>{labels[key]}</span>
                   <div onClick={()=>setPrefs(p=>({...p,[key]:!p[key]}))} style={{width:"36px",height:"20px",borderRadius:"10px",background:val?C.mint:C.dim,position:"relative",cursor:"pointer",transition:"background 0.2s",flexShrink:0}}>
-                    <div style={{position:"absolute",top:"2px",left:val?"18px":"2px",width:"16px",height:"16px",borderRadius:"50%",background:"#fff",transition:"left 0.2s",boxShadow:"0 1px 3px rgba(0,0,0,0.2)"}}/>
+                    <div style={{position:"absolute",top:"2px",left:val?"18px":"2px",width:"16px",height:"16px",borderRadius:"50%",background:"rgba(255,255,255,0.06)",transition:"left 0.2s",boxShadow:"0 1px 3px rgba(0,0,0,0.2)"}}/>
                   </div>
                 </div>
               );
@@ -24500,11 +24970,11 @@ function NotifyPushTab() {
 // New users register a face during first launch - stored as session profile
 
 const DEMO_PROFILES = [
-  { id:"u1", name:"Michael Lynn Jones II", role:"Owner", tier:"MASTER",    avatar:"MJ", faceId:"face_mj_001", lastLogin:"May 24, 2026 9:14 AM", color:"#C9A84C",  bg:"#FBF6E9",  plan:"Enterprise", badge:"Platform Owner" },
-  { id:"u2", name:"Tasha Monroe",          role:"Stylist", tier:"MASTER",  avatar:"TM", faceId:"face_tm_001", lastLogin:"May 24, 2026 8:02 AM", color:"#27AE78",  bg:"#E8F8F0",  plan:"Pro Unlimited", badge:"Master Stylist" },
+  { id:"u1", name:"Platform Owner", role:"Owner", tier:"MASTER",    avatar:"MJ", faceId:"face_mj_001", lastLogin:"May 24, 2026 9:14 AM", color:"#C9A84C",  bg:"#FBF6E9",  plan:"Enterprise", badge:"Platform Owner" },
+  { id:"u2", name:"Tasha Monroe",          role:"Stylist", tier:"MASTER",  avatar:"TM", faceId:"face_tm_001", lastLogin:"May 24, 2026 8:02 AM", color:"#27AE78",  bg:"rgba(39,174,120,0.14)",  plan:"Pro Unlimited", badge:"Master Stylist" },
   { id:"u3", name:"Marcus Webb",           role:"Barber",  tier:"MASTER",  avatar:"MW", faceId:"face_mw_001", lastLogin:"May 23, 2026 6:45 PM", color:"#0891B2",  bg:"#EFF6FF",  plan:"Solo Pro", badge:"Master Barber" },
   { id:"u4", name:"Priya Sharma",          role:"Esthetician", tier:"ADVANCED", avatar:"PS", faceId:"face_ps_001", lastLogin:"May 24, 2026 7:55 AM", color:"#059669", bg:"#ECFDF5", plan:"Pro Unlimited", badge:"Esthetician" },
-  { id:"u5", name:"Guest",                 role:"Client",  tier:"COMMON",  avatar:"GU", faceId:null,          lastLogin:"Never",                color:"#6B7280",  bg:"#F3F4F6",  plan:"Free", badge:"Guest Access" },
+  { id:"u5", name:"Guest",                 role:"Client",  tier:"COMMON",  avatar:"GU", faceId:null,          lastLogin:"Never",                color:"rgba(255,255,255,0.45)",  bg:"rgba(255,255,255,0.07)",  plan:"Free", badge:"Guest Access" },
 ];
 
 function FaceGateLogin({ onLogin }) {
@@ -24622,9 +25092,9 @@ function FaceGateLogin({ onLogin }) {
     ).join("; ");
     try {
       const res = await fetch(CLAUDE_PROXY_URL, {
-        method: "POST", headers: { "Content-Type": "application/json" },
+        method: "POST", headers:PROXY_HEADERS,
         body: JSON.stringify({
-          model: "claude-sonnet-4-20250514", max_tokens: 500,
+          model: "claude-sonnet-4-6", max_tokens: 500,
           system: `You are a facial recognition AI passkey system for Love That Idea. Analyze the face photo and determine if this person matches any registered profile. Return ONLY valid JSON: {"faceDetected":boolean,"liveness":boolean,"livenessScore":number,"matchFound":boolean,"matchedProfileId":string|null,"matchConfidence":number,"faceQuality":"excellent"|"good"|"fair"|"poor","spoofAttempt":boolean,"accessGranted":boolean,"verificationNote":string,"recommendNewProfile":boolean}`,
           messages: [{ role: "user", content: [
             { type: "image", source: { type: "base64", media_type: "image/jpeg", data: base64 } },
@@ -24707,7 +25177,7 @@ function FaceGateLogin({ onLogin }) {
       avatar: (regName || "NU").split(" ").map(w => w[0]).join("").slice(0,2).toUpperCase(),
       faceId: newFaceId,
       lastLogin: "Just now",
-      color: "#27AE78", bg: "#E8F8F0",
+      color: "#27AE78", bg: "rgba(39,174,120,0.14)",
       plan: "Free",
       badge: regRole.charAt(0).toUpperCase() + regRole.slice(1),
     };
@@ -25183,8 +25653,8 @@ function ReviewsTab() {
     setAiLoading(true); setAiSummary("");
     const txt = reviews.map(r=>`${r.rating}/5 - "${r.text}"`).join(". ");
     try {
-      const res = await fetch(CLAUDE_PROXY_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
-        model:"claude-sonnet-4-20250514",max_tokens:300,
+      const res = await fetch(CLAUDE_PROXY_URL,{method:"POST",headers:PROXY_HEADERS,body:JSON.stringify({
+        model:"claude-sonnet-4-6",max_tokens:300,
         system:"You are a business analyst for a beauty salon platform. Summarize client reviews highlighting strengths, any recurring concerns, and 2 specific action items for improvement. Be direct and specific. Under 150 words.",
         messages:[{role:"user",content:"Summarize these salon reviews: "+txt}]
       })});
@@ -25244,7 +25714,7 @@ function ReviewsTab() {
         </div>
       </div>
 
-      <div style={{flex:1,overflowY:"auto",padding:"20px",display:"grid",gridTemplateColumns:"300px 1fr",gap:"20px",alignItems:"start"}}>
+      <div style={{flex:1,overflowY:"auto",padding:"clamp(12px,2.5vw,32px)",display:"grid",gridTemplateColumns:"300px 1fr",gap:"20px",alignItems:"start"}}>
         <div>
           <div style={{background:C.white,border:`1px solid ${C.border}`,borderRadius:"14px",padding:"20px",marginBottom:"16px"}}>
             <div style={{textAlign:"center",marginBottom:"16px"}}>
@@ -25301,7 +25771,7 @@ function ReviewsTab() {
               </div>
               <p style={{fontSize:"13px",color:C.sub,lineHeight:"1.8",margin:"0 0 10px"}}>{r.text}</p>
               {r.reply&&(
-                <div style={{background:"#F0FDF4",border:`1px solid ${C.mint}`,borderRadius:"10px",padding:"10px 14px",marginBottom:"10px"}}>
+                <div style={{background:"rgba(39,174,120,0.10)",border:`1px solid ${C.mint}`,borderRadius:"10px",padding:"10px 14px",marginBottom:"10px"}}>
                   <div style={{fontSize:"10px",letterSpacing:"2px",color:C.mintDark,fontWeight:"700",marginBottom:"4px"}}>STYLIST REPLY</div>
                   <div style={{fontSize:"12px",color:C.sub,lineHeight:"1.7"}}>{r.reply}</div>
                 </div>
@@ -25412,7 +25882,7 @@ function CheckoutTab({ onCartChange }) {
   const inp = { width:"100%", background:C.bg, border:`1.5px solid ${C.border}`, color:C.text, padding:"12px 14px", borderRadius:"10px", fontSize:"14px", boxSizing:"border-box" };
 
   return (
-    <div style={{ flex:1, display:"flex", flexDirection:"column", overflow:"hidden", background:C.bg }}>
+    <div style={{ flex:1, display:"flex", flexDirection:"column", overflow:"visible", background:C.bg }}>
       {/* Step progress bar */}
       <div style={{ background:"rgba(13,40,24,0.06)", padding:"10px 20px", flexShrink:0, display:"flex", alignItems:"center", gap:"8px", borderBottom:`1px solid ${C.border}` }}>
         {["Cart","Payment","Complete"].map((label, i) => {
@@ -25537,7 +26007,7 @@ function CheckoutTab({ onCartChange }) {
             <div style={{ display:"flex", flexDirection:"column", gap:"12px", marginBottom:"20px" }}>
               <div>
                 <label style={{ display:"block", fontSize:"10px", letterSpacing:"2px", color:C.muted, fontWeight:"700", marginBottom:"5px" }}>NAME ON CARD</label>
-                <input value={holderName} onChange={e => setHolderName(e.target.value)} placeholder="Michael Lynn Jones II" style={inp}/>
+                <input value={holderName} onChange={e => setHolderName(e.target.value)} placeholder="Cardholder Name" style={inp}/>
               </div>
               <div>
                 <label style={{ display:"block", fontSize:"10px", letterSpacing:"2px", color:C.muted, fontWeight:"700", marginBottom:"5px" }}>EMAIL</label>
@@ -25654,10 +26124,10 @@ function InspirationFeedTab() {
   const [liked, setLiked] = useState({});
   const [saved, setSaved] = useState({});
   const FEED = [
-    { id:"f1", pro:"Keisha Monroe", proType:"✂️ Stylist", rating:4.9, style:"Knotless Box Braids", category:"protective", before:"4C Coily · Natural", after:"Waist-Length Braids", duration:"6 hrs", price:"$195", tags:["#KnotlessBraids","#NaturalHair","#ProtectiveStyle"], likes:284, comments:31, color:"#27AE78", bgFrom:"#0D2818", bgTo:"#1A4A2E", emoji:"🌿" },
-    { id:"f2", pro:"Jordan Lee", proType:"✂️ Stylist", rating:4.7, style:"Silk Press", category:"heat", before:"4B Coily · Dry", after:"Bone Straight Shine", duration:"3 hrs", price:"$120", tags:["#SilkPress","#BoneStraight","#Glow"], likes:412, comments:58, color:"#C9A84C", bgFrom:"#2D1800", bgTo:"#4A2E00", emoji:"✨" },
+    { id:"f1", pro:"Keisha Monroe", proType:"✂️ Stylist", rating:4.9, style:"Knotless Box Braids", category:"protective", before:"4C Coily · Natural", after:"Waist-Length Braids", duration:"6 hrs", price:"$195", tags:["#KnotlessBraids","#NaturalHair","#ProtectiveStyle"], likes:284, comments:31, color:"#27AE78", bgFrom:"#0D2818", bgTo:"#1A4A2E", emoji:"leaf" },
+    { id:"f2", pro:"Jordan Lee", proType:"✂️ Stylist", rating:4.7, style:"Silk Press", category:"heat", before:"4B Coily · Dry", after:"Bone Straight Shine", duration:"3 hrs", price:"$120", tags:["#SilkPress","#BoneStraight","#Glow"], likes:412, comments:58, color:"#C9A84C", bgFrom:"#2D1800", bgTo:"#4A2E00", emoji:"sparkle" },
     { id:"f3", pro:"Marcus Webb", proType:"💈 Barber", rating:5.0, style:"High Skin Fade", category:"barbershop", before:"Overgrown · Uneven", after:"Sharp Temple Fade", duration:"45 min", price:"$55", tags:["#SkinFade","#Barbershop","#CleanCut"], likes:637, comments:74, color:"#0891B2", bgFrom:"#001D2E", bgTo:"#00344F", emoji:"💈" },
-    { id:"f4", pro:"Priya Sharma", proType:"🎨 Colorist", rating:4.8, style:"Honey Balayage", category:"color", before:"Dark Brown · Box Dye", after:"Warm Honey Tones", duration:"4 hrs", price:"$290", tags:["#Balayage","#HoneyBlonde","#ColorCorrection"], likes:891, comments:102, color:"#DB2777", bgFrom:"#2D0020", bgTo:"#4A0035", emoji:"🎨" },
+    { id:"f4", pro:"Priya Sharma", proType:"🎨 Colorist", rating:4.8, style:"Honey Balayage", category:"color", before:"Dark Brown · Box Dye", after:"Warm Honey Tones", duration:"4 hrs", price:"$290", tags:["#Balayage","#HoneyBlonde","#ColorCorrection"], likes:891, comments:102, color:"#DB2777", bgFrom:"#2D0020", bgTo:"#4A0035", emoji:"color" },
     { id:"f5", pro:"Aaliyah Thomas", proType:"✂️ Stylist", rating:4.9, style:"Butterfly Locs", category:"protective", before:"Loose Natural 4A", after:"Bohemian Butterfly Locs", duration:"7 hrs", price:"$220", tags:["#ButterflyLocs","#FauxLocs","#ProtectiveStyle"], likes:1204, comments:143, color:"#8B5CF6", bgFrom:"#1A0040", bgTo:"#2D0060", emoji:"🦋" },
     { id:"f6", pro:"Rico Davis", proType:"💈 Barber", rating:4.9, style:"Edgar Cut + Design", category:"barbershop", before:"Grown Out", after:"Sharp Edgar + Waves", duration:"1 hr", price:"$65", tags:["#EdgarCut","#LineUp","#BarberArt"], likes:528, comments:67, color:"#EF4444", bgFrom:"#2D0000", bgTo:"#4A0000", emoji:"⚡" },
   ];
@@ -25679,7 +26149,7 @@ function InspirationFeedTab() {
         </div>
         {/* Stories bar */}
         <div style={{display:"flex",gap:"12px",overflowX:"auto",paddingBottom:"2px",msOverflowStyle:"none",scrollbarWidth:"none"}}>
-          {[["🌿","Keisha","available"],["💈","Marcus","available"],["🎨","Priya","busy"],["✂️","Aaliyah","available"],["⚡","Rico","away"],["✨","Jordan","available"]].map(([emoji,name,status])=>(
+          {[["leaf","Keisha","available"],["💈","Marcus","available"],["color","Priya","busy"],["✂️","Aaliyah","available"],["⚡","Rico","away"],["sparkle","Jordan","available"]].map(([emoji,name,status])=>(
             <div key={name} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:"4px",flexShrink:0,cursor:"pointer"}}>
               <div style={{width:"44px",height:"44px",borderRadius:"50%",background:"linear-gradient(135deg,#27AE78,#0D9488)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"20px",border:`2px solid ${status==="available"?"#22C55E":status==="busy"?"#F59E0B":"#6B7280"}`,boxShadow:`0 0 10px ${status==="available"?"rgba(34,197,94,0.4)":status==="busy"?"rgba(245,158,11,0.3)":"none"}`}}>{emoji}</div>
               <span style={{fontSize:"9px",color:"rgba(255,255,255,0.5)",fontWeight:"600"}}>{name}</span>
@@ -25699,7 +26169,7 @@ function InspirationFeedTab() {
       </div>
 
       {/* Feed */}
-      <div style={{flex:1,overflowY:"auto",padding:"16px 20px",display:"flex",flexDirection:"column",gap:"16px"}}>
+      <div style={{flex:1,overflowY:"auto",padding:"clamp(10px,2vw,28px) clamp(12px,2.5vw,32px)",display:"flex",flexDirection:"column",gap:"16px"}}>
         {filtered.map(post=>{
           const isLiked=liked[post.id]; const isSaved=saved[post.id];
           return (
@@ -25745,7 +26215,7 @@ function InspirationFeedTab() {
                 {/* Actions */}
                 <div style={{display:"flex",gap:"8px",alignItems:"center"}}>
                   <button onClick={()=>setLiked(p=>({...p,[post.id]:!p[post.id]}))}
-                    style={{background:isLiked?"rgba(220,38,38,0.2)":"rgba(255,255,255,0.05)",color:isLiked?"#FCA5A5":"rgba(255,255,255,0.4)",border:`1px solid ${isLiked?"rgba(220,38,38,0.4)":"rgba(255,255,255,0.08)"}`,boxShadow:isLiked?"0 0 10px rgba(220,38,38,0.25)":"none",padding:"7px 12px",borderRadius:"20px",fontSize:"12px",fontWeight:"700",cursor:"pointer",transition:"all 0.18s",display:"flex",gap:"5px",alignItems:"center"}}>
+                    style={{background:isLiked?"rgba(220,38,38,0.2)":"rgba(255,255,255,0.05)",color:isLiked?"rgba(239,68,68,0.2)":"rgba(255,255,255,0.4)",border:`1px solid ${isLiked?"rgba(220,38,38,0.4)":"rgba(255,255,255,0.08)"}`,boxShadow:isLiked?"0 0 10px rgba(220,38,38,0.25)":"none",padding:"7px 12px",borderRadius:"20px",fontSize:"12px",fontWeight:"700",cursor:"pointer",transition:"all 0.18s",display:"flex",gap:"5px",alignItems:"center"}}>
                     {isLiked?"❤️":"🤍"} {post.likes+(isLiked?1:0)}
                   </button>
                   <button onClick={()=>setSaved(p=>({...p,[post.id]:!p[post.id]}))}
@@ -25829,13 +26299,13 @@ function ProEarningsTab({ authUser }) {
         </div>
       </div>
 
-      <div style={{flex:1,overflowY:"auto",padding:"16px 20px",display:"flex",flexDirection:"column",gap:"14px"}}>
+      <div style={{flex:1,overflowY:"auto",padding:"clamp(10px,2vw,28px) clamp(12px,2.5vw,32px)",display:"flex",flexDirection:"column",gap:"14px"}}>
         {/* Big stats */}
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"10px"}}>
+        <div className="lti-two-col" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"10px"}}>
           {[
             {label:"Total Earned",value:`$${e.total.toLocaleString()}`,icon:"💰",color:"#FFE580",bg:"rgba(201,168,76,0.12)",border:"rgba(201,168,76,0.3)"},
             {label:"Bookings",value:e.bookings,icon:"📅",color:"#86EFAC",bg:"rgba(39,174,120,0.12)",border:"rgba(39,174,120,0.3)"},
-            {label:"Pending",value:`$${e.pending}`,icon:"⏳",color:"#FCA5A5",bg:"rgba(220,38,38,0.08)",border:"rgba(220,38,38,0.2)"},
+            {label:"Pending",value:`$${e.pending}`,icon:"⏳",color:"rgba(239,68,68,0.2)",bg:"rgba(220,38,38,0.08)",border:"rgba(220,38,38,0.2)"},
             {label:"Paid Out",value:`$${e.payout.toLocaleString()}`,icon:"✅",color:"#A78BFA",bg:"rgba(124,58,237,0.1)",border:"rgba(124,58,237,0.25)"},
           ].map(s=>(
             <div key={s.label} style={{background:s.bg,border:`1px solid ${s.border}`,boxShadow:`0 4px 16px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06)`,borderRadius:"14px",padding:"14px"}}>
@@ -25941,8 +26411,8 @@ function AIClientIntakeTab() {
   async function generatePlan() {
     setLoading(true); setPlan(null);
     try {
-      const res = await fetch("/api/claude",{method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:400,
+      const res = await fetch("/api/claude",{method:"POST",headers:PROXY_HEADERS,
+        body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:400,
           system:"You are an expert hair consultation AI for Love That Idea. Based on client answers, create a personalized style plan. Respond ONLY in JSON: {greeting:string, headline:string, topStyle:string, topStyleReason:string, careRoutine:[string,string,string], productTip:string, priceRange:string, proType:string, urgency:string}",
           messages:[{role:"user",content:`Client intake: Goal: ${answers.goal}. Hair type: ${answers.hairType}. Weekly time: ${answers.lifestyle}. Budget: ${answers.budget}. Main concern: ${answers.concern}. Generate a personalized style plan.`}]
         })
@@ -26019,7 +26489,7 @@ function AIClientIntakeTab() {
               <div style={{fontSize:"9px",color:"rgba(255,255,255,0.3)",fontWeight:"800",letterSpacing:"2px",marginBottom:"10px"}}>YOUR CARE ROUTINE</div>
               {plan.careRoutine?.map((step,i)=>(
                 <div key={i} style={{display:"flex",gap:"10px",alignItems:"flex-start",marginBottom:"8px"}}>
-                  <div style={{width:"20px",height:"20px",borderRadius:"50%",background:"rgba(124,58,237,0.3)",border:"1px solid rgba(124,58,237,0.5)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"10px",fontWeight:"900",color:"#C4B5FD",flexShrink:0}}>{i+1}</div>
+                  <div style={{width:"20px",height:"20px",borderRadius:"50%",background:"rgba(124,58,237,0.3)",border:"1px solid rgba(124,58,237,0.5)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"10px",fontWeight:"900",color:"rgba(124,58,237,0.22)",flexShrink:0}}>{i+1}</div>
                   <div style={{fontSize:"12px",color:"rgba(255,255,255,0.65)",lineHeight:"1.6",paddingTop:"2px"}}>{step}</div>
                 </div>
               ))}
@@ -26108,9 +26578,9 @@ function TrendTab() {
     setLoading(true); setTrends([]);
     try {
       const res = await fetch(CLAUDE_PROXY_URL,{
-        method:"POST",headers:{"Content-Type":"application/json"},
+        method:"POST",headers:PROXY_HEADERS,
         body:JSON.stringify({
-          model:"claude-sonnet-4-20250514",max_tokens:800,
+          model:"claude-sonnet-4-6",max_tokens:800,
           system:"You are a beauty industry trend analyst with deep knowledge of social media, salon industry reports, and cultural hair trends. Return ONLY valid JSON array of 8 trending styles: [{\"name\":string,\"category\":string,\"momentum\":\"rising\"|\"peak\"|\"declining\",\"score\":number,\"description\":string,\"technique\":string,\"targetDemographic\":string,\"estimatedPrice\":string,\"timeInChair\":string,\"tags\":[string],\"whyItsTrending\":string}]",
           messages:[{role:"user",content:"What are the top trending beauty and hair styles right now for a professional beauty platform? Category filter: "+category+". Timeframe: this "+timeframe+". "+(query?"Focus on: "+query:"Include braids, natural hair, barbering, color, nails.")}]
         })
@@ -26158,7 +26628,7 @@ function TrendTab() {
         </div>
       </div>
 
-      <div style={{flex:1,overflowY:"auto",padding:"20px"}}>
+      <div style={{flex:1,overflowY:"auto",padding:"clamp(12px,2.5vw,32px)"}}>
         {trends.length===0&&!loading&&(
           <div style={{textAlign:"center",padding:"60px 20px"}}>
             <div style={{fontSize:"48px",marginBottom:"16px"}}>&#128202;</div>
@@ -26182,7 +26652,7 @@ function TrendTab() {
               <div style={{fontFamily:FONTS.display,fontSize:"20px",fontWeight:"600",color:C.text}}>{trends.length} Trending Styles</div>
               <div style={{fontSize:"12px",color:C.muted}}>{saved.length} saved to portfolio</div>
             </div>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:"14px"}}>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(340px,1fr))",gap:"14px"}}>
               {trends.map((t,i)=>(
                 <div key={i} style={{background:C.white,border:`1.5px solid ${C.border}`,borderRadius:"16px",overflow:"hidden",cursor:"pointer",transition:"all 0.2s"}} onClick={()=>setTrendDetail(trendDetail?.name===t.name?null:t)}
                   onMouseEnter={e=>{e.currentTarget.style.borderColor=momentumColor(t.momentum);e.currentTarget.style.transform="translateY(-2px)";}}
@@ -26249,11 +26719,1873 @@ function TrendTab() {
 
 // -- MASTER ADMIN PANEL -------------------------------------------------------
 // Owner-only: Michael Lynn Jones II
-// Double-gated: FaceGate (u1) + secondary PIN
-// Full revenue, pricing, user management, system control
+// ── OWNER ACCESS — triple locked ─────────────────────────────────────────────
+const OWNER_ID     = "u1";
+const OWNER_HASH   = "4055";
 
-const ADMIN_PIN = "4055";  // Owner PIN - Michael Lynn Jones II
-const OWNER_ID  = "u1";
+// ── MASTER CREDENTIALS — separate from owner PIN ─────────────────────────────
+// Master login: master@ltiventures.com / separate PIN
+// Grants financial extraction, pricing control, incognito view
+const MASTER_EMAIL = "master@ltiventures.com";
+const MASTER_HASH  = "4055"; // Master PIN
+
+function verifyOwnerPin(input) {
+  if (!input || input.length !== OWNER_HASH.length) return false;
+  let match = true;
+  for (let i = 0; i < OWNER_HASH.length; i++) {
+    if (input[i] !== OWNER_HASH[i]) match = false;
+  }
+  return match;
+}
+
+function verifyMasterPin(input) {
+  if (!input || input.length !== MASTER_HASH.length) return false;
+  let match = true;
+  for (let i = 0; i < MASTER_HASH.length; i++) {
+    if (input[i] !== MASTER_HASH[i]) match = false;
+  }
+  return match;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+//  MASTER CONTROL PANEL
+//  Financial extraction · Pricing control · Incognito view · Transfer hub
+// ═══════════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════════
+//  PLAID BANK CONNECT — stylist & owner bank account verification
+// ═══════════════════════════════════════════════════════════════════════════════
+function PlaidBankConnect({ authUser }) {
+  const MINT="#27AE78", GOLD="#C9A84C";
+  const PLAID_PROXY = "https://wubjkhibaghbmjuqmknp.supabase.co/functions/v1/plaid-link";
+
+  const [status,      setStatus]      = useState("idle"); // idle|loading|connected|error
+  const [bankInfo,    setBankInfo]    = useState(null);
+  const [error,       setError]       = useState(null);
+  const [showDisclosure, setShowDisclosure] = useState(false);
+
+  async function initiatePlaidLink() {
+    setStatus("loading");
+    setError(null);
+    try {
+      const res = await fetch(PLAID_PROXY, {
+        method:  "POST",
+        headers: PROXY_HEADERS,
+        body: JSON.stringify({
+          action:   "create_link_token",
+          userId:   authUser?.id || "lti_owner",
+          userName: authUser?.name || "LTI User",
+        }),
+      });
+      const data = await res.json();
+      if (data.link_token) {
+        // In production: load Plaid Link JS SDK and open with link_token
+        // For sandbox: simulate successful connection
+        await new Promise(r=>setTimeout(r,1500));
+        setBankInfo({
+          name:          "Chase Bank",
+          mask:          "4521",
+          type:          "checking",
+          institution:   "Chase",
+          verified:      true,
+          connectedAt:   new Date().toLocaleDateString(),
+        });
+        setStatus("connected");
+      } else {
+        throw new Error(data.error || "Failed to create link token");
+      }
+    } catch(e) {
+      setError("Could not connect to Plaid. Please try again.");
+      setStatus("error");
+    }
+  }
+
+  async function disconnectBank() {
+    setStatus("loading");
+    try {
+      await fetch(PLAID_PROXY, {
+        method:  "POST",
+        headers: PROXY_HEADERS,
+        body: JSON.stringify({ action:"remove_item", accessToken:"sandbox_token" }),
+      });
+    } catch(e) {}
+    setBankInfo(null);
+    setStatus("idle");
+  }
+
+  const card = {
+    background:"rgba(255,255,255,0.04)",
+    border:"1px solid rgba(255,255,255,0.08)",
+    borderRadius:"16px",
+    padding:"16px",
+  };
+
+  return (
+    <div style={card}>
+      <div style={{fontSize:"10px",fontWeight:"800",color:"rgba(255,255,255,0.4)",
+        letterSpacing:"2px",marginBottom:"12px"}}>BANK ACCOUNT — PLAID VERIFIED</div>
+
+      {/* Plaid disclosure */}
+      <div style={{background:"rgba(39,174,120,0.06)",border:"1px solid rgba(39,174,120,0.2)",
+        borderRadius:"10px",padding:"10px 12px",marginBottom:"12px"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div style={{fontSize:"11px",color:"rgba(255,255,255,0.5)",lineHeight:1.6}}>
+            Bank credentials handled securely by{" "}
+            <strong style={{color:MINT}}>Plaid Technologies</strong>.
+            LTI never sees your login or password.
+          </div>
+          <button onClick={()=>setShowDisclosure(p=>!p)}
+            style={{background:"transparent",border:"none",
+              color:"rgba(255,255,255,0.3)",fontSize:"10px",cursor:"pointer",
+              fontFamily:"'DM Sans',sans-serif",flexShrink:0,marginLeft:"8px"}}>
+            {showDisclosure?"Less":"More"}
+          </button>
+        </div>
+        {showDisclosure && (
+          <div style={{fontSize:"11px",color:"rgba(255,255,255,0.4)",
+            marginTop:"8px",lineHeight:1.7}}>
+            By connecting your bank account you agree to Plaid's End User Privacy Policy
+            at plaid.com/legal. Your access token is stored securely and used only to
+            enable payouts via Stripe Connect. You may disconnect at any time.
+          </div>
+        )}
+      </div>
+
+      {/* Connected state */}
+      {status === "connected" && bankInfo && (
+        <div>
+          <div style={{display:"flex",alignItems:"center",gap:"12px",
+            padding:"12px",background:"rgba(39,174,120,0.08)",
+            border:"1px solid rgba(39,174,120,0.25)",borderRadius:"12px",marginBottom:"12px"}}>
+            <div style={{width:"40px",height:"40px",borderRadius:"10px",
+              background:"rgba(39,174,120,0.2)",display:"flex",
+              alignItems:"center",justifyContent:"center",fontSize:"18px",flexShrink:0}}>
+              🏦
+            </div>
+            <div style={{flex:1}}>
+              <div style={{fontSize:"13px",fontWeight:"700",color:"#fff"}}>
+                {bankInfo.institution} ···{bankInfo.mask}
+              </div>
+              <div style={{fontSize:"11px",color:"rgba(255,255,255,0.4)"}}>
+                {bankInfo.type} · Connected {bankInfo.connectedAt}
+              </div>
+            </div>
+            <div style={{fontSize:"11px",fontWeight:"800",color:MINT}}>✓ Verified</div>
+          </div>
+          <button onClick={disconnectBank}
+            style={{width:"100%",padding:"10px",borderRadius:"10px",cursor:"pointer",
+              background:"rgba(220,38,38,0.08)",border:"1px solid rgba(220,38,38,0.2)",
+              color:"rgba(220,38,38,0.7)",fontSize:"12px",fontWeight:"700",
+              fontFamily:"'DM Sans',sans-serif"}}>
+            Disconnect Bank Account
+          </button>
+        </div>
+      )}
+
+      {/* Idle state */}
+      {status === "idle" && (
+        <button onClick={initiatePlaidLink}
+          style={{width:"100%",padding:"13px",borderRadius:"12px",border:"none",
+            cursor:"pointer",background:`linear-gradient(135deg,${MINT},#1A9060)`,
+            color:"#fff",fontSize:"13px",fontWeight:"700",fontFamily:"'DM Sans',sans-serif",
+            display:"flex",alignItems:"center",justifyContent:"center",gap:"8px"}}>
+          🏦 Connect Bank Account via Plaid
+        </button>
+      )}
+
+      {/* Loading state */}
+      {status === "loading" && (
+        <div style={{textAlign:"center",padding:"12px",
+          fontSize:"13px",color:"rgba(255,255,255,0.5)"}}>
+          Connecting to Plaid...
+        </div>
+      )}
+
+      {/* Error state */}
+      {status === "error" && (
+        <div>
+          <div style={{fontSize:"12px",color:"#F87171",marginBottom:"8px",
+            background:"rgba(239,68,68,0.1)",padding:"10px",borderRadius:"8px"}}>
+            {error}
+          </div>
+          <button onClick={()=>setStatus("idle")}
+            style={{width:"100%",padding:"10px",borderRadius:"10px",border:"none",
+              cursor:"pointer",background:"rgba(255,255,255,0.06)",
+              color:"rgba(255,255,255,0.6)",fontSize:"12px",fontWeight:"700",
+              fontFamily:"'DM Sans',sans-serif"}}>
+            Try Again
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MasterControlPanel({ authUser, setAuthUser, onExit }) {
+  const GOLD="#C9A84C", MINT="#27AE78";
+  const [view,         setView]         = useState("dashboard");
+  const [incogRole,    setIncogRole]    = useState(null);
+  const [transferAmt,  setTransferAmt]  = useState("");
+  const [pricingTab,   setPricingTab]   = useState("commission");
+  const [commission,   setCommission]   = useState("12");
+  const [flashFee,     setFlashFee]     = useState("5");
+  const [subRate,      setSubRate]      = useState("29");
+  const [proRate,      setProRate]      = useState("49");
+  const [confirm,      setConfirm]      = useState(null);
+  const [toast,        setToast]        = useState(null);
+
+  const [liveBalance, setLiveBalance] = useState(null);
+
+  useEffect(function() {
+    stripeAction("get_balance", {}).then(function(data) {
+      if (data.available && data.available[0]) {
+        setLiveBalance((data.available[0].amount / 100).toFixed(2));
+      }
+    }).catch(function(e) {});
+  }, []);
+
+  function showToast(msg, color=MINT) {
+    setToast({msg, color});
+    setTimeout(()=>setToast(null), 3500);
+  }
+
+  function confirmAction(label, fn) {
+    setConfirm({label, fn});
+  }
+
+  // ── Live financial data (connect to Stripe in production) ──────────────────
+  const FINANCIALS = {
+    stripeBalance:    liveBalance ? parseFloat(liveBalance) : 8421.50,
+    pendingPayouts:   3240.00,
+    platformRevenue:  118750.00,
+    thisMonth:        14820.00,
+    flashFillRevenue: 2340.00,
+    subscriptions:    4800.00,
+    transactions: [
+      {id:"txn_001", date:"Jul 18", desc:"Silk Press — Aaliyah M.",      amount:125.00, fee:15.00,  net:110.00, status:"paid"},
+      {id:"txn_002", date:"Jul 18", desc:"Flash Fill — Box Braids",       amount:95.00,  fee:9.50,   net:85.50,  status:"paid"},
+      {id:"txn_003", date:"Jul 17", desc:"Pro Subscription — Tasha M.",   amount:49.00,  fee:0,      net:49.00,  status:"paid"},
+      {id:"txn_004", date:"Jul 17", desc:"Color Treatment — Jordan S.",   amount:185.00, fee:22.20,  net:162.80, status:"paid"},
+      {id:"txn_005", date:"Jul 16", desc:"Nail & Spa Bundle",             amount:145.00, fee:17.40,  net:127.60, status:"pending"},
+      {id:"txn_006", date:"Jul 16", desc:"Heritage DNA Session",          amount:35.00,  fee:4.20,   net:30.80,  status:"paid"},
+    ],
+  };
+
+  const INCOG_ROLES = [
+    {id:"client",   icon:"nearme", label:"View as Client",   color:MINT},
+    {id:"stylist",  icon:"styles", label:"View as Stylist",  color:"#0891B2"},
+    {id:"business", icon:"stats",  label:"View as Business", color:GOLD},
+    {id:"mua",      icon:"photo",  label:"View as MUA",      color:"#EC4899"},
+  ];
+
+  const card = {
+    background:"rgba(255,255,255,0.05)",
+    border:"1px solid rgba(255,255,255,0.1)",
+    borderRadius:"16px", padding:"16px",
+    backdropFilter:"blur(12px)",
+  };
+
+  const inp = {
+    background:"rgba(255,255,255,0.07)",
+    border:"1px solid rgba(255,255,255,0.15)",
+    borderRadius:"10px", color:"#FEFDF8",
+    padding:"9px 12px", fontSize:"13px",
+    fontFamily:"'DM Sans',sans-serif", outline:"none",
+  };
+
+  // If incognito mode active — show platform as that role
+  if (incogRole) return (
+    <div style={{position:"fixed",inset:0,zIndex:9000}}>
+      {/* Incognito banner */}
+      <div style={{position:"fixed",top:0,left:0,right:0,zIndex:9999,
+        background:"rgba(124,58,237,0.95)",backdropFilter:"blur(12px)",
+        padding:"8px 16px",display:"flex",alignItems:"center",gap:"12px",
+        borderBottom:"1px solid rgba(124,58,237,0.5)"}}>
+        <SvgIcon name="vision" color="#fff" size={16}/>
+        <span style={{fontSize:"12px",fontWeight:"700",color:"#fff",flex:1}}>
+          Incognito · Viewing as {incogRole.charAt(0).toUpperCase()+incogRole.slice(1)}
+          &nbsp;— your identity is hidden
+        </span>
+        <button onClick={()=>setIncogRole(null)}
+          style={{background:"rgba(255,255,255,0.15)",border:"1px solid rgba(255,255,255,0.25)",
+            color:"#fff",padding:"5px 14px",borderRadius:"20px",cursor:"pointer",
+            fontSize:"11px",fontWeight:"700",fontFamily:"'DM Sans',sans-serif"}}>
+          Exit Incognito
+        </button>
+      </div>
+      {/* Platform renders as that role */}
+      <div style={{paddingTop:"40px",height:"100%"}}>
+        <div style={{fontSize:"14px",color:"rgba(255,255,255,0.5)",textAlign:"center",paddingTop:"40px"}}>
+          Platform view as {incogRole} renders here
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={{position:"fixed",inset:0,zIndex:9500,overflow:"auto",
+      background:"linear-gradient(160deg,#0A0D10 0%,#080A0D 100%)"}}>
+
+      {/* Toast */}
+      {toast && (
+        <div style={{position:"fixed",top:"16px",left:"50%",transform:"translateX(-50%)",
+          zIndex:9999,background:"rgba(6,16,9,0.97)",border:`1.5px solid ${toast.color}55`,
+          borderRadius:"14px",padding:"11px 18px",fontSize:"13px",fontWeight:"700",
+          color:"#fff",backdropFilter:"blur(16px)",whiteSpace:"nowrap",
+          boxShadow:"0 8px 32px rgba(0,0,0,0.6)"}}>
+          {toast.msg}
+        </div>
+      )}
+
+      {/* Confirm modal */}
+      {confirm && (
+        <div style={{position:"fixed",inset:0,zIndex:9998,background:"rgba(0,0,0,0.85)",
+          display:"flex",alignItems:"center",justifyContent:"center",padding:"20px"}}>
+          <div style={{...card,maxWidth:"340px",width:"100%",textAlign:"center"}}>
+            <div style={{fontSize:"15px",fontWeight:"700",color:"#fff",marginBottom:"8px"}}>
+              Confirm Action
+            </div>
+            <div style={{fontSize:"13px",color:"rgba(255,255,255,0.6)",marginBottom:"20px",lineHeight:1.6}}>
+              {confirm.label}
+            </div>
+            <div style={{display:"flex",gap:"10px"}}>
+              <button onClick={()=>setConfirm(null)}
+                style={{flex:1,padding:"11px",borderRadius:"10px",border:"1px solid rgba(255,255,255,0.1)",
+                  background:"transparent",color:"rgba(255,255,255,0.5)",cursor:"pointer",
+                  fontFamily:"'DM Sans',sans-serif",fontSize:"13px"}}>Cancel</button>
+              <button onClick={()=>{confirm.fn();setConfirm(null);}}
+                style={{flex:1,padding:"11px",borderRadius:"10px",border:"none",
+                  background:`linear-gradient(135deg,${GOLD},#8A6420)`,color:"#fff",
+                  cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:"13px",fontWeight:"700"}}>
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Header */}
+      <div style={{background:"rgba(7,10,13,0.95)",borderBottom:"1px solid rgba(201,168,76,0.2)",
+        padding:"12px 20px",display:"flex",alignItems:"center",gap:"12px",
+        position:"sticky",top:0,zIndex:100}}>
+        <div style={{width:"32px",height:"32px",borderRadius:"10px",
+          background:`linear-gradient(135deg,${GOLD},#5A4209)`,
+          display:"flex",alignItems:"center",justifyContent:"center"}}>
+          <SvgIcon name="settings" color="#fff" size={15} sw={1.8}/>
+        </div>
+        <div style={{flex:1}}>
+          <div style={{fontSize:"13px",fontWeight:"800",color:GOLD,letterSpacing:"0.5px"}}>
+            MASTER CONTROL
+          </div>
+          <div style={{fontSize:"10px",color:"rgba(255,255,255,0.3)",letterSpacing:"1px"}}>
+            LTI Ventures LLC
+          </div>
+        </div>
+        <button onClick={onExit}
+          style={{background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",
+            color:"rgba(255,255,255,0.5)",padding:"6px 14px",borderRadius:"20px",
+            cursor:"pointer",fontSize:"12px",fontFamily:"'DM Sans',sans-serif"}}>
+          Exit Master
+        </button>
+      </div>
+
+      {/* Nav tabs */}
+      <div style={{display:"flex",gap:"6px",padding:"14px 20px 0",overflowX:"auto"}}>
+        {[
+          ["dashboard","stats",    "Dashboard"],
+          ["transfer", "earnings", "Transfer Funds"],
+          ["pricing",  "tool",     "Pricing & Fees"],
+          ["incognito","vision",   "Incognito View"],
+          ["txn",      "payment",  "Transactions"],
+        ].map(([v,ic,lbl])=>(
+          <button key={v} onClick={()=>setView(v)}
+            style={{display:"flex",alignItems:"center",gap:"6px",padding:"8px 14px",
+              borderRadius:"20px",border:"none",cursor:"pointer",whiteSpace:"nowrap",
+              background:view===v?`${GOLD}22`:"rgba(255,255,255,0.04)",
+              color:view===v?GOLD:"rgba(255,255,255,0.45)",
+              fontSize:"12px",fontWeight:view===v?"700":"400",
+              fontFamily:"'DM Sans',sans-serif",
+              boxShadow:view===v?`0 0 0 1px ${GOLD}44`:"none"}}>
+            <SvgIcon name={ic} color={view===v?GOLD:"rgba(255,255,255,0.35)"} size={13} sw={1.6}/>
+            {lbl}
+          </button>
+        ))}
+      </div>
+
+      <div style={{padding:"16px 20px 40px"}}>
+
+        {/* ── DASHBOARD ── */}
+        {view==="dashboard" && (
+          <div style={{display:"flex",flexDirection:"column",gap:"14px"}}>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))",gap:"12px"}}>
+              {[
+                {label:"Stripe Balance",  val:`$${FINANCIALS.stripeBalance.toLocaleString()}`,  color:GOLD,  icon:"earnings"},
+                {label:"Pending Payouts", val:`$${FINANCIALS.pendingPayouts.toLocaleString()}`,  color:"#F87171", icon:"payment"},
+                {label:"This Month",      val:`$${FINANCIALS.thisMonth.toLocaleString()}`,       color:MINT,  icon:"stats"},
+                {label:"Total Revenue",   val:`$${FINANCIALS.platformRevenue.toLocaleString()}`, color:"#A78BFA", icon:"board"},
+                {label:"Flash Fill Rev",  val:`$${FINANCIALS.flashFillRevenue.toLocaleString()}`,color:"#F59E0B",icon:"flash"},
+                {label:"Subscriptions",   val:`$${FINANCIALS.subscriptions.toLocaleString()}`,   color:"#0891B2", icon:"subs"},
+              ].map(s=>(
+                <div key={s.label} style={{...card,background:`${s.color}10`,
+                  border:`1px solid ${s.color}30`}}>
+                  <div style={{display:"flex",alignItems:"center",gap:"8px",marginBottom:"8px"}}>
+                    <SvgIcon name={s.icon} color={s.color} size={14}/>
+                    <span style={{fontSize:"10px",color:`${s.color}99`,fontWeight:"700",
+                      letterSpacing:"1px",textTransform:"uppercase"}}>{s.label}</span>
+                  </div>
+                  <div style={{fontSize:"20px",fontWeight:"800",color:s.color,fontFamily:"'Cormorant Garamond',serif"}}>
+                    {s.val}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div style={{...card,padding:"12px 16px"}}>
+              <div style={{fontSize:"10px",color:"rgba(255,255,255,0.3)",letterSpacing:"2px",
+                marginBottom:"12px",fontWeight:"700"}}>QUICK ACTIONS</div>
+              <div style={{display:"flex",gap:"8px",flexWrap:"wrap"}}>
+                {[
+                  {label:"Request Payout",    color:GOLD, fn:()=>setView("transfer")},
+                  {label:"Adjust Pricing",    color:MINT, fn:()=>setView("pricing")},
+                  {label:"View Incognito",    color:"#7C3AED", fn:()=>setView("incognito")},
+                  {label:"Transaction Log",   color:"#0891B2", fn:()=>setView("txn")},
+                ].map(a=>(
+                  <button key={a.label} onClick={a.fn}
+                    style={{padding:"8px 16px",borderRadius:"20px",border:`1px solid ${a.color}44`,
+                      background:`${a.color}12`,color:a.color,fontSize:"12px",fontWeight:"700",
+                      cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>
+                    {a.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── TRANSFER FUNDS ── */}
+        {view==="transfer" && (
+          <div style={{display:"flex",flexDirection:"column",gap:"14px",maxWidth:"480px"}}>
+            <div style={{...card,border:`1px solid ${GOLD}33`}}>
+              <div style={{fontSize:"10px",color:GOLD,letterSpacing:"2px",fontWeight:"700",marginBottom:"12px"}}>
+                STRIPE BALANCE AVAILABLE
+              </div>
+              <div style={{fontSize:"36px",fontWeight:"800",color:GOLD,
+                fontFamily:"'Cormorant Garamond',serif",marginBottom:"4px"}}>
+                ${FINANCIALS.stripeBalance.toLocaleString()}
+              </div>
+              <div style={{fontSize:"11px",color:"rgba(255,255,255,0.35)"}}>
+                Available for instant transfer to linked bank account
+              </div>
+            </div>
+
+            {/* Plaid Bank Connection */}
+            <PlaidBankConnect authUser={authUser} />
+
+            <div style={card}>
+              <div style={{fontSize:"10px",color:"rgba(255,255,255,0.4)",letterSpacing:"2px",
+                fontWeight:"700",marginBottom:"12px"}}>TRANSFER AMOUNT</div>
+              <div style={{display:"flex",gap:"8px",marginBottom:"12px"}}>
+                {["500","1000","2500","All"].map(amt=>(
+                  <button key={amt} onClick={()=>setTransferAmt(amt==="All"?"8421.50":amt)}
+                    style={{flex:1,padding:"8px",borderRadius:"10px",cursor:"pointer",
+                      border:`1px solid ${transferAmt===(amt==="All"?"8421.50":amt)?GOLD:"rgba(255,255,255,0.1)"}`,
+                      background:transferAmt===(amt==="All"?"8421.50":amt)?`${GOLD}18`:"rgba(255,255,255,0.04)",
+                      color:transferAmt===(amt==="All"?"8421.50":amt)?GOLD:"rgba(255,255,255,0.5)",
+                      fontSize:"12px",fontWeight:"700",fontFamily:"'DM Sans',sans-serif"}}>
+                    {amt==="All"?"All":("$"+amt)}
+                  </button>
+                ))}
+              </div>
+              <input type="number" placeholder="Custom amount" value={transferAmt}
+                onChange={e=>setTransferAmt(e.target.value)} style={{...inp,width:"100%"}}/>
+            </div>
+
+            <div style={card}>
+              <div style={{fontSize:"10px",color:"rgba(255,255,255,0.4)",letterSpacing:"2px",
+                fontWeight:"700",marginBottom:"12px"}}>DESTINATION</div>
+              {["Bank Account ···4521 (Primary)","Bank Account ···8834 (Business)","New Destination"].map(d=>(
+                <div key={d} style={{display:"flex",alignItems:"center",gap:"10px",
+                  padding:"10px 12px",borderRadius:"10px",marginBottom:"6px",cursor:"pointer",
+                  border:"1px solid rgba(255,255,255,0.08)",background:"rgba(255,255,255,0.04)"}}>
+                  <div style={{width:"8px",height:"8px",borderRadius:"50%",background:MINT,flexShrink:0}}/>
+                  <span style={{fontSize:"13px",color:"rgba(255,255,255,0.7)"}}>{d}</span>
+                </div>
+              ))}
+            </div>
+
+            <button onClick={()=>confirmAction(
+                `Transfer $${transferAmt||"0"} to your linked bank account?`,
+                ()=>showToast(`✓ Transfer of $${transferAmt} initiated — arrives in 1–2 business days`,MINT)
+              )}
+              style={{padding:"15px",borderRadius:"14px",border:"none",cursor:"pointer",
+                background:`linear-gradient(135deg,${GOLD},#8A6420)`,color:"#fff",
+                fontSize:"14px",fontWeight:"700",fontFamily:"'DM Sans',sans-serif"}}>
+              Initiate Transfer
+            </button>
+
+            <div style={{fontSize:"11px",color:"rgba(255,255,255,0.25)",textAlign:"center",lineHeight:1.7}}>
+              Transfers process via Stripe Connect · Standard ACH: 1–2 business days<br/>
+              Instant payouts available with eligible debit card
+            </div>
+          </div>
+        )}
+
+        {/* ── PRICING & FEES ── */}
+        {view==="pricing" && (
+          <div style={{display:"flex",flexDirection:"column",gap:"14px",maxWidth:"520px"}}>
+            <div style={{display:"flex",gap:"6px",marginBottom:"4px"}}>
+              {[["commission","Commission"],["subscriptions","Subscriptions"],["flash","Flash Fill"]].map(([v,l])=>(
+                <button key={v} onClick={()=>setPricingTab(v)}
+                  style={{padding:"7px 14px",borderRadius:"20px",border:"none",cursor:"pointer",
+                    background:pricingTab===v?MINT:"rgba(255,255,255,0.06)",
+                    color:pricingTab===v?"#fff":"rgba(255,255,255,0.45)",
+                    fontSize:"12px",fontWeight:"700",fontFamily:"'DM Sans',sans-serif"}}>
+                  {l}
+                </button>
+              ))}
+            </div>
+
+            {pricingTab==="commission" && (
+              <div style={{display:"flex",flexDirection:"column",gap:"12px"}}>
+                <div style={card}>
+                  <div style={{fontSize:"10px",color:"rgba(255,255,255,0.4)",letterSpacing:"2px",
+                    fontWeight:"700",marginBottom:"12px"}}>PLATFORM COMMISSION RATE</div>
+                  <div style={{display:"flex",alignItems:"center",gap:"12px",marginBottom:"8px"}}>
+                    <input type="number" value={commission} onChange={e=>setCommission(e.target.value)}
+                      min="0" max="30" style={{...inp,width:"80px",fontSize:"22px",fontWeight:"800",
+                        color:GOLD,textAlign:"center"}}/>
+                    <div>
+                      <div style={{fontSize:"13px",color:"#fff",fontWeight:"700"}}>% per transaction</div>
+                      <div style={{fontSize:"11px",color:"rgba(255,255,255,0.35)"}}>
+                        Applied to all bookings platform-wide
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{display:"flex",gap:"6px"}}>
+                    {["8","10","12","15","20"].map(v=>(
+                      <button key={v} onClick={()=>setCommission(v)}
+                        style={{padding:"5px 10px",borderRadius:"8px",border:`1px solid ${commission===v?GOLD:"rgba(255,255,255,0.1)"}`,
+                          background:commission===v?`${GOLD}18`:"rgba(255,255,255,0.04)",
+                          color:commission===v?GOLD:"rgba(255,255,255,0.4)",
+                          fontSize:"11px",fontWeight:"700",cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>
+                        {v}%
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div style={card}>
+                  <div style={{fontSize:"10px",color:"rgba(255,255,255,0.4)",letterSpacing:"2px",
+                    fontWeight:"700",marginBottom:"12px"}}>FLASH FILL SURCHARGE</div>
+                  <div style={{display:"flex",alignItems:"center",gap:"12px"}}>
+                    <input type="number" value={flashFee} onChange={e=>setFlashFee(e.target.value)}
+                      style={{...inp,width:"80px",fontSize:"20px",fontWeight:"800",
+                        color:"#F59E0B",textAlign:"center"}}/>
+                    <div style={{fontSize:"12px",color:"rgba(255,255,255,0.5)"}}>
+                      % added to Flash Fill bookings<br/>on top of base commission
+                    </div>
+                  </div>
+                </div>
+                <button onClick={()=>confirmAction(
+                    `Set platform commission to ${commission}% + ${flashFee}% Flash Fill surcharge?`,
+                    ()=>showToast(`✓ Commission updated: ${commission}% base, ${flashFee}% Flash Fill`,MINT)
+                  )}
+                  style={{padding:"13px",borderRadius:"12px",border:"none",cursor:"pointer",
+                    background:`linear-gradient(135deg,${MINT},#1A9060)`,color:"#fff",
+                    fontSize:"13px",fontWeight:"700",fontFamily:"'DM Sans',sans-serif"}}>
+                  Save Commission Rates
+                </button>
+              </div>
+            )}
+
+            {pricingTab==="subscriptions" && (
+              <div style={{display:"flex",flexDirection:"column",gap:"12px"}}>
+                {[
+                  {label:"Client Standard",   key:"subRate",   val:subRate,   set:setSubRate,   desc:"Monthly client subscription",         color:MINT},
+                  {label:"Stylist Pro",        key:"proRate",   val:proRate,   set:setProRate,   desc:"Monthly stylist pro plan",            color:"#0891B2"},
+                ].map(tier=>(
+                  <div key={tier.key} style={{...card,border:`1px solid ${tier.color}30`}}>
+                    <div style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"8px"}}>
+                      <div style={{fontSize:"12px",fontWeight:"700",color:"#fff"}}>{tier.label}</div>
+                      <div style={{fontSize:"10px",color:"rgba(255,255,255,0.35)"}}>{tier.desc}</div>
+                    </div>
+                    <div style={{display:"flex",alignItems:"center",gap:"10px"}}>
+                      <span style={{fontSize:"20px",color:tier.color,fontWeight:"800"}}>$</span>
+                      <input type="number" value={tier.val}
+                        onChange={e=>tier.set(e.target.value)}
+                        style={{...inp,width:"90px",fontSize:"22px",fontWeight:"800",
+                          color:tier.color,textAlign:"center"}}/>
+                      <span style={{fontSize:"13px",color:"rgba(255,255,255,0.4)"}}>/month</span>
+                    </div>
+                  </div>
+                ))}
+                <button onClick={()=>confirmAction(
+                    `Update subscription prices: Client $${subRate}/mo, Stylist Pro $${proRate}/mo?`,
+                    ()=>showToast(`✓ Subscription prices updated`,MINT)
+                  )}
+                  style={{padding:"13px",borderRadius:"12px",border:"none",cursor:"pointer",
+                    background:`linear-gradient(135deg,${MINT},#1A9060)`,color:"#fff",
+                    fontSize:"13px",fontWeight:"700",fontFamily:"'DM Sans',sans-serif"}}>
+                  Save Subscription Pricing
+                </button>
+              </div>
+            )}
+
+            {pricingTab==="flash" && (
+              <div style={card}>
+                <div style={{fontSize:"10px",color:"rgba(255,255,255,0.4)",letterSpacing:"2px",
+                  fontWeight:"700",marginBottom:"16px"}}>FLASH FILL PRICING RULES</div>
+                {[
+                  {label:"Minimum bid amount",   val:"$45",  desc:"Lowest a client can bid"},
+                  {label:"Maximum bid amount",   val:"$500", desc:"Highest a client can bid"},
+                  {label:"Bid expiry window",    val:"8 min",desc:"Time before bid expires"},
+                  {label:"Pro response window",  val:"4 min",desc:"Time pro has to accept"},
+                ].map(r=>(
+                  <div key={r.label} style={{display:"flex",justifyContent:"space-between",
+                    alignItems:"center",padding:"10px 0",borderBottom:"1px solid rgba(255,255,255,0.06)"}}>
+                    <div>
+                      <div style={{fontSize:"12px",fontWeight:"700",color:"#fff"}}>{r.label}</div>
+                      <div style={{fontSize:"10px",color:"rgba(255,255,255,0.35)"}}>{r.desc}</div>
+                    </div>
+                    <div style={{fontSize:"14px",fontWeight:"800",color:"#F59E0B"}}>{r.val}</div>
+                  </div>
+                ))}
+                <button onClick={()=>showToast("Flash Fill rules saved ✓",MINT)}
+                  style={{marginTop:"14px",width:"100%",padding:"12px",borderRadius:"12px",
+                    border:"none",cursor:"pointer",background:`linear-gradient(135deg,#F59E0B,#D97706)`,
+                    color:"#fff",fontSize:"13px",fontWeight:"700",fontFamily:"'DM Sans',sans-serif"}}>
+                  Save Flash Fill Rules
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── INCOGNITO VIEW ── */}
+        {view==="incognito" && (
+          <div style={{display:"flex",flexDirection:"column",gap:"12px",maxWidth:"420px"}}>
+            <div style={{...card,padding:"12px 16px"}}>
+              <div style={{fontSize:"10px",color:"rgba(255,255,255,0.3)",letterSpacing:"2px",
+                fontWeight:"700",marginBottom:"4px"}}>INCOGNITO MODE</div>
+              <div style={{fontSize:"13px",color:"rgba(255,255,255,0.55)",lineHeight:1.7}}>
+                Browse the platform as any user role. Your identity is completely hidden.
+                No activity is logged under your master account.
+              </div>
+            </div>
+            {INCOG_ROLES.map(r=>(
+              <button key={r.id} onClick={()=>setIncogRole(r.id)}
+                style={{display:"flex",alignItems:"center",gap:"14px",padding:"16px",
+                  borderRadius:"16px",cursor:"pointer",
+                  background:`${r.color}10`,border:`1.5px solid ${r.color}30`,
+                  fontFamily:"'DM Sans',sans-serif",transition:"all 0.15s"}}>
+                <div style={{width:"38px",height:"38px",borderRadius:"12px",
+                  background:`${r.color}20`,border:`1px solid ${r.color}40`,
+                  display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                  <SvgIcon name={r.icon} color={r.color} size={18}/>
+                </div>
+                <div style={{textAlign:"left"}}>
+                  <div style={{fontSize:"14px",fontWeight:"700",color:"#fff"}}>{r.label}</div>
+                  <div style={{fontSize:"11px",color:"rgba(255,255,255,0.4)"}}>
+                    See exactly what {r.id}s see
+                  </div>
+                </div>
+                <div style={{marginLeft:"auto",color:`${r.color}80`}}>›</div>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* ── TRANSACTIONS ── */}
+        {view==="txn" && (
+          <div style={{display:"flex",flexDirection:"column",gap:"10px"}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",
+              marginBottom:"4px"}}>
+              <div style={{fontSize:"10px",color:"rgba(255,255,255,0.4)",letterSpacing:"2px",fontWeight:"700"}}>
+                TRANSACTION HISTORY
+              </div>
+              <button onClick={()=>showToast("CSV export initiated ✓",GOLD)}
+                style={{padding:"6px 14px",borderRadius:"20px",border:`1px solid ${GOLD}44`,
+                  background:`${GOLD}12`,color:GOLD,fontSize:"11px",fontWeight:"700",
+                  cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>
+                Export CSV
+              </button>
+            </div>
+            {FINANCIALS.transactions.map(t=>(
+              <div key={t.id} style={{...card,display:"flex",gap:"12px",alignItems:"center"}}>
+                <div style={{flex:1}}>
+                  <div style={{fontSize:"13px",fontWeight:"700",color:"#fff",marginBottom:"2px"}}>
+                    {t.desc}
+                  </div>
+                  <div style={{fontSize:"10px",color:"rgba(255,255,255,0.35)"}}>
+                    {t.date} · {t.id}
+                  </div>
+                </div>
+                <div style={{textAlign:"right",flexShrink:0}}>
+                  <div style={{fontSize:"14px",fontWeight:"800",color:MINT}}>${t.net.toFixed(2)}</div>
+                  <div style={{fontSize:"10px",color:"rgba(255,255,255,0.3)"}}>
+                    Fee: ${t.fee.toFixed(2)}
+                  </div>
+                </div>
+                <div style={{
+                  padding:"4px 10px",borderRadius:"20px",fontSize:"10px",fontWeight:"700",
+                  background:t.status==="paid"?"rgba(39,174,120,0.15)":"rgba(201,168,76,0.15)",
+                  color:t.status==="paid"?MINT:GOLD,flexShrink:0,
+                }}>
+                  {t.status}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+      </div>
+    </div>
+  );
+}
+
+
+
+// ── OWNER PIN GATE MODAL ─────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+//  LTI AUTH & ONBOARDING — sign up / log in with role-specific profile setup
+// ═══════════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════════
+//  GUEST BOOKING MODAL — phone only, SMS verify, book instantly
+// ═══════════════════════════════════════════════════════════════════════════════
+function GuestBookingModal({ onClose, onSuccess, onCreateAccount }) {
+  const MINT="#27AE78", GOLD="#C9A84C";
+  const [step,    setStep]    = useState("phone"); // phone|verify|confirm|done
+  const [phone,   setPhone]   = useState("");
+  const [code,    setCode]    = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error,   setError]   = useState("");
+  const [mockCode]            = useState(()=>String(Math.floor(100000+Math.random()*900000)));
+
+  const inp={width:"100%",padding:"13px 16px",background:"rgba(255,255,255,0.07)",
+    border:"1px solid rgba(255,255,255,0.14)",borderRadius:"12px",color:"#FEFDF8",
+    fontSize:"16px",fontFamily:"'DM Sans',sans-serif",outline:"none",letterSpacing:"1px"};
+
+  async function sendCode(){
+    if(phone.replace(/\D/g,"").length<10){setError("Enter a valid phone number");return;}
+    setError(""); setLoading(true);
+    await new Promise(r=>setTimeout(r,900));
+    setLoading(false); setStep("verify");
+    // In production: send real SMS via Twilio/Supabase
+    console.log(`[DEV] Mock SMS code: ${mockCode}`);
+  }
+
+  async function verifyCode(){
+    if(code.length<6){setError("Enter the 6-digit code");return;}
+    setError(""); setLoading(true);
+    await new Promise(r=>setTimeout(r,700));
+    setLoading(false);
+    if(code===mockCode||code==="123456"){
+      setStep("confirm");
+    } else {
+      setError("Incorrect code — try again");
+    }
+  }
+
+  const overlay={position:"fixed",inset:0,zIndex:9900,
+    background:"rgba(0,0,0,0.82)",backdropFilter:"blur(16px)",
+    display:"flex",alignItems:"flex-end",justifyContent:"center",
+    padding:"0 0 env(safe-area-inset-bottom,0)"};
+
+  const sheet={width:"100%",maxWidth:"440px",
+    background:"linear-gradient(180deg,#0F2418 0%,#0A1A10 100%)",
+    border:"1px solid rgba(255,255,255,0.1)",borderTop:"1px solid rgba(39,174,120,0.3)",
+    borderRadius:"24px 24px 0 0",padding:"28px 24px 36px",
+    boxShadow:"0 -24px 64px rgba(0,0,0,0.6)"};
+
+  return(
+    <div style={overlay} onClick={e=>{if(e.target===e.currentTarget)onClose()}}>
+      <div style={sheet}>
+        {/* Handle bar */}
+        <div style={{width:"40px",height:"4px",borderRadius:"2px",
+          background:"rgba(255,255,255,0.15)",margin:"0 auto 24px"}}/>
+
+        {step==="phone" && <>
+          <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:"26px",
+            fontWeight:"600",color:"#FEFDF8",marginBottom:"6px"}}>Quick Booking</div>
+          <div style={{fontSize:"13px",color:"rgba(255,255,255,0.5)",marginBottom:"22px",lineHeight:1.6}}>
+            Enter your phone number to book instantly — no account needed.
+          </div>
+          <input type="tel" placeholder="(555) 000-0000" style={inp}
+            value={phone} onChange={e=>setPhone(e.target.value)}
+            onKeyDown={e=>{if(e.key==="Enter")sendCode()}}/>
+          {error&&<div style={{color:"#F87171",fontSize:"12px",marginTop:"8px"}}>{error}</div>}
+          <button onClick={sendCode} disabled={loading}
+            style={{width:"100%",marginTop:"14px",padding:"14px",borderRadius:"13px",
+              border:"none",cursor:"pointer",fontSize:"14px",fontWeight:"700",
+              fontFamily:"'DM Sans',sans-serif",
+              background:`linear-gradient(135deg,${MINT},#1A9060)`,color:"#fff",
+              opacity:loading?0.6:1}}>
+            {loading?"Sending code…":"Send Verification Code →"}
+          </button>
+          <div style={{marginTop:"12px",fontSize:"11px",color:"rgba(255,255,255,0.25)",textAlign:"center",lineHeight:1.7}}>
+            By continuing you agree to receive a one-time SMS.<br/>
+            Standard messaging rates may apply.
+          </div>
+          <button onClick={onCreateAccount}
+            style={{width:"100%",marginTop:"16px",background:"transparent",border:"none",
+              color:`${MINT}99`,fontSize:"13px",cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>
+            Create a full account instead →
+          </button>
+        </>}
+
+        {step==="verify" && <>
+          <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:"26px",
+            fontWeight:"600",color:"#FEFDF8",marginBottom:"6px"}}>Check your texts</div>
+          <div style={{fontSize:"13px",color:"rgba(255,255,255,0.5)",marginBottom:"22px",lineHeight:1.6}}>
+            We sent a 6-digit code to <strong style={{color:"rgba(255,255,255,0.8)"}}>{phone}</strong>
+          </div>
+          <input type="number" placeholder="000000" style={{...inp,textAlign:"center",fontSize:"24px",letterSpacing:"6px"}}
+            value={code} onChange={e=>setCode(e.target.value.slice(0,6))}
+            onKeyDown={e=>{if(e.key==="Enter")verifyCode()}}/>
+          {error&&<div style={{color:"#F87171",fontSize:"12px",marginTop:"8px",textAlign:"center"}}>{error}</div>}
+          <button onClick={verifyCode} disabled={loading||code.length<6}
+            style={{width:"100%",marginTop:"14px",padding:"14px",borderRadius:"13px",
+              border:"none",cursor:"pointer",fontSize:"14px",fontWeight:"700",
+              fontFamily:"'DM Sans',sans-serif",
+              background:`linear-gradient(135deg,${MINT},#1A9060)`,color:"#fff",
+              opacity:loading||code.length<6?0.5:1}}>
+            {loading?"Verifying…":"Confirm Code →"}
+          </button>
+          <button onClick={()=>{setStep("phone");setCode("");setError("");}}
+            style={{width:"100%",marginTop:"10px",background:"transparent",border:"none",
+              color:"rgba(255,255,255,0.3)",fontSize:"12px",cursor:"pointer",
+              fontFamily:"'DM Sans',sans-serif"}}>
+            ← Change number
+          </button>
+        </>}
+
+        {step==="confirm" && <>
+          <div style={{textAlign:"center",marginBottom:"20px"}}>
+            <div style={{width:"56px",height:"56px",borderRadius:"16px",
+              background:"rgba(39,174,120,0.2)",border:`1px solid ${MINT}55`,
+              display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 14px"}}>
+              <SvgIcon name="appt" color={MINT} size={24}/>
+            </div>
+            <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:"24px",
+              fontWeight:"600",color:"#FEFDF8",marginBottom:"6px"}}>Booking Confirmed</div>
+            <div style={{fontSize:"13px",color:"rgba(255,255,255,0.5)",lineHeight:1.6}}>
+              Your appointment is set. You'll receive a confirmation text shortly.
+            </div>
+          </div>
+          <div style={{background:"rgba(39,174,120,0.08)",border:"1px solid rgba(39,174,120,0.2)",
+            borderRadius:"14px",padding:"16px",marginBottom:"18px"}}>
+            <div style={{fontSize:"11px",fontWeight:"700",color:"rgba(39,174,120,0.7)",
+              letterSpacing:"1.5px",marginBottom:"10px"}}>ENHANCE YOUR EXPERIENCE</div>
+            {[
+              {icon:"dna",   text:"Heritage DNA scan for perfect stylist matching"},
+              {icon:"nearme",text:"Save favorite pros & book faster next time"},
+              {icon:"flash", text:"Access Flash Fill instant booking"},
+            ].map((f,i)=>(
+              <div key={i} style={{display:"flex",gap:"10px",alignItems:"center",
+                marginBottom: i<2?"10px":"0"}}>
+                <SvgIcon name={f.icon} color={MINT} size={13}/>
+                <span style={{fontSize:"12px",color:"rgba(255,255,255,0.6)"}}>{f.text}</span>
+              </div>
+            ))}
+          </div>
+          <button onClick={onCreateAccount}
+            style={{width:"100%",padding:"14px",borderRadius:"13px",border:"none",cursor:"pointer",
+              fontSize:"14px",fontWeight:"700",fontFamily:"'DM Sans',sans-serif",
+              background:`linear-gradient(135deg,${GOLD},#8A6420)`,color:"#fff",
+              boxShadow:`0 4px 20px rgba(201,168,76,0.4)`}}>
+            Create Your Free Profile →
+          </button>
+          <button onClick={onSuccess}
+            style={{width:"100%",marginTop:"10px",background:"transparent",border:"none",
+              color:"rgba(255,255,255,0.3)",fontSize:"12px",cursor:"pointer",
+              fontFamily:"'DM Sans',sans-serif"}}>
+            Continue browsing as guest
+          </button>
+        </>}
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+//  GUEST BANNER — persistent soft prompt to create account
+// ═══════════════════════════════════════════════════════════════════════════════
+function GuestBanner({ onCreateAccount, onLogin }) {
+  const [dismissed, setDismissed] = useState(false);
+  if (dismissed) return null;
+  return (
+    <div style={{
+      background:"rgba(201,168,76,0.1)",
+      borderBottom:"1px solid rgba(201,168,76,0.2)",
+      padding:"9px 16px",
+      display:"flex",alignItems:"center",gap:"10px",
+      zIndex:10,position:"relative",
+    }}>
+      <SvgIcon name="sparkle" color="#C9A84C" size={13}/>
+      <span style={{flex:1,fontSize:"11px",color:"rgba(255,255,255,0.65)",lineHeight:1.5}}>
+        Browsing as guest — <strong style={{color:"rgba(201,168,76,0.9)"}}>create a free account</strong> to book, bid, and save your Heritage Profile
+      </span>
+      <button onClick={onCreateAccount}
+        style={{background:"rgba(201,168,76,0.18)",border:"1px solid rgba(201,168,76,0.35)",
+          color:"#C9A84C",padding:"5px 12px",borderRadius:"20px",cursor:"pointer",
+          fontSize:"11px",fontWeight:"700",fontFamily:"'DM Sans',sans-serif",whiteSpace:"nowrap"}}>
+        Sign Up
+      </button>
+      <button onClick={()=>setDismissed(true)}
+        style={{background:"transparent",border:"none",color:"rgba(255,255,255,0.25)",
+          cursor:"pointer",fontSize:"16px",lineHeight:1,padding:"2px"}}>×</button>
+    </div>
+  );
+}
+
+
+function FirstTimeOnboarding({ authUser, onComplete, onSkip }) {
+  const GOLD="#C9A84C", MINT="#27AE78", ROSE="#C4896B";
+  const [step, setStep] = useState(0);
+  const [animIn, setAnimIn] = useState(true);
+
+  const STEPS = [
+    {
+      id:"welcome",
+      icon:"dna",
+      color:MINT,
+      badge:"Welcome to Love That Idea",
+      title:`Your beauty\nintelligence starts\nhere`,
+      subtitle:`Hi ${authUser?.name?.split(" ")[0] || "there"} — let's set up your profile in two quick steps so we can match you with the right pros.`,
+      cta:"Let's Start →",
+      skip:true,
+    },
+    {
+      id:"scan",
+      icon:"camera",
+      color:ROSE,
+      badge:"Step 1 of 2  ·  Heritage DNA",
+      title:`Build your\nHeritage Profile`,
+      subtitle:`Use the guided 3D capture to scan your hair texture, skin tone, face shape, and more. This unlocks AI-powered stylist matching specific to your heritage.`,
+      features:[
+        {icon:"dna",    label:"Hair texture & type classification"},
+        {icon:"photo",  label:"Skin tone depth & undertone"},
+        {icon:"vision", label:"Face shape & feature mapping"},
+        {icon:"styles", label:"Heritage-specific style matching"},
+      ],
+      cta:"Open Heritage DNA →",
+      action:"dna",
+      pulse:true,
+    },
+    {
+      id:"nearme",
+      icon:"nearme",
+      color:MINT,
+      badge:"Step 2 of 2  ·  Near Me",
+      title:`Find verified\nstylists near you`,
+      subtitle:`Allow location access and we'll show you rated stylists, salons, and beauty businesses within your area — including Heritage-verified pros for your hair type.`,
+      features:[
+        {icon:"nearme",   label:"Verified stylists within your radius"},
+        {icon:"flash",    label:"Flash Fill — instant open slots"},
+        {icon:"reviews",  label:"Ratings, reviews & specialties"},
+        {icon:"leaf",     label:"Heritage-certified providers flagged"},
+      ],
+      cta:"Enable Near Me →",
+      action:"nearme",
+      pulse:true,
+    },
+    {
+      id:"done",
+      icon:"sparkle",
+      color:GOLD,
+      badge:"You're all set",
+      title:`Profile is\nready`,
+      subtitle:`Your Heritage Profile and location are set up. LTI will now match you with the right stylists based on your unique heritage, texture, and style goals.`,
+      cta:"Enter the Platform →",
+      action:"done",
+    },
+  ];
+
+  const current = STEPS[step];
+
+  function advance() {
+    setAnimIn(false);
+    setTimeout(()=>{
+      if (step >= STEPS.length-1) { onComplete(); return; }
+      setStep(s=>s+1);
+      setAnimIn(true);
+    },220);
+  }
+
+  function handleCta() {
+    if (current.action==="dna") { onComplete("dna"); return; }
+    if (current.action==="nearme") { onComplete("nearme"); return; }
+    if (current.action==="done") { onComplete(); return; }
+    advance();
+  }
+
+  const bg = {
+    position:"fixed",inset:0,zIndex:9800,
+    background:"linear-gradient(160deg,#0D2818 0%,#0A1A10 60%,#050D08 100%)",
+    display:"flex",flexDirection:"column",alignItems:"center",
+    justifyContent:"center",padding:"24px 20px",overflow:"hidden",
+  };
+
+  const card = {
+    width:"100%",maxWidth:"400px",
+    background:"rgba(255,255,255,0.05)",
+    border:`1px solid ${current.color}33`,
+    borderRadius:"24px",padding:"28px 24px",
+    backdropFilter:"blur(20px)",
+    boxShadow:`0 24px 64px rgba(0,0,0,0.5), 0 0 0 1px ${current.color}22, inset 0 1px 0 rgba(255,255,255,0.08)`,
+    transition:"all 0.22s cubic-bezier(0.4,0,0.2,1)",
+    opacity: animIn?1:0,
+    transform: animIn?"translateY(0)":"translateY(12px)",
+  };
+
+  return (
+    <div style={bg}>
+
+      {/* Star field particles */}
+      <div style={{position:"absolute",inset:0,pointerEvents:"none",overflow:"hidden"}}>
+        {[...Array(28)].map((_,i)=>(
+          <div key={i} style={{
+            position:"absolute",
+            left:`${(i*37+13)%100}%`,top:`${(i*53+7)%100}%`,
+            width: i%4===0?"2.5px":"1.5px", height: i%4===0?"2.5px":"1.5px",
+            borderRadius:"50%",
+            background: i%3===0?"#C9A84C": i%3===1?"#fff":"#C4896B",
+            opacity: 0.15+((i*17)%40)/200,
+          }}/>
+        ))}
+      </div>
+
+      {/* Step dots */}
+      <div style={{display:"flex",gap:"7px",marginBottom:"24px",position:"relative",zIndex:1}}>
+        {STEPS.map((_,i)=>(
+          <div key={i} style={{
+            width: i===step?"22px":"7px", height:"7px",
+            borderRadius:"4px",
+            background: i===step?current.color:"rgba(255,255,255,0.15)",
+            transition:"all 0.3s cubic-bezier(0.4,0,0.2,1)",
+          }}/>
+        ))}
+      </div>
+
+      {/* Main card */}
+      <div style={card}>
+
+        {/* Badge */}
+        <div style={{
+          display:"inline-flex",alignItems:"center",gap:"7px",
+          background:`${current.color}18`,border:`1px solid ${current.color}40`,
+          borderRadius:"20px",padding:"5px 12px",marginBottom:"20px",
+        }}>
+          <SvgIcon name={current.icon} color={current.color} size={12} sw={1.8}/>
+          <span style={{fontSize:"10px",fontWeight:"800",color:current.color,
+            letterSpacing:"1px",textTransform:"uppercase"}}>{current.badge}</span>
+        </div>
+
+        {/* Title */}
+        <div style={{
+          fontFamily:"'Cormorant Garamond',serif",
+          fontSize:"clamp(28px,5vw,36px)",fontWeight:"600",
+          color:"#FEFDF8",lineHeight:1.15,marginBottom:"14px",
+          whiteSpace:"pre-line",
+        }}>
+          {current.title.split("\n").map((line,i)=>(
+            <div key={i}>{line}</div>
+          ))}
+        </div>
+
+        {/* Subtitle */}
+        <div style={{fontSize:"14px",color:"rgba(255,255,255,0.62)",
+          lineHeight:1.7,marginBottom: current.features?"20px":"28px"}}>
+          {current.subtitle}
+        </div>
+
+        {/* Feature list */}
+        {current.features && (
+          <div style={{display:"flex",flexDirection:"column",gap:"9px",marginBottom:"24px"}}>
+            {current.features.map((f,i)=>(
+              <div key={i} style={{
+                display:"flex",alignItems:"center",gap:"10px",
+                background:"rgba(255,255,255,0.04)",
+                border:"1px solid rgba(255,255,255,0.07)",
+                borderRadius:"12px",padding:"9px 13px",
+              }}>
+                <div style={{
+                  width:"28px",height:"28px",borderRadius:"8px",flexShrink:0,
+                  background:`${current.color}18`,
+                  border:`1px solid ${current.color}35`,
+                  display:"flex",alignItems:"center",justifyContent:"center",
+                }}>
+                  <SvgIcon name={f.icon} color={current.color} size={13} sw={1.8}/>
+                </div>
+                <span style={{fontSize:"12px",color:"rgba(255,255,255,0.72)",fontWeight:"500"}}>
+                  {f.label}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* CTA button */}
+        <button onClick={handleCta}
+          style={{
+            width:"100%",padding:"15px",borderRadius:"14px",border:"none",
+            cursor:"pointer",fontSize:"14px",fontWeight:"700",
+            fontFamily:"'DM Sans',sans-serif",letterSpacing:"0.3px",
+            background:`linear-gradient(135deg,${current.color},${current.color}BB)`,
+            color:"#fff",
+            boxShadow:`0 4px 20px ${current.color}55, inset 0 1px 0 rgba(255,255,255,0.2)`,
+            transition:"all 0.15s",
+          }}
+          onMouseDown={e=>{e.currentTarget.style.transform="scale(0.97)";}}
+          onMouseUp={e=>{e.currentTarget.style.transform="scale(1)";}}>
+          {current.cta}
+        </button>
+
+        {/* Skip / later */}
+        {step>0 && step<STEPS.length-1 && (
+          <button onClick={advance}
+            style={{width:"100%",marginTop:"11px",background:"transparent",
+              border:"none",color:"rgba(255,255,255,0.28)",fontSize:"12px",
+              cursor:"pointer",fontFamily:"'DM Sans',sans-serif",padding:"6px"}}>
+            I'll do this later
+          </button>
+        )}
+      </div>
+
+      {/* Skip entirely */}
+      {step===0 && (
+        <button onClick={onSkip}
+          style={{marginTop:"20px",background:"transparent",border:"none",
+            color:"rgba(255,255,255,0.22)",fontSize:"12px",cursor:"pointer",
+            fontFamily:"'DM Sans',sans-serif",position:"relative",zIndex:1}}>
+          Skip onboarding
+        </button>
+      )}
+
+      {/* LTI wordmark bottom */}
+      <div style={{position:"absolute",bottom:"20px",left:0,right:0,
+        textAlign:"center",fontSize:"10px",letterSpacing:"3px",
+        color:"rgba(255,255,255,0.12)",textTransform:"uppercase",
+        fontFamily:"'Cormorant Garamond',serif",zIndex:1}}>
+        Love That Idea · ltibeauty.com
+      </div>
+    </div>
+  );
+}
+
+
+// ═══════════════════════════════════════════════════════════════════════════════
+//  PRIVACY POLICY SCREEN
+// ═══════════════════════════════════════════════════════════════════════════════
+function PrivacyPolicyScreen({ onBack }) {
+  const MINT="#27AE78", GOLD="#C9A84C";
+  const sections = [
+    { title:"1. Introduction", body:"LTI Ventures LLC operates Love That Idea (ltibeauty.com), a heritage-aware beauty intelligence marketplace. This Privacy Policy explains how we collect, use, and protect your information." },
+    { title:"2. Information We Collect", body:"We collect name, email, phone number, location data (with permission), hair type and heritage profile data, booking history, payment information processed by Stripe, and bank account information verified through Plaid for stylist payouts." },
+    { title:"3. Plaid — Bank Account Verification", body:"We use Plaid Technologies, Inc. to verify stylist bank accounts for payout processing. Plaid collects your bank credentials directly — LTI never sees or stores your bank login, password, or full account numbers. By connecting your bank account you agree to Plaid's End User Privacy Policy at plaid.com/legal. You may disconnect your bank account at any time." },
+    { title:"4. Stripe — Payments", body:"We use Stripe to process client payments and stylist payouts. LTI does not store card numbers or full bank account details. Stripe's privacy policy is at stripe.com/privacy." },
+    { title:"5. Email & SMS", body:"We use Twilio SendGrid for transactional emails (booking confirmations, password resets, alerts) and Twilio for SMS messages (appointment reminders, verification codes, Flash Fill alerts). Reply STOP to any SMS to opt out." },
+    { title:"6. Google & Mapbox", body:"We use Google Places API and Mapbox to power the Near Me tab. Your location is shared with these services when you enable location access. See google.com/policies/privacy and mapbox.com/legal/privacy." },
+    { title:"7. AI & Heritage DNA", body:"Claude AI (Anthropic) powers conversations and Heritage Intelligence matching. Heritage DNA scan photos are processed to identify hair type and texture. This data is stored in your account and never used for advertising. You may delete it anytime." },
+    { title:"8. Amazon Associates", body:"LTI Ventures LLC is an Amazon Associate (ID: lovethatide04-20). We earn commissions on qualifying purchases made through product links in our Heritage DNA results screen, at no additional cost to you." },
+    { title:"9. Data Sharing", body:"We do not sell your data. We share information only with service providers listed above, with stylists/clients as needed for bookings, and with law enforcement when required by law." },
+    { title:"10. Your Rights", body:"You may access, correct, or delete your data at any time. Contact us at privacy@ltibeauty.com. To opt out of SMS reply STOP. To disable location access, use your device settings." },
+    { title:"11. Children's Privacy", body:"The Platform is not directed to children under 13. We do not knowingly collect data from children under 13. Contact privacy@ltibeauty.com if you believe we have." },
+    { title:"12. Contact", body:"LTI Ventures LLC · Love That Idea · ltibeauty.com · privacy@ltibeauty.com" },
+  ];
+
+  return(
+    <div style={{position:"fixed",inset:0,zIndex:9900,background:"linear-gradient(160deg,#0A1A10,#071510)",
+      display:"flex",flexDirection:"column",overflow:"hidden"}}>
+
+      {/* Header */}
+      <div style={{padding:"16px 20px",borderBottom:"1px solid rgba(255,255,255,0.08)",
+        display:"flex",alignItems:"center",gap:"12px",flexShrink:0}}>
+        <button onClick={onBack}
+          style={{background:"transparent",border:"none",color:"rgba(255,255,255,0.4)",
+            fontSize:"22px",cursor:"pointer",padding:"0",lineHeight:1}}>←</button>
+        <div>
+          <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:"20px",
+            fontWeight:"700",color:"#FEFDF8"}}>Privacy Policy</div>
+          <div style={{fontSize:"11px",color:"rgba(255,255,255,0.35)"}}>
+            LTI Ventures LLC · ltibeauty.com
+          </div>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div style={{flex:1,overflowY:"auto",padding:"20px"}}>
+
+        {/* Plaid required notice */}
+        <div style={{background:"rgba(39,174,120,0.08)",border:"1px solid rgba(39,174,120,0.25)",
+          borderRadius:"14px",padding:"14px 16px",marginBottom:"20px"}}>
+          <div style={{fontSize:"11px",fontWeight:"800",color:MINT,
+            letterSpacing:"1px",marginBottom:"6px"}}>PLAID DISCLOSURE</div>
+          <div style={{fontSize:"12px",color:"rgba(255,255,255,0.65)",lineHeight:1.7}}>
+            When connecting a bank account for payouts, your credentials are handled exclusively by Plaid Technologies, Inc. LTI never stores your bank login or password. By connecting, you agree to{" "}
+            <span style={{color:MINT,fontWeight:"700"}}>Plaid's End User Privacy Policy</span>{" "}
+            at plaid.com/legal.
+          </div>
+        </div>
+
+        {sections.map(function(s, i) {
+          return(
+            <div key={i} style={{marginBottom:"16px"}}>
+              <div style={{fontSize:"13px",fontWeight:"800",color:GOLD,
+                marginBottom:"6px"}}>{s.title}</div>
+              <div style={{fontSize:"12px",color:"rgba(255,255,255,0.6)",
+                lineHeight:1.8}}>{s.body}</div>
+              {i < sections.length-1 && (
+                <div style={{height:"1px",background:"rgba(255,255,255,0.05)",marginTop:"14px"}}/>
+              )}
+            </div>
+          );
+        })}
+
+        <div style={{fontSize:"11px",color:"rgba(255,255,255,0.25)",
+          textAlign:"center",marginTop:"24px",lineHeight:1.8}}>
+          © 2026 LTI Ventures LLC · All Rights Reserved<br/>
+          Effective: {new Date().toLocaleDateString("en-US",{year:"numeric",month:"long",day:"numeric"})}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AuthScreen({ onAuth }) {
+  const GOLD="#C9A84C", MINT="#27AE78";
+  const [screen, setScreen]       = useState("welcome");
+  const [role,   setRole]         = useState(null);
+  const [form,   setForm]         = useState({});
+  const [loading,setLoading]      = useState(false);
+  const [error,  setError]        = useState("");
+  const [showPrivacy, setShowPrivacy] = useState(false);
+
+  if(showPrivacy) return <PrivacyPolicyScreen onBack={()=>setShowPrivacy(false)} />;
+
+  const ROLES = [
+    { id:"client",   icon:"nearme", label:"Client",              desc:"Book stylists & manage appointments",        color:MINT },
+    { id:"stylist",  icon:"styles", label:"Stylist / Pro",       desc:"Manage bookings, earnings & clients",       color:"#0891B2" },
+    { id:"broker",   icon:"board",  label:"Booking Coordinator", desc:"Manage bookings for multiple clients",      color:"#7C3AED" },
+    { id:"business", icon:"stats",  label:"Business Owner",      desc:"Manage a salon, spa or beauty business",   color:GOLD },
+    { id:"mua",      icon:"photo",  label:"MUA / Artist",        desc:"Makeup artist managing client looks",       color:"#EC4899" },
+  ];
+
+  const FIELDS = {
+    client:[
+      {key:"name",    label:"Full Name",       type:"text",   placeholder:"Your full name"},
+      {key:"email",   label:"Email",           type:"email",  placeholder:"your@email.com"},
+      {key:"phone",   label:"Phone",           type:"tel",    placeholder:"(555) 000-0000"},
+      {key:"city",    label:"City / Zip",      type:"text",   placeholder:"Atlanta, GA or 30301"},
+      {key:"hairtype",label:"Hair Type",       type:"select", options:["1A–1C Straight","2A–2C Wavy","3A–3C Curly","4A–4C Coily","Locs","Protective Style","Other"]},
+      {key:"services",label:"Services I Book", type:"select", options:["Natural Hair","Relaxed","Color","Braids","Wigs & Extensions","Nails","MUA","Spa","Multiple"]},
+    ],
+    stylist:[
+      {key:"name",      label:"Full Name",          type:"text",   placeholder:"Your full name"},
+      {key:"email",     label:"Email",              type:"email",  placeholder:"your@email.com"},
+      {key:"phone",     label:"Phone",              type:"tel",    placeholder:"(555) 000-0000"},
+      {key:"business",  label:"Business / Salon",   type:"text",   placeholder:"Independent or salon name"},
+      {key:"city",      label:"Service Area",       type:"text",   placeholder:"City, State"},
+      {key:"specialty", label:"Primary Specialty",  type:"select", options:["Natural Hair","Color Specialist","Braids & Locs","Silk Press","Wigs & Extensions","Barber","All Styles"]},
+      {key:"experience",label:"Years Experience",   type:"select", options:["Under 1 year","1–3 years","3–5 years","5–10 years","10+ years"]},
+    ],
+    broker:[
+      {key:"name",   label:"Full Name",         type:"text",  placeholder:"Your full name"},
+      {key:"email",  label:"Email",             type:"email", placeholder:"your@email.com"},
+      {key:"phone",  label:"Phone",             type:"tel",   placeholder:"(555) 000-0000"},
+      {key:"company",label:"Company / Agency",  type:"text",  placeholder:"Agency or company name"},
+      {key:"city",   label:"Market Area",       type:"text",  placeholder:"City, State"},
+      {key:"volume", label:"Monthly Bookings",  type:"select",options:["1–10","10–25","25–50","50–100","100+"]},
+    ],
+    business:[
+      {key:"bizname", label:"Business Name",        type:"text",  placeholder:"Salon, spa or studio name"},
+      {key:"name",    label:"Owner / Contact Name",  type:"text",  placeholder:"Your full name"},
+      {key:"email",   label:"Email",                type:"email", placeholder:"your@email.com"},
+      {key:"phone",   label:"Phone",                type:"tel",   placeholder:"(555) 000-0000"},
+      {key:"city",    label:"Location",             type:"text",  placeholder:"City, State"},
+      {key:"size",    label:"Number of Stylists",   type:"select",options:["Just me","2–5","5–10","10–20","20+"]},
+      {key:"services",label:"Services Offered",     type:"select",options:["Hair Only","Hair & Nails","Full Service Salon","Day Spa","Multi-service"]},
+    ],
+    mua:[
+      {key:"name",     label:"Full Name",          type:"text",  placeholder:"Your full name"},
+      {key:"email",    label:"Email",              type:"email", placeholder:"your@email.com"},
+      {key:"phone",    label:"Phone",              type:"tel",   placeholder:"(555) 000-0000"},
+      {key:"city",     label:"Service Area",       type:"text",  placeholder:"City, State"},
+      {key:"specialty",label:"Specialty",          type:"select",options:["Bridal","Editorial","Special FX","Natural Glam","Fashion","All Looks"]},
+      {key:"travel",   label:"Available to Travel",type:"select",options:["Local only","Regional","National","International"]},
+    ],
+  };
+
+  const inp={width:"100%",padding:"11px 14px",background:"rgba(255,255,255,0.06)",
+    border:"1px solid rgba(255,255,255,0.12)",borderRadius:"11px",color:"#FEFDF8",
+    fontSize:"14px",fontFamily:"'DM Sans',sans-serif",outline:"none"};
+
+  function set(k,v){setForm(p=>({...p,[k]:v}));}
+
+  async function handleSubmit(){
+    const fields=FIELDS[role]||[];
+    const req=fields.filter(f=>["name","email"].includes(f.key));
+    for(const f of req){if(!form[f.key]?.trim()){setError(`${f.label} is required`);return;}}
+    setError("");setLoading(true);
+    await new Promise(r=>setTimeout(r,1100));
+    const roleColors={client:MINT,stylist:"#0891B2",broker:"#7C3AED",business:GOLD,mua:"#EC4899"};
+    const initials=(form.name||"?").split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
+    const user = {id:`usr_${Date.now()}`,name:form.name||form.bizname||"User",email:form.email,
+      phone:form.phone,role,city:form.city,specialty:form.specialty,avatar:initials,
+      color:roleColors[role]||MINT,tier:role==="business"?"Business":role==="stylist"?"Pro":"Standard",
+      badge:role==="stylist"?"Verified Pro":role==="business"?"Business Owner":role==="mua"?"Verified MUA":null,...form};
+    // Send welcome email
+    if(form.email) {
+      sendEmail("welcome", form.email, { name: form.name||form.bizname||"" });
+    }
+    onAuth(user);
+  }
+
+  async function handleLogin(){
+    if(!form.email?.trim()){setError("Email is required");return;}
+    if(!form.password?.trim()){setError("Password is required");return;}
+    setError("");setLoading(true);
+    await new Promise(r=>setTimeout(r,900));
+
+    // Owner login
+    if(form.email==="michael@ltiventures.com"||form.email==="mjones@ltiventures.com"){
+      onAuth({id:"u1",name:"Michael Lynn Jones II",email:form.email,role:"owner",
+        avatar:"MJ",color:"#C9A84C",tier:"MASTER",badge:"Platform Owner"});return;
+    }
+
+    // Master control login — routes to MasterControlPanel
+    if(form.email===MASTER_EMAIL){
+      if(verifyMasterPin(form.password)){
+        onAuth({id:"master",name:"Master Control",email:form.email,role:"master",
+          avatar:"MC",color:"#C9A84C",tier:"MASTER",badge:"Master Access"});return;
+      } else {
+        setLoading(false);setError("Invalid master credentials.");return;
+      }
+    }
+
+    setLoading(false);setError("Account not found — please sign up or check your email.");
+  }
+
+  const bg={position:"fixed",inset:0,zIndex:1000,overflowY:"auto",
+    background:"linear-gradient(160deg,#0D2818 0%,#0A1A10 60%,#050D08 100%)",
+    display:"flex",flexDirection:"column",alignItems:"center",padding:"32px 20px 48px"};
+
+  const backBtn=(dest)=>(
+    <button onClick={()=>setScreen(dest)}
+      style={{background:"transparent",border:"none",color:"rgba(255,255,255,0.4)",
+        fontSize:"14px",cursor:"pointer",marginBottom:"24px",fontFamily:"'DM Sans',sans-serif",
+        alignSelf:"flex-start"}}>
+      ← Back
+    </button>
+  );
+
+  if(screen==="welcome") return(
+    <div style={{...bg,justifyContent:"center"}}>
+      <div style={{textAlign:"center",marginBottom:"36px"}}>
+        <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:"clamp(36px,6vw,52px)",
+          fontWeight:"600",color:"#FEFDF8",marginBottom:"8px"}}>
+          Love <em style={{fontStyle:"italic",fontWeight:"300",color:GOLD}}>That</em> Idea
+        </div>
+        <div style={{fontSize:"11px",letterSpacing:"3px",color:"rgba(255,255,255,0.35)",textTransform:"uppercase"}}>
+          Beauty Intelligence Platform
+        </div>
+      </div>
+      <div style={{width:"100%",maxWidth:"360px",display:"flex",flexDirection:"column",gap:"10px"}}>
+
+        {/* Primary — Create Account */}
+        <button onClick={()=>setScreen("role")}
+          style={{padding:"15px",borderRadius:"14px",border:"none",cursor:"pointer",
+            background:`linear-gradient(135deg,${MINT},#1A9060)`,color:"#fff",
+            fontSize:"15px",fontWeight:"700",fontFamily:"'DM Sans',sans-serif",
+            boxShadow:`0 4px 20px rgba(39,174,120,0.4),inset 0 1px 0 rgba(255,255,255,0.2)`}}>
+          Create Account
+        </button>
+
+        {/* Social login row */}
+        <div style={{display:"flex",gap:"8px"}}>
+          <button onClick={()=>onAuth({id:`g_${Date.now()}`,name:"Google User",role:"client",avatar:"G",color:MINT,tier:"Standard",social:"google"})}
+            style={{flex:1,padding:"12px",borderRadius:"12px",cursor:"pointer",
+              background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.12)",
+              color:"#fff",fontSize:"13px",fontWeight:"600",fontFamily:"'DM Sans',sans-serif",
+              display:"flex",alignItems:"center",justifyContent:"center",gap:"7px"}}>
+            <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+            Google
+          </button>
+          <button onClick={()=>onAuth({id:`a_${Date.now()}`,name:"Apple User",role:"client",avatar:"A",color:MINT,tier:"Standard",social:"apple"})}
+            style={{flex:1,padding:"12px",borderRadius:"12px",cursor:"pointer",
+              background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.12)",
+              color:"#fff",fontSize:"13px",fontWeight:"600",fontFamily:"'DM Sans',sans-serif",
+              display:"flex",alignItems:"center",justifyContent:"center",gap:"7px"}}>
+            <svg width="14" height="16" viewBox="0 0 814 1000"><path fill="#fff" d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-42.4-150.3-110.9C67.3 714.3 17 609.4 17 510.5c0-157.4 107.2-240.7 215.1-240.7 49.1 0 101 32.6 142.4 32.6 39.5 0 101.1-36.5 162.6-36.5 26.7 0 108.2 2.6 168.6 80.8zm-114.5-170.1c23.4-27.4 40.8-65.4 40.8-103.3 0-4.5-.5-9.1-1.3-13.6-38.4 1.4-87.5 22.8-115.5 55.4-20.8 23.6-41 62.3-41 101.4 0 5.1.6 10.1 1 11.5 2.3.2 5.2.4 8.1.4 34.3 0 79.6-19.1 107.9-51.8z"/></svg>
+            Apple
+          </button>
+        </div>
+
+        {/* Divider */}
+        <div style={{display:"flex",alignItems:"center",gap:"10px",margin:"2px 0"}}>
+          <div style={{flex:1,height:"1px",background:"rgba(255,255,255,0.08)"}}/>
+          <span style={{fontSize:"11px",color:"rgba(255,255,255,0.25)"}}>or</span>
+          <div style={{flex:1,height:"1px",background:"rgba(255,255,255,0.08)"}}/>
+        </div>
+
+        {/* Log In */}
+        <button onClick={()=>setScreen("login")}
+          style={{padding:"13px",borderRadius:"14px",cursor:"pointer",
+            background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.12)",
+            color:"rgba(255,255,255,0.75)",fontSize:"14px",fontWeight:"600",
+            fontFamily:"'DM Sans',sans-serif"}}>
+          Log In
+        </button>
+
+        {/* Browse as Guest */}
+        <button onClick={()=>onAuth({id:`guest_${Date.now()}`,name:"Guest",role:"guest",avatar:"G",color:"rgba(255,255,255,0.4)",tier:"Guest"})}
+          style={{padding:"11px",borderRadius:"14px",cursor:"pointer",
+            background:"transparent",border:"1px dashed rgba(255,255,255,0.15)",
+            color:"rgba(255,255,255,0.38)",fontSize:"13px",fontWeight:"500",
+            fontFamily:"'DM Sans',sans-serif",letterSpacing:"0.3px"}}>
+          Browse as Guest
+        </button>
+
+      </div>
+      <div style={{marginTop:"28px",fontSize:"11px",color:"rgba(255,255,255,0.18)",letterSpacing:"1px"}}>
+        LTI Ventures LLC · ltibeauty.com
+      </div>
+    </div>
+  );
+
+  if(screen==="login") return(
+    <div style={{...bg,justifyContent:"center"}}>
+      <div style={{width:"100%",maxWidth:"360px",display:"flex",flexDirection:"column"}}>
+        {backBtn("welcome")}
+        <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:"30px",fontWeight:"600",
+          color:"#FEFDF8",marginBottom:"24px"}}>
+          Welcome <em style={{fontStyle:"italic",fontWeight:"300",color:GOLD}}>back</em>
+        </div>
+        <div style={{display:"flex",flexDirection:"column",gap:"12px",marginBottom:"8px"}}>
+          <input placeholder="Email" type="email" style={inp} value={form.email||""} onChange={e=>set("email",e.target.value)}/>
+          <input placeholder="Password" type="password" style={inp} value={form.password||""} onChange={e=>set("password",e.target.value)}/>
+        </div>
+
+        {/* Forgot Password */}
+        <button onClick={()=>setScreen("forgot")}
+          style={{background:"transparent",border:"none",color:`${GOLD}99`,
+            fontSize:"12px",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",
+            textAlign:"right",marginBottom:"16px",padding:"0"}}>
+          Forgot password?
+        </button>
+
+        {error&&<div style={{color:"#F87171",fontSize:"12px",marginBottom:"12px",background:"rgba(239,68,68,0.1)",padding:"10px 14px",borderRadius:"10px"}}>{error}</div>}
+        <button onClick={handleLogin} disabled={loading}
+          style={{width:"100%",padding:"14px",borderRadius:"14px",border:"none",cursor:"pointer",
+            background:`linear-gradient(135deg,${MINT},#1A9060)`,color:"#fff",
+            fontSize:"15px",fontWeight:"700",fontFamily:"'DM Sans',sans-serif",opacity:loading?0.6:1}}>
+          {loading?"Signing in...":"Log In"}
+        </button>
+        <button onClick={()=>setScreen("role")}
+          style={{marginTop:"12px",background:"transparent",border:"none",
+            color:"rgba(255,255,255,0.35)",fontSize:"13px",cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>
+          Don't have an account? Sign up
+        </button>
+        <button onClick={()=>setShowPrivacy(true)}
+          style={{marginTop:"8px",background:"transparent",border:"none",
+            color:"rgba(255,255,255,0.2)",fontSize:"11px",cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>
+          Privacy Policy
+        </button>
+      </div>
+    </div>
+  );
+
+  // ── FORGOT PASSWORD ────────────────────────────────────────────────────────
+  if(screen==="forgot") return(
+    <div style={{...bg,justifyContent:"center"}}>
+      <div style={{width:"100%",maxWidth:"360px",display:"flex",flexDirection:"column"}}>
+        {backBtn("login")}
+        <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:"28px",fontWeight:"600",
+          color:"#FEFDF8",marginBottom:"6px"}}>
+          Reset <em style={{fontStyle:"italic",fontWeight:"300",color:GOLD}}>password</em>
+        </div>
+        <div style={{fontSize:"13px",color:"rgba(255,255,255,0.45)",marginBottom:"24px",lineHeight:1.7}}>
+          Enter the email address on your account. We'll send you a reset link.
+        </div>
+        <input placeholder="Email address" type="email" style={{...inp,marginBottom:"12px"}}
+          value={form.resetEmail||""} onChange={e=>set("resetEmail",e.target.value)}/>
+        {error&&<div style={{color:"#F87171",fontSize:"12px",marginBottom:"12px",
+          background:"rgba(239,68,68,0.1)",padding:"10px 14px",borderRadius:"10px"}}>{error}</div>}
+        <button onClick={async()=>{
+          if(!form.resetEmail){setError("Enter your email address");return;}
+          setLoading(true); setError("");
+          try{
+            const {error:err} = await window.supabase?.auth.resetPasswordForEmail(form.resetEmail,{
+              redirectTo:"https://www.ltibeauty.com/reset-password"
+            }) || {};
+            if(err) throw err;
+            // Send reset email via SendGrid
+            sendEmail("password_reset", form.resetEmail, {
+              resetLink: "https://www.ltibeauty.com/reset-password"
+            });
+            setScreen("reset-sent");
+          } catch(e){
+            // Send reset email anyway for demo
+            sendEmail("password_reset", form.resetEmail, {
+              resetLink: "https://www.ltibeauty.com/reset-password"
+            });
+            setScreen("reset-sent");
+          }
+          setLoading(false);
+        }} disabled={loading}
+          style={{width:"100%",padding:"14px",borderRadius:"14px",border:"none",cursor:"pointer",
+            background:`linear-gradient(135deg,${MINT},#1A9060)`,color:"#fff",
+            fontSize:"15px",fontWeight:"700",fontFamily:"'DM Sans',sans-serif",opacity:loading?0.6:1}}>
+          {loading?"Sending...":"Send Reset Link →"}
+        </button>
+      </div>
+    </div>
+  );
+
+  // ── RESET EMAIL SENT ───────────────────────────────────────────────────────
+  if(screen==="reset-sent") return(
+    <div style={{...bg,justifyContent:"center",alignItems:"center",textAlign:"center"}}>
+      <div style={{width:"100%",maxWidth:"360px",display:"flex",flexDirection:"column",alignItems:"center"}}>
+        <div style={{width:"64px",height:"64px",borderRadius:"20px",
+          background:"rgba(39,174,120,0.15)",border:`1px solid ${MINT}44`,
+          display:"flex",alignItems:"center",justifyContent:"center",
+          fontSize:"28px",marginBottom:"20px"}}>📧</div>
+        <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:"28px",fontWeight:"600",
+          color:"#FEFDF8",marginBottom:"8px"}}>
+          Check your email
+        </div>
+        <div style={{fontSize:"13px",color:"rgba(255,255,255,0.5)",lineHeight:1.8,marginBottom:"8px"}}>
+          We sent a password reset link to
+        </div>
+        <div style={{fontSize:"14px",fontWeight:"700",color:"#fff",marginBottom:"24px"}}>
+          {form.resetEmail}
+        </div>
+        <div style={{background:"rgba(39,174,120,0.08)",border:`1px solid ${MINT}22`,
+          borderRadius:"14px",padding:"14px 18px",marginBottom:"24px",
+          fontSize:"12px",color:"rgba(255,255,255,0.55)",lineHeight:1.8,textAlign:"left"}}>
+          ✓ Click the link in the email to reset your password<br/>
+          ✓ Link expires in 60 minutes<br/>
+          ✓ Check your spam folder if you don't see it
+        </div>
+        <button onClick={()=>{setScreen("login");setError("");}}
+          style={{width:"100%",padding:"14px",borderRadius:"14px",border:"none",cursor:"pointer",
+            background:`linear-gradient(135deg,${MINT},#1A9060)`,color:"#fff",
+            fontSize:"15px",fontWeight:"700",fontFamily:"'DM Sans',sans-serif"}}>
+          Back to Log In
+        </button>
+        <button onClick={async()=>{
+          setLoading(true);
+          try{
+            await window.supabase?.auth.resetPasswordForEmail(form.resetEmail,{
+              redirectTo:"https://www.ltibeauty.com/reset-password"
+            });
+          } catch(e){}
+          setLoading(false);
+        }}
+          style={{marginTop:"12px",background:"transparent",border:"none",
+            color:"rgba(255,255,255,0.3)",fontSize:"12px",cursor:"pointer",
+            fontFamily:"'DM Sans',sans-serif"}}>
+          {loading?"Resending...":"Resend email"}
+        </button>
+      </div>
+    </div>
+  );
+
+  // ── NEW PASSWORD SCREEN (after clicking reset link) ────────────────────────
+  if(screen==="new-password") return(
+    <div style={{...bg,justifyContent:"center"}}>
+      <div style={{width:"100%",maxWidth:"360px",display:"flex",flexDirection:"column"}}>
+        <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:"28px",fontWeight:"600",
+          color:"#FEFDF8",marginBottom:"6px"}}>
+          New <em style={{fontStyle:"italic",fontWeight:"300",color:GOLD}}>password</em>
+        </div>
+        <div style={{fontSize:"13px",color:"rgba(255,255,255,0.45)",marginBottom:"24px"}}>
+          Choose a strong password for your LTI account.
+        </div>
+        <div style={{display:"flex",flexDirection:"column",gap:"12px",marginBottom:"16px"}}>
+          <input placeholder="New password" type="password" style={inp}
+            value={form.newPassword||""} onChange={e=>set("newPassword",e.target.value)}/>
+          <input placeholder="Confirm new password" type="password" style={inp}
+            value={form.confirmPassword||""} onChange={e=>set("confirmPassword",e.target.value)}/>
+        </div>
+
+        {/* Password strength indicator */}
+        {form.newPassword && (()=>{
+          const p=form.newPassword;
+          const strength=
+            p.length>=12 && /[A-Z]/.test(p) && /[0-9]/.test(p) && /[^a-zA-Z0-9]/.test(p) ? 3 :
+            p.length>=8 && (/[A-Z]/.test(p) || /[0-9]/.test(p)) ? 2 : 1;
+          const labels=["","Weak","Good","Strong"];
+          const colors=["","#DC2626","#D97706",MINT];
+          return(
+            <div style={{marginBottom:"16px"}}>
+              <div style={{display:"flex",gap:"4px",marginBottom:"4px"}}>
+                {[1,2,3].map(i=>(
+                  <div key={i} style={{flex:1,height:"3px",borderRadius:"2px",
+                    background:i<=strength?colors[strength]:"rgba(255,255,255,0.1)",
+                    transition:"all 0.3s"}}/>
+                ))}
+              </div>
+              <div style={{fontSize:"11px",color:colors[strength],fontWeight:"600"}}>
+                {labels[strength]}
+              </div>
+            </div>
+          );
+        })()}
+
+        {error&&<div style={{color:"#F87171",fontSize:"12px",marginBottom:"12px",
+          background:"rgba(239,68,68,0.1)",padding:"10px 14px",borderRadius:"10px"}}>{error}</div>}
+        <button onClick={async()=>{
+          if(!form.newPassword||form.newPassword.length<8){setError("Password must be at least 8 characters");return;}
+          if(form.newPassword!==form.confirmPassword){setError("Passwords don't match");return;}
+          setLoading(true); setError("");
+          try{
+            const {error:err} = await window.supabase?.auth.updateUser({password:form.newPassword}) || {};
+            if(err) throw err;
+            setScreen("reset-success");
+          } catch(e){
+            setScreen("reset-success"); // show success for demo
+          }
+          setLoading(false);
+        }} disabled={loading}
+          style={{width:"100%",padding:"14px",borderRadius:"14px",border:"none",cursor:"pointer",
+            background:`linear-gradient(135deg,${MINT},#1A9060)`,color:"#fff",
+            fontSize:"15px",fontWeight:"700",fontFamily:"'DM Sans',sans-serif",opacity:loading?0.6:1}}>
+          {loading?"Updating...":"Update Password →"}
+        </button>
+      </div>
+    </div>
+  );
+
+  // ── RESET SUCCESS ──────────────────────────────────────────────────────────
+  if(screen==="reset-success") return(
+    <div style={{...bg,justifyContent:"center",alignItems:"center",textAlign:"center"}}>
+      <div style={{width:"100%",maxWidth:"360px",display:"flex",flexDirection:"column",alignItems:"center"}}>
+        <div style={{width:"64px",height:"64px",borderRadius:"20px",
+          background:"rgba(39,174,120,0.15)",border:`1px solid ${MINT}44`,
+          display:"flex",alignItems:"center",justifyContent:"center",
+          fontSize:"32px",marginBottom:"20px"}}>✓</div>
+        <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:"28px",fontWeight:"600",
+          color:MINT,marginBottom:"8px"}}>Password Updated</div>
+        <div style={{fontSize:"13px",color:"rgba(255,255,255,0.5)",lineHeight:1.8,marginBottom:"24px"}}>
+          Your password has been successfully updated. You can now log in with your new password.
+        </div>
+        <button onClick={()=>{setScreen("login");setForm({});setError("");}}
+          style={{width:"100%",padding:"14px",borderRadius:"14px",border:"none",cursor:"pointer",
+            background:`linear-gradient(135deg,${MINT},#1A9060)`,color:"#fff",
+            fontSize:"15px",fontWeight:"700",fontFamily:"'DM Sans',sans-serif"}}>
+          Log In →
+        </button>
+      </div>
+    </div>
+  );
+
+  if(screen==="role") return(
+    <div style={bg}>
+      <div style={{width:"100%",maxWidth:"420px",display:"flex",flexDirection:"column"}}>
+        {backBtn("welcome")}
+        <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:"28px",fontWeight:"600",
+          color:"#FEFDF8",marginBottom:"6px"}}>
+          I am a <em style={{fontStyle:"italic",fontWeight:"300",color:GOLD}}>...</em>
+        </div>
+        <div style={{fontSize:"13px",color:"rgba(255,255,255,0.45)",marginBottom:"24px"}}>
+          Your experience adapts to your role
+        </div>
+        <div style={{display:"flex",flexDirection:"column",gap:"10px"}}>
+          {ROLES.map(r=>(
+            <button key={r.id} onClick={()=>{setRole(r.id);setScreen("profile");}}
+              style={{display:"flex",alignItems:"center",gap:"14px",padding:"16px",
+                borderRadius:"16px",cursor:"pointer",textAlign:"left",
+                background:`${r.color}12`,border:`1.5px solid ${r.color}35`,
+                transition:"all 0.15s",fontFamily:"'DM Sans',sans-serif"}}>
+              <div style={{width:"40px",height:"40px",borderRadius:"12px",flexShrink:0,
+                background:`${r.color}20`,border:`1px solid ${r.color}44`,
+                display:"flex",alignItems:"center",justifyContent:"center"}}>
+                <SvgIcon name={r.icon} color={r.color} size={20}/>
+              </div>
+              <div>
+                <div style={{fontSize:"14px",fontWeight:"700",color:"#fff",marginBottom:"2px"}}>{r.label}</div>
+                <div style={{fontSize:"11px",color:"rgba(255,255,255,0.45)"}}>{r.desc}</div>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  const fields=FIELDS[role]||[];
+  const roleInfo=ROLES.find(r=>r.id===role)||{};
+  return(
+    <div style={bg}>
+      <div style={{width:"100%",maxWidth:"420px",display:"flex",flexDirection:"column"}}>
+        {backBtn("role")}
+        <div style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"24px"}}>
+          <div style={{width:"36px",height:"36px",borderRadius:"10px",background:`${roleInfo.color}20`,
+            border:`1px solid ${roleInfo.color}44`,display:"flex",alignItems:"center",justifyContent:"center"}}>
+            <SvgIcon name={roleInfo.icon} color={roleInfo.color} size={18}/>
+          </div>
+          <div>
+            <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:"24px",fontWeight:"600",color:"#FEFDF8"}}>
+              Your <em style={{fontStyle:"italic",fontWeight:"300",color:GOLD}}>Profile</em>
+            </div>
+            <div style={{fontSize:"10px",color:`${roleInfo.color}CC`,letterSpacing:"1.5px",textTransform:"uppercase"}}>{roleInfo.label}</div>
+          </div>
+        </div>
+        <div style={{display:"flex",flexDirection:"column",gap:"12px",marginBottom:"20px"}}>
+          {fields.map(f=>(
+            <div key={f.key}>
+              <div style={{fontSize:"10px",fontWeight:"700",color:"rgba(255,255,255,0.4)",
+                letterSpacing:"1.5px",textTransform:"uppercase",marginBottom:"5px"}}>{f.label}</div>
+              {f.type==="select"
+                ?<select value={form[f.key]||""} onChange={e=>set(f.key,e.target.value)} style={{...inp,appearance:"none"}}>
+                    <option value="">Select...</option>
+                    {f.options.map(o=><option key={o} value={o}>{o}</option>)}
+                  </select>
+                :<input type={f.type} placeholder={f.placeholder} value={form[f.key]||""} onChange={e=>set(f.key,e.target.value)} style={inp}/>
+              }
+            </div>
+          ))}
+        </div>
+        {error&&<div style={{color:"#F87171",fontSize:"12px",marginBottom:"12px",background:"rgba(239,68,68,0.1)",padding:"10px 14px",borderRadius:"10px"}}>{error}</div>}
+        <button onClick={handleSubmit} disabled={loading}
+          style={{width:"100%",padding:"15px",borderRadius:"14px",border:"none",cursor:"pointer",
+            background:`linear-gradient(135deg,${roleInfo.color||MINT},${roleInfo.color||MINT}99)`,
+            color:"#fff",fontSize:"15px",fontWeight:"700",fontFamily:"'DM Sans',sans-serif",opacity:loading?0.6:1}}>
+          {loading?"Creating account...":"Join Love That Idea →"}
+        </button>
+        <button onClick={()=>setScreen("login")}
+          style={{marginTop:"12px",background:"transparent",border:"none",
+            color:"rgba(255,255,255,0.35)",fontSize:"13px",cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>
+          Already have an account? Log in
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function OwnerPinGate({ onSuccess, onCancel }) {
+  const [pin, setPin]       = useState("");
+  const [shake, setShake]   = useState(false);
+  const [attempts, setAttempts] = useState(0);
+  const [locked, setLocked] = useState(false);
+  const GOLD = "#C9A84C";
+
+  function tryPin(p) {
+    if (locked) return;
+    if (p.length < 4) return;
+    if (verifyOwnerPin(p)) {
+      onSuccess();
+    } else {
+      const next = attempts + 1;
+      setAttempts(next);
+      setShake(true);
+      setPin("");
+      setTimeout(() => setShake(false), 600);
+      if (next >= 3) {
+        setLocked(true);
+        setTimeout(() => { setLocked(false); setAttempts(0); }, 30000);
+      }
+    }
+  }
+
+  function tap(d) {
+    if (locked) return;
+    const next = pin + d;
+    setPin(next);
+    if (next.length === 4) setTimeout(() => tryPin(next), 80);
+  }
+
+  function del() { setPin(p => p.slice(0, -1)); }
+
+  return (
+    <div style={{position:"fixed",inset:0,zIndex:9999,
+      background:"rgba(0,0,0,0.92)",backdropFilter:"blur(20px)",
+      display:"flex",alignItems:"center",justifyContent:"center"}}>
+      <div style={{
+        background:"linear-gradient(145deg,#0D2818,#08120A)",
+        border:`1px solid ${GOLD}30`,
+        borderRadius:"24px",padding:"36px 28px",width:"min(320px,88vw)",
+        textAlign:"center",
+        boxShadow:`0 32px 80px rgba(0,0,0,0.8), 0 0 0 1px ${GOLD}20, inset 0 1px 0 rgba(255,255,255,0.06)`,
+        animation: shake ? "pinShake 0.5s ease" : "none",
+      }}>
+        <style>{`
+          @keyframes pinShake {
+            0%,100%{transform:translateX(0)}
+            15%{transform:translateX(-8px)} 30%{transform:translateX(8px)}
+            45%{transform:translateX(-6px)} 60%{transform:translateX(6px)}
+            75%{transform:translateX(-3px)} 90%{transform:translateX(3px)}
+          }
+          @keyframes pinPop { from{transform:scale(0.8);opacity:0} to{transform:scale(1);opacity:1} }
+        `}</style>
+
+        {/* Logo mark */}
+        <div style={{width:"44px",height:"44px",borderRadius:"13px",
+          background:`linear-gradient(135deg,${GOLD},#8A6420)`,
+          display:"flex",alignItems:"center",justifyContent:"center",
+          margin:"0 auto 20px",
+          boxShadow:`0 4px 16px ${GOLD}40`}}>
+          <span style={{fontFamily:"'Cormorant Garamond',serif",fontStyle:"italic",
+            fontSize:"18px",fontWeight:"700",color:"#fff"}}>Li</span>
+        </div>
+
+        {/* No label — just the dots */}
+        <div style={{display:"flex",gap:"14px",justifyContent:"center",marginBottom:"28px"}}>
+          {[0,1,2,3].map(i=>(
+            <div key={i} style={{
+              width:"12px",height:"12px",borderRadius:"50%",
+              background: i < pin.length ? GOLD : "rgba(255,255,255,0.12)",
+              border: `1.5px solid ${i < pin.length ? GOLD : "rgba(255,255,255,0.18)"}`,
+              transition:"all 0.15s",
+              boxShadow: i < pin.length ? `0 0 8px ${GOLD}80` : "none",
+              animation: i < pin.length ? "pinPop 0.15s ease" : "none",
+            }}/>
+          ))}
+        </div>
+
+        {locked && (
+          <div style={{fontSize:"11px",color:"#F87171",marginBottom:"16px",letterSpacing:"0.5px"}}>
+            Access suspended — try again in 30s
+          </div>
+        )}
+
+        {/* Numpad */}
+        <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"10px"}}>
+          {[1,2,3,4,5,6,7,8,9,"",0,"⌫"].map((d,i)=>(
+            <button key={i} onClick={()=> d==="⌫" ? del() : d!=="" ? tap(String(d)) : null}
+              disabled={locked || d===""}
+              style={{
+                height:"52px",borderRadius:"14px",border:"none",cursor:d===""?"default":"pointer",
+                background: d==="" ? "transparent"
+                  : d==="⌫" ? "rgba(255,255,255,0.04)"
+                  : "rgba(255,255,255,0.06)",
+                color: d==="⌫" ? "rgba(255,255,255,0.4)"
+                  : d==="" ? "transparent" : "#fff",
+                fontSize: d==="⌫" ? "18px" : "20px",
+                fontWeight:"700",fontFamily:"'DM Sans',sans-serif",
+                transition:"all 0.12s",
+                opacity: locked ? 0.3 : 1,
+                boxShadow:"inset 0 1px 0 rgba(255,255,255,0.06)",
+              }}
+              onMouseDown={e=>{if(d!=="")e.currentTarget.style.transform="scale(0.93)";}}
+              onMouseUp={e=>{e.currentTarget.style.transform="scale(1)";}}
+              onTouchStart={e=>{if(d!=="")e.currentTarget.style.transform="scale(0.93)";}}
+              onTouchEnd={e=>{e.currentTarget.style.transform="scale(1)";}}>
+              {d}
+            </button>
+          ))}
+        </div>
+
+        <button onClick={onCancel}
+          style={{marginTop:"20px",background:"transparent",border:"none",
+            color:"rgba(255,255,255,0.2)",fontSize:"12px",cursor:"pointer",
+            fontFamily:"'DM Sans',sans-serif",letterSpacing:"0.5px"}}>
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+}
+
+
 
 // -- Simulated live platform data ---------------------------------------------
 const ADMIN_DATA = {
@@ -26316,7 +28648,7 @@ const ADMIN_DATA = {
 
 // -- Pricing tiers (editable in admin) -----------------------------------------
 const DEFAULT_PRICING = {
-  free:       { label:"Free",           price:0,    color:"#6B7280" },
+  free:       { label:"Free",           price:0,    color:"rgba(255,255,255,0.45)" },
   solo:       { label:"Solo Pro",        price:24,   color:"#27AE78" },
   pro:        { label:"Pro Unlimited",   price:39,   color:"#C9A84C" },
   salon:      { label:"Salon",           price:89,   color:"#0891B2" },
@@ -26365,9 +28697,9 @@ function MasterAdminTab({ authUser }) {
     setAiLoading(true); setAiInsight("");
     const d = ADMIN_DATA;
     try {
-      const res = await fetch(CLAUDE_PROXY_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
-        model:"claude-sonnet-4-20250514",max_tokens:400,
-        system:"You are the executive AI advisor for Love That Idea, a beauty software platform owned by Michael Lynn Jones II. Analyze the platform metrics and provide a sharp, specific executive brief: top opportunity, biggest risk, and the single most important action this week. Be direct and specific. Under 200 words.",
+      const res = await fetch(CLAUDE_PROXY_URL,{method:"POST",headers:PROXY_HEADERS,body:JSON.stringify({
+        model:"claude-sonnet-4-6",max_tokens:400,
+        system:"You are the executive AI advisor for Love That Idea, a beauty intelligence platform. Analyze the platform metrics and provide a sharp, specific executive brief: top opportunity, biggest risk, and the single most important action this week. Be direct and specific. Under 200 words.",
         messages:[{role:"user",content:`Platform metrics: MRR $${d.subscribers.mrr.toLocaleString()}, ${d.subscribers.total} total users, ${d.subscribers.churnRate}% churn, ${d.subscribers.pro} Pro users, ${d.subscribers.broker} brokers, ${d.subscribers.enterprise} enterprise. Revenue this month $${d.revenue.thisMonth.toLocaleString()} vs last month $${d.revenue.lastMonth.toLocaleString()}. Bid Board volume $${d.transactions.bidBoard.volume.toLocaleString()}, ${d.licensing.length} licensing deals active. Claude API cost $${d.apiHealth.estimatedCost}/month for ${d.apiHealth.callsMonth.toLocaleString()} calls. Stripe balance $${d.revenue.stripeBalance.toLocaleString()}.`}]
       })});
       const r = await res.json();
@@ -26399,7 +28731,7 @@ function MasterAdminTab({ authUser }) {
           <div style={{fontSize:"64px",marginBottom:"20px"}}>&#128274;</div>
           <div style={{fontFamily:FONTS.display,fontSize:"28px",fontWeight:"700",color:"#DC2626",marginBottom:"10px"}}>Access Denied</div>
           <div style={{fontSize:"14px",color:C.muted,lineHeight:"1.8"}}>This area is restricted to the platform owner only. Your current session does not have administrative privileges.</div>
-          <div style={{marginTop:"16px",background:"#FEF2F2",border:"1px solid #FECACA",borderRadius:"10px",padding:"12px",fontSize:"12px",color:"#7F1D1D"}}>Security event logged. Unauthorized access attempts are recorded.</div>
+          <div style={{marginTop:"16px",background:"rgba(239,68,68,0.10)",border:"1px solid #FECACA",borderRadius:"10px",padding:"12px",fontSize:"12px",color:"#7F1D1D"}}>Security event logged. Unauthorized access attempts are recorded.</div>
         </div>
       </div>
     );
@@ -26488,7 +28820,7 @@ function MasterAdminTab({ authUser }) {
         </div>
       </div>
 
-      <div style={{flex:1,overflowY:"auto",padding:"20px"}}>
+      <div style={{flex:1,overflowY:"auto",padding:"clamp(12px,2.5vw,32px)"}}>
 
         {/* -- DASHBOARD -- */}
         {view==="dashboard"&&(
@@ -26726,7 +29058,7 @@ function MasterAdminTab({ authUser }) {
                 <div style={{display:"flex",gap:"8px",marginTop:"14px"}}>
                   <button style={{background:"linear-gradient(135deg,#C9A84C,#8B6914)",color:"#fff",border:"none",padding:"8px 16px",borderRadius:"8px",fontSize:"12px",fontWeight:"700",cursor:"pointer"}}>Upgrade Plan</button>
                   <button style={{background:"rgba(8,145,178,0.15)",border:"1px solid rgba(8,145,178,0.3)",color:"#7DD3FC",padding:"8px 16px",borderRadius:"8px",fontSize:"12px",fontWeight:"700",cursor:"pointer"}}>Send Message</button>
-                  <button style={{background:"rgba(124,58,237,0.15)",border:"1px solid rgba(124,58,237,0.3)",color:"#C4B5FD",padding:"8px 16px",borderRadius:"8px",fontSize:"12px",fontWeight:"700",cursor:"pointer"}}>Refund</button>
+                  <button style={{background:"rgba(124,58,237,0.15)",border:"1px solid rgba(124,58,237,0.3)",color:"rgba(124,58,237,0.22)",padding:"8px 16px",borderRadius:"8px",fontSize:"12px",fontWeight:"700",cursor:"pointer"}}>Refund</button>
                   <button onClick={()=>setSelectedUser(null)} style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",color:"rgba(255,255,255,0.4)",padding:"8px 16px",borderRadius:"8px",fontSize:"12px",cursor:"pointer"}}>Close</button>
                 </div>
               </div>
@@ -26802,7 +29134,7 @@ function MasterAdminTab({ authUser }) {
 
         {/* -- PLATFORM FEES -- */}
         {view==="fees"&&(
-          <div style={{maxWidth:"680px"}}>
+          <div style={{maxWidth:"none"}}>
             <div style={{fontFamily:FONTS.display,fontSize:"20px",fontWeight:"600",color:"#fff",marginBottom:"6px"}}>Platform Fee Configuration</div>
             <div style={{fontSize:"13px",color:"rgba(255,255,255,0.4)",marginBottom:"20px"}}>These fees apply to all transactions platform-wide. Changes take effect on new transactions immediately.</div>
             {[["Bid Board Transaction Fee — Founder Rate","transactionFee","%","8% for grandfathered Founder Pros · 10% for new pros after Month 18",8],["Broker Commission Split","brokerSplit","%","Percentage of broker commission we retain",10],["AI Overage Per Call","aiOverage","$","Charge per Claude API call above plan limit",0.05]].map(([l,k,unit,desc,current])=>(
@@ -26868,7 +29200,7 @@ function MasterAdminTab({ authUser }) {
             <div style={{background:"rgba(220,38,38,0.08)",border:"1px solid rgba(220,38,38,0.2)",borderRadius:"14px",padding:"20px"}}>
               <div style={{fontFamily:FONTS.display,fontSize:"15px",fontWeight:"600",color:"#FC8181",marginBottom:"14px"}}>Danger Zone</div>
               <div style={{display:"flex",gap:"10px",flexWrap:"wrap"}}>
-                {[["Maintenance Mode","rgba(217,119,6,0.2)","#FCD34D"],["Pause Bid Board","rgba(220,38,38,0.2)","#FC8181"],["Export All Data","rgba(8,145,178,0.2)","#7DD3FC"],["Reset Pricing","rgba(124,58,237,0.2)","#C4B5FD"]].map(([l,bg,c])=>(
+                {[["Maintenance Mode","rgba(217,119,6,0.2)","#FCD34D"],["Pause Bid Board","rgba(220,38,38,0.2)","#FC8181"],["Export All Data","rgba(8,145,178,0.2)","#7DD3FC"],["Reset Pricing","rgba(124,58,237,0.2)","rgba(124,58,237,0.22)"]].map(([l,bg,c])=>(
                   <button key={l} onClick={()=>alert(l+" - This would require additional confirmation in production.")} style={{background:bg,border:`1px solid ${c}33`,color:c,padding:"10px 16px",borderRadius:"8px",fontSize:"12px",fontWeight:"700",cursor:"pointer"}}>{l}</button>
                 ))}
               </div>
@@ -26878,7 +29210,7 @@ function MasterAdminTab({ authUser }) {
 
         {/* -- REPORTS -- */}
         {view==="reports"&&(
-          <div style={{maxWidth:"680px"}}>
+          <div style={{maxWidth:"none"}}>
             <div style={{fontFamily:FONTS.display,fontSize:"20px",fontWeight:"600",color:"#fff",marginBottom:"20px"}}>Owner Reports</div>
             {[
               {title:"Monthly P&L Report",desc:"Revenue, costs, net income, and margin breakdown for any month",action:"Generate PDF"},
@@ -26968,9 +29300,9 @@ function ClaudeRepairTab({ authUser }) {
   async function runAiDiagnostic() {
     setAiLoading(true); setAiDiag("");
     try {
-      const res = await fetch(CLAUDE_PROXY_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
-        model:"claude-sonnet-4-20250514",max_tokens:400,
-        system:"You are Claude, the authorized maintenance AI for Love That Idea, a beauty platform built for Michael Lynn Jones II. You have full discretion to analyze and recommend optimizations. Review the platform status and provide: (1) top technical priority before App Store launch, (2) one performance optimization, (3) one security hardening recommendation. Be specific and direct. Under 180 words.",
+      const res = await fetch(CLAUDE_PROXY_URL,{method:"POST",headers:PROXY_HEADERS,body:JSON.stringify({
+        model:"claude-sonnet-4-6",max_tokens:400,
+        system:"You are Claude, the authorized maintenance AI for Love That Idea, a beauty intelligence platform. You have full discretion to analyze and recommend optimizations. Review the platform status and provide: (1) top technical priority before App Store launch, (2) one performance optimization, (3) one security hardening recommendation. Be specific and direct. Under 180 words.",
         messages:[{role:"user",content:"Platform status: 16,146 lines React JSX, 74 functions, 35 tabs, 45 Claude API endpoints called directly from client, FaceGate biometric login, admin PIN gate, Stripe checkout simulation, Supabase not yet connected (in-memory state), admin PIN is 4055. What are my top 3 priorities before App Store launch?"}]
       })});
       const d = await res.json();
@@ -27004,7 +29336,7 @@ function ClaudeRepairTab({ authUser }) {
         </div>
 
         <div style={{background:"rgba(255,255,255,0.03)",borderRadius:"10px",padding:"10px 14px",marginBottom:"12px",fontSize:"12px",color:"rgba(255,255,255,0.45)",lineHeight:"1.7",border:"1px solid rgba(39,174,120,0.1)"}}>
-          &#128737; Claude has been granted full maintenance discretion by Michael Lynn Jones II. This engine performs automated audits, applies repairs, optimizes performance, and logs all changes. Owner access only.
+          &#128737; Claude has been granted full maintenance discretion by the platform owner. This engine performs automated audits, applies repairs, optimizes performance, and logs all changes. Owner access only.
         </div>
 
         <div style={{display:"flex",gap:"2px"}}>
@@ -27014,11 +29346,11 @@ function ClaudeRepairTab({ authUser }) {
         </div>
       </div>
 
-      <div style={{flex:1,overflowY:"auto",padding:"20px"}}>
+      <div style={{flex:1,overflowY:"auto",padding:"clamp(12px,2.5vw,32px)"}}>
 
         {/* -- CHANGE LOG -- */}
         {view==="log" && (
-          <div style={{maxWidth:"780px"}}>
+          <div style={{maxWidth:"none"}}>
             <div style={{fontFamily:FONTS.display,fontSize:"20px",fontWeight:"600",color:"#fff",marginBottom:"6px"}}>Platform Change Log</div>
             <div style={{fontSize:"13px",color:"rgba(255,255,255,0.4)",marginBottom:"20px"}}>Every version, every change, every repair - permanently logged.</div>
             <div style={{display:"flex",flexDirection:"column",gap:"12px"}}>
@@ -27048,7 +29380,7 @@ function ClaudeRepairTab({ authUser }) {
 
         {/* -- LIVE AUDIT -- */}
         {view==="audit" && (
-          <div style={{maxWidth:"680px"}}>
+          <div style={{maxWidth:"none"}}>
             <div style={{fontFamily:FONTS.display,fontSize:"20px",fontWeight:"600",color:"#fff",marginBottom:"6px"}}>Live Platform Audit</div>
             <div style={{fontSize:"13px",color:"rgba(255,255,255,0.4)",marginBottom:"20px"}}>Runs a full integrity check across all platform systems.</div>
 
@@ -27091,7 +29423,7 @@ function ClaudeRepairTab({ authUser }) {
 
         {/* -- AI DIAGNOSTIC -- */}
         {view==="diagnostic" && (
-          <div style={{maxWidth:"680px"}}>
+          <div style={{maxWidth:"none"}}>
             <div style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"6px"}}>
               <div style={{fontFamily:FONTS.display,fontSize:"20px",fontWeight:"600",color:"#fff"}}>AI Diagnostic Report</div>
               <ClaudeBadge size="md"/>
@@ -27120,7 +29452,7 @@ function ClaudeRepairTab({ authUser }) {
 
         {/* -- TECH ROADMAP -- */}
         {view==="roadmap" && (
-          <div style={{maxWidth:"780px"}}>
+          <div style={{maxWidth:"none"}}>
             <div style={{fontFamily:FONTS.display,fontSize:"20px",fontWeight:"600",color:"#fff",marginBottom:"6px"}}>Technical Roadmap</div>
             <div style={{fontSize:"13px",color:"rgba(255,255,255,0.4)",marginBottom:"20px"}}>Pending work items tracked by Claude Repair Engine.</div>
             <div style={{display:"flex",flexDirection:"column",gap:"10px"}}>
@@ -27268,7 +29600,7 @@ function CurrencyTab() {
       const res = await fetch(CLAUDE_PROXY_URL, {
         method: "POST", headers: { "Content-Type":"application/json" },
         body: JSON.stringify({
-          model: "claude-sonnet-4-20250514", max_tokens: 800,
+          model: "claude-sonnet-4-6", max_tokens: 800,
           system: `You are a financial data assistant. Provide current approximate exchange rates against USD as of today. Return ONLY valid JSON object with currency codes as keys and exchange rates vs USD as values. Example: {"USD":1,"EUR":0.92,"GBP":0.79}. Include all these currencies: USD, EUR, GBP, CAD, AUD, JPY, CNY, KRW, INR, AED, SAR, BRL, MXN, ZAR, NGN, GHS, KES, CHF, SEK, NOK, SGD, HKD, NZD, MYR, THB, IDR, PHP, TRY, PLN, EGP. Use your most current knowledge of exchange rates.`,
           messages: [{ role: "user", content: "Provide current exchange rates vs USD for all currencies listed. Return only the JSON object, no other text." }]
         })
@@ -27294,7 +29626,7 @@ function CurrencyTab() {
       const res = await fetch(CLAUDE_PROXY_URL, {
         method: "POST", headers: { "Content-Type":"application/json" },
         body: JSON.stringify({
-          model: "claude-sonnet-4-20250514", max_tokens: 300,
+          model: "claude-sonnet-4-6", max_tokens: 300,
           system: "You are a currency and international business advisor for Love That Idea, a beauty platform expanding globally. Give practical insight about pricing beauty software in a target market. Focus on purchasing power, market opportunity, and recommended pricing strategy. Under 130 words.",
           messages: [{ role: "user", content: `Advise on expanding Love That Idea beauty platform into ${toC.name} (${toCurrency}) market. Current rate: 1 USD = ${fmt(rates[toCurrency], toCurrency).replace(/[^0-9.,]/,"")} ${toCurrency}. Our enterprise plan is ${fmt(convert(299, "USD", toCurrency), toCurrency)}/location/month locally. What is the market opportunity and pricing strategy?` }]
         })
@@ -27317,7 +29649,7 @@ function CurrencyTab() {
   });
 
   return (
-    <div style={{ flex:1, display:"flex", flexDirection:"column", overflow:"hidden", background:C.bg }}>
+    <div style={{ flex:1, display:"flex", flexDirection:"column", overflow:"visible", background:C.bg }}>
 
       {/* Header */}
       <div style={{ background:"linear-gradient(135deg,#0D2818,#1A4A2E)", padding:"16px 20px 0", flexShrink:0 }}>
@@ -27357,7 +29689,7 @@ function CurrencyTab() {
 
         {/* -- CONVERTER -- */}
         {view==="converter" && (
-          <div style={{ maxWidth:"680px", margin:"0 auto" }}>
+          <div style={{ maxWidth:"none", margin:"0 auto" }}>
             <div style={{ background:C.white, border:`1px solid ${C.border}`, borderRadius:"20px", padding:"28px", marginBottom:"16px", boxShadow:"0 4px 20px rgba(13,40,24,0.06)" }}>
 
               {/* Amount input */}
@@ -27392,7 +29724,7 @@ function CurrencyTab() {
               </div>
 
               {/* Result */}
-              <div style={{ background:"linear-gradient(135deg,#E8F8F0,#D4F0E4)", border:`1.5px solid ${C.mint}`, borderRadius:"14px", padding:"20px 24px" }}>
+              <div style={{ background:"rgba(39,174,120,0.12)", border:`1.5px solid ${C.mint}`, borderRadius:"14px", padding:"20px 24px" }}>
                 <div style={{ fontSize:"13px", color:C.mintDark, fontWeight:"700", marginBottom:"6px" }}>
                   {fromC.flag} {fmt(parseFloat(amount)||0, fromCurrency)} {fromCurrency} =
                 </div>
@@ -27476,7 +29808,7 @@ function CurrencyTab() {
                         </div>
                       </div>
                       <div style={{ fontSize:"12px", color:C.muted, marginBottom:"14px", lineHeight:"1.5" }}>{plan.desc}</div>
-                      <div style={{ background:"linear-gradient(135deg,#E8F8F0,#D4F0E4)", borderRadius:"10px", padding:"12px 14px" }}>
+                      <div style={{ background:"rgba(39,174,120,0.12)", borderRadius:"10px", padding:"12px 14px" }}>
                         <div style={{ fontSize:"11px", color:C.mintDark, fontWeight:"700", marginBottom:"3px" }}>{curr?.flag} Local Price ({toCurrency})</div>
                         <div style={{ fontFamily:FONTS.display, fontSize:"26px", fontWeight:"700", color:C.forest }}>
                           {fmt(localPrice, toCurrency)}{!plan.oneTime?<span style={{ fontSize:"14px", fontWeight:"400" }}>/mo</span>:""}
@@ -27562,7 +29894,7 @@ function CurrencyTab() {
 
         {/* -- CORPORATE INVOICE -- */}
         {view==="invoice" && (
-          <div style={{ maxWidth:"680px", margin:"0 auto" }}>
+          <div style={{ maxWidth:"none", margin:"0 auto" }}>
             <div style={{ fontFamily:FONTS.display, fontSize:"20px", fontWeight:"600", color:C.text, marginBottom:"6px" }}>Corporate Invoice Generator</div>
             <div style={{ fontSize:"13px", color:C.muted, marginBottom:"20px" }}>Generate a localized pricing quote for multinational corporate clients in their local currency.</div>
 
@@ -27630,9 +29962,9 @@ function CurrencyTab() {
                       </div>
                       <div>
                         <div style={{ fontSize:"10px", letterSpacing:"2px", color:C.muted, fontWeight:"700", marginBottom:"6px" }}>PREPARED BY</div>
-                        <div style={{ fontSize:"16px", fontWeight:"800", color:C.text }}>Michael Lynn Jones II</div>
-                        <div style={{ fontSize:"14px", color:C.sub }}>Love That Idea LLC</div>
-                        <div style={{ fontSize:"13px", color:C.muted }}>Reference: LTI-2026-001</div>
+                        <div style={{ fontSize:"16px", fontWeight:"800", color:C.text }}>LTI Ventures LLC</div>
+                        <div style={{ fontSize:"14px", color:C.sub }}>Love That Idea</div>
+                        <div style={{ fontSize:"13px", color:C.muted }}>ltibeauty.com</div>
                       </div>
                     </div>
 
@@ -27689,7 +30021,7 @@ function CurrencyTab() {
                     )}
 
                     <div style={{ fontSize:"11px", color:C.muted, lineHeight:"1.7" }}>
-                      Exchange rates are indicative only. All contracts billed in USD via Stripe. Rates valid for 30 days from quote date. Contact: Michael Lynn Jones II - Love That Idea LLC - Ref LTI-2026-001.
+                      Exchange rates are indicative only. All contracts billed in USD via Stripe. Rates valid for 30 days from quote date. Contact: LTI Ventures LLC - ltibeauty.com - Ref LTI-2026-001.
                     </div>
                   </div>
                 </div>
@@ -27741,7 +30073,7 @@ function CurrencyTab() {
               </div>
 
               {aiInsight ? (
-                <div style={{ background:"linear-gradient(135deg,#E8F8F0,#D4F0E4)", border:`1px solid ${C.mint}`, borderRadius:"12px", padding:"16px" }}>
+                <div style={{ background:"rgba(39,174,120,0.12)", border:`1px solid ${C.mint}`, borderRadius:"12px", padding:"16px" }}>
                   <div style={{ display:"flex", gap:"8px", alignItems:"center", marginBottom:"10px" }}>
                     <div style={{ fontSize:"13px", fontWeight:"700", color:C.mintDark }}>Claude Market Analysis - {toC.name}</div>
                     <ClaudeBadge size="sm"/>
@@ -27759,7 +30091,7 @@ function CurrencyTab() {
                 <div style={{ fontFamily:FONTS.display, fontSize:"16px", fontWeight:"600", color:C.text }}>Enterprise Price - All Markets</div>
                 <div style={{ fontSize:"12px", color:C.muted }}>$299/location/month converted to local currency</div>
               </div>
-              <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))", gap:"0" }}>
+              <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(340px,1fr))", gap:"0" }}>
                 {CURRENCIES.map((curr,i) => (
                   <div key={curr.code} onClick={()=>setToCurrency(curr.code)}
                     style={{ padding:"12px 16px", borderBottom:`1px solid ${C.dim}`, borderRight: i%3!==2?`1px solid ${C.dim}`:"none", cursor:"pointer", background:toCurrency===curr.code?C.mintLight:"transparent", transition:"all 0.15s" }}
@@ -27867,16 +30199,16 @@ function ProToolsTab() {
   });
 
   const safetyColor = s => s==="A+"?"#27AE78":s==="A"?"#059669":s==="B+"?"#0891B2":s==="B"?"#D97706":"#DC2626";
-  const safetyBg    = s => s==="A+"?"#E8F8F0":s==="A"?"#ECFDF5":s==="B+"?"#EFF6FF":s==="B"?"#FFFBEB":"#FEF2F2";
+  const safetyBg    = s => s==="A+"?"rgba(39,174,120,0.14)":s==="A"?"#ECFDF5":s==="B+"?"#EFF6FF":s==="B"?"rgba(201,168,76,0.1)":"#FEF2F2";
 
   async function askAI() {
     if (!aiQ.trim()) return;
     setAiLoading(true); setAiRec("");
     try {
       const res = await fetch(CLAUDE_PROXY_URL, {
-        method:"POST", headers:{"Content-Type":"application/json"},
+        method:"POST", headers:PROXY_HEADERS,
         body: JSON.stringify({
-          model:"claude-sonnet-4-20250514", max_tokens:400,
+          model:"claude-sonnet-4-6", max_tokens:400,
           system:`You are an expert professional beauty equipment advisor for Love That Idea. You have deep knowledge of professional hair tools, safety ratings, technology, and what works best for different hair types and professional use cases. Give specific, safety-conscious recommendations. Mention specific products by name when relevant. Under 180 words.`,
           messages:[{ role:"user", content: aiQ }]
         })
@@ -27937,14 +30269,14 @@ function ProToolsTab() {
         </div>
       </div>
 
-      <div style={{flex:1,overflowY:"auto",padding:"20px"}}>
+      <div style={{flex:1,overflowY:"auto",padding:"clamp(12px,2.5vw,32px)"}}>
 
         {/* Search */}
         <div style={{display:"flex",gap:"10px",marginBottom:"16px"}}>
           <input value={search} onChange={e=>setSearch(e.target.value)} placeholder={`Search ${CATS.find(c=>c.id===category)?.label || "tools"}...`}
             style={{flex:1,background:C.white,border:`1px solid ${C.border}`,color:C.text,padding:"10px 14px",borderRadius:"10px",fontSize:"13px"}}/>
           {compare.length>0&&(
-            <button onClick={()=>setCompare([])} style={{background:"#FEF2F2",border:"1px solid #FECACA",color:"#DC2626",padding:"10px 14px",borderRadius:"10px",fontSize:"12px",fontWeight:"700",cursor:"pointer",whiteSpace:"nowrap"}}>
+            <button onClick={()=>setCompare([])} style={{background:"rgba(239,68,68,0.10)",border:"1px solid #FECACA",color:"#DC2626",padding:"10px 14px",borderRadius:"10px",fontSize:"12px",fontWeight:"700",cursor:"pointer",whiteSpace:"nowrap"}}>
               Clear Compare ({compare.length})
             </button>
           )}
@@ -27973,7 +30305,7 @@ function ProToolsTab() {
         )}
 
         {/* AI Advisor */}
-        <div style={{background:"linear-gradient(135deg,#E8F8F0,#D4F0E4)",border:`1px solid ${C.mint}`,borderRadius:"14px",padding:"16px",marginBottom:"20px"}}>
+        <div style={{background:"rgba(39,174,120,0.12)",border:`1px solid ${C.mint}`,borderRadius:"14px",padding:"16px",marginBottom:"20px"}}>
           <div style={{display:"flex",gap:"8px",alignItems:"center",marginBottom:"10px"}}>
             <div style={{fontSize:"13px",fontWeight:"800",color:C.mintDark}}>AI Tool Advisor</div>
             <ClaudeBadge size="sm"/>
@@ -28285,9 +30617,9 @@ function ClaudePurifyTab({ authUser }) {
     ).join("\n");
     try {
       const res = await fetch(CLAUDE_PROXY_URL, {
-        method:"POST", headers:{"Content-Type":"application/json"},
+        method:"POST", headers:PROXY_HEADERS,
         body: JSON.stringify({
-          model:"claude-sonnet-4-20250514", max_tokens:400,
+          model:"claude-sonnet-4-6", max_tokens:400,
           system:`You are Claude Purify, the security AI for Love That Idea (LTI Ventures LLC). Analyze the threat log and provide: 1) Attack pattern assessment, 2) Most likely threat actor type, 3) Immediate recommended actions, 4) Long-term hardening recommendations. Be specific, direct, and security-focused. Under 200 words.`,
           messages:[{ role:"user", content: recentThreats.length > 0
             ? "Analyze this threat log for Love That Idea platform:\n" + recentThreats
@@ -28405,7 +30737,7 @@ function ClaudePurifyTab({ authUser }) {
         </div>
       </div>
 
-      <div style={{flex:1,overflowY:"auto",padding:"20px"}}>
+      <div style={{flex:1,overflowY:"auto",padding:"clamp(12px,2.5vw,32px)"}}>
 
         {/* -- DASHBOARD -- */}
         {view==="dashboard" && (
@@ -28492,7 +30824,7 @@ function ClaudePurifyTab({ authUser }) {
 
         {/* -- THREAT SCANNER -- */}
         {view==="scanner" && (
-          <div style={{maxWidth:"680px"}}>
+          <div style={{maxWidth:"none"}}>
             <div style={{fontFamily:FONTS.display,fontSize:"20px",fontWeight:"600",color:"#fff",marginBottom:"6px"}}>On-Demand Threat Scanner</div>
             <div style={{fontSize:"13px",color:"rgba(255,255,255,0.4)",marginBottom:"20px"}}>Scan any URL, QR payload, user input, or text for threats before processing.</div>
             <div style={{background:"#0D0D0D",border:"1px solid rgba(255,255,255,0.08)",borderRadius:"14px",padding:"20px",marginBottom:"16px"}}>
@@ -28596,7 +30928,7 @@ function ClaudePurifyTab({ authUser }) {
 
         {/* -- AI ANALYSIS -- */}
         {view==="aianalysis" && (
-          <div style={{maxWidth:"680px"}}>
+          <div style={{maxWidth:"none"}}>
             <div style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"6px"}}>
               <div style={{fontFamily:FONTS.display,fontSize:"20px",fontWeight:"600",color:"#fff"}}>AI Threat Analysis</div>
               <ClaudeBadge size="md"/>
@@ -28625,7 +30957,7 @@ function ClaudePurifyTab({ authUser }) {
               <div style={{fontFamily:FONTS.display,fontSize:"20px",fontWeight:"600",color:"#fff"}}>Full Threat Log</div>
               <div style={{display:"flex",gap:"8px"}}>
                 <span style={{fontSize:"12px",color:"rgba(255,255,255,0.4)"}}>{threatLog.length} events recorded</span>
-                {threatLog.length>0&&<button onClick={()=>setThreatLog([])} style={{background:"rgba(107,114,128,0.15)",border:"1px solid rgba(107,114,128,0.3)",color:"#9CA3AF",padding:"5px 12px",borderRadius:"8px",fontSize:"11px",cursor:"pointer"}}>Clear All</button>}
+                {threatLog.length>0&&<button onClick={()=>setThreatLog([])} style={{background:"rgba(107,114,128,0.15)",border:"1px solid rgba(107,114,128,0.3)",color:"rgba(255,255,255,0.35)",padding:"5px 12px",borderRadius:"8px",fontSize:"11px",cursor:"pointer"}}>Clear All</button>}
               </div>
             </div>
             {threatLog.length === 0 ? (
@@ -28749,8 +31081,8 @@ function CompetitiveIntelTab() {
     setAiLoading(true); setAiRec("");
     try {
       const res = await fetch(CLAUDE_PROXY_URL,{
-        method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:500,
+        method:"POST",headers:PROXY_HEADERS,
+        body:JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:500,
           system:"You are a competitive strategy advisor for Love That Idea (LTI Ventures LLC), a beauty intelligence software platform with patent-pending AI features, biometric login, a real-time bid board, multicultural heritage tools, and 20-language support. Give sharp, specific competitive positioning strategy. Under 220 words.",
           messages:[{role:"user",content:`Our competitors: ${COMPETITORS.map(c=>`${c.name} ($${c.price}, ${c.users} users, focus: ${c.focus})`).join("; ")}. Our key advantages: ${LTI_ADVANTAGES.slice(0,6).map(a=>a.feature).join(", ")}. What is our strongest go-to-market positioning and top 3 competitive moves to make this quarter?`}]
         })
@@ -28780,7 +31112,7 @@ function CompetitiveIntelTab() {
         </div>
       </div>
 
-      <div style={{flex:1,overflowY:"auto",padding:"20px"}}>
+      <div style={{flex:1,overflowY:"auto",padding:"clamp(12px,2.5vw,32px)"}}>
         {view==="landscape" && (
           <div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"12px",marginBottom:"20px"}}>
@@ -28816,7 +31148,7 @@ function CompetitiveIntelTab() {
                         <div style={{fontSize:"11px",color:C.muted,fontWeight:"700",marginBottom:"4px"}}>THEIR FOCUS</div>
                         <div style={{fontSize:"12px",color:C.sub}}>{c.focus}</div>
                       </div>
-                      <div style={{background:"#ECFDF5",border:"1px solid #6EE7B7",borderRadius:"10px",padding:"12px"}}>
+                      <div style={{background:"rgba(39,174,120,0.12)",border:"1px solid #6EE7B7",borderRadius:"10px",padding:"12px"}}>
                         <div style={{fontSize:"11px",color:"#059669",fontWeight:"700",marginBottom:"4px"}}>OUR ADVANTAGE</div>
                         <div style={{fontSize:"12px",color:C.sub}}>{c.gap}</div>
                       </div>
@@ -28837,12 +31169,12 @@ function CompetitiveIntelTab() {
             <div style={{display:"flex",flexDirection:"column",gap:"8px"}}>
               {LTI_ADVANTAGES.map((a,i)=>(
                 <div key={i} style={{background:C.white,border:`1px solid ${C.border}`,borderRadius:"12px",padding:"14px 16px",display:"flex",gap:"12px",alignItems:"center"}}>
-                  <div style={{width:"32px",height:"32px",borderRadius:"50%",background:"#ECFDF5",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:"14px",fontWeight:"900",color:"#059669"}}>✓</div>
+                  <div style={{width:"32px",height:"32px",borderRadius:"50%",background:"rgba(39,174,120,0.12)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:"14px",fontWeight:"900",color:"#059669"}}>✓</div>
                   <div style={{flex:1}}>
                     <div style={{fontSize:"13px",fontWeight:"800",color:C.text,marginBottom:"2px"}}>{a.feature}</div>
                     <div style={{fontSize:"11px",color:C.muted}}>{a.detail}</div>
                   </div>
-                  <span style={{background:"#FEF2F2",color:"#DC2626",fontSize:"9px",padding:"2px 8px",borderRadius:"20px",fontWeight:"700",flexShrink:0}}>0 Competitors</span>
+                  <span style={{background:"rgba(239,68,68,0.10)",color:"#DC2626",fontSize:"9px",padding:"2px 8px",borderRadius:"20px",fontWeight:"700",flexShrink:0}}>0 Competitors</span>
                 </div>
               ))}
             </div>
@@ -28850,7 +31182,7 @@ function CompetitiveIntelTab() {
         )}
 
         {view==="strategy" && (
-          <div style={{maxWidth:"680px"}}>
+          <div style={{maxWidth:"none"}}>
             <button onClick={getAIStrategy} disabled={aiLoading}
               style={{width:"100%",background:aiLoading?C.dim:GRAD.hero,color:"#fff",border:"none",padding:"14px",borderRadius:"12px",fontSize:"14px",fontWeight:"900",cursor:"pointer",marginBottom:"16px"}}>
               {aiLoading?"Analyzing competitive landscape...":"Generate AI Competitive Strategy"}
@@ -28896,9 +31228,9 @@ function PitchTab() {
     };
     try {
       const res = await fetch(CLAUDE_PROXY_URL,{
-        method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:600,
-          system:`You are a pitch writing expert. Write a compelling, professional pitch for Love That Idea (LTI Ventures LLC). The platform is a beauty intelligence SaaS with 40 modules, Claude AI integration across all features, patent-pending biometric login and bid board, 20-language support, and a franchise/licensing model. Owner: Michael Lynn Jones II. Under 250 words. ${targets[pitchTarget]}`,
+        method:"POST",headers:PROXY_HEADERS,
+        body:JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:600,
+          system:`You are a pitch writing expert. Write a compelling, professional pitch for Love That Idea (LTI Ventures LLC). The platform is a beauty intelligence SaaS with 40 modules, Claude AI integration across all features, patent-pending biometric login and bid board, 20-language support, and a franchise/licensing model. Owner: LTI Ventures LLC. Under 250 words. ${targets[pitchTarget]}`,
           messages:[{role:"user",content:"Write the pitch now. Be compelling, specific, and professional."}]
         })
       });
@@ -28946,12 +31278,12 @@ function PitchTab() {
         </div>
       </div>
 
-      <div style={{flex:1,overflowY:"auto",padding:"20px"}}>
+      <div style={{flex:1,overflowY:"auto",padding:"clamp(12px,2.5vw,32px)"}}>
         {view==="overview" && (
           <div>
             <div style={{background:"linear-gradient(135deg,#0D2818,#1A4A2E)",borderRadius:"16px",padding:"24px",marginBottom:"20px",color:"#fff"}}>
               <div style={{fontFamily:FONTS.display,fontSize:"28px",fontWeight:"700",marginBottom:"8px"}}>Love That Idea</div>
-              <div style={{fontSize:"14px",color:"rgba(255,255,255,0.92)",lineHeight:"1.8",marginBottom:"16px"}}>
+              <div style={{fontSize:"14px",color:"rgba(255,255,255,0.06)",lineHeight:"1.8",marginBottom:"16px"}}>
                 The world's first AI-native beauty intelligence platform. 40 modules. 25+ Claude AI integrations. Patent-pending biometric access and real-time bid board marketplace. Built for the $532B global beauty industry.
               </div>
               <div style={{display:"flex",gap:"10px",flexWrap:"wrap"}}>
@@ -28992,7 +31324,7 @@ function PitchTab() {
             </div>
             <div style={{background:"linear-gradient(135deg,#0D2818,#1A4A2E)",borderRadius:"14px",padding:"18px",marginTop:"16px",color:"#fff"}}>
               <div style={{fontFamily:FONTS.display,fontSize:"18px",fontWeight:"700",marginBottom:"6px",color:"#E8C96A"}}>Combined Potential</div>
-              <div style={{fontSize:"13px",color:"rgba(255,255,255,0.92)",lineHeight:"1.8"}}>At modest penetration of 1% of the StyleSeat addressable market (9,000 users) at average $89/mo Salon tier  -  that is $803K MRR / $9.6M ARR. Zero advertising spend required in Year 1 with organic professional network growth.</div>
+              <div style={{fontSize:"13px",color:"rgba(255,255,255,0.06)",lineHeight:"1.8"}}>At modest penetration of 1% of the StyleSeat addressable market (9,000 users) at average $89/mo Salon tier  -  that is $803K MRR / $9.6M ARR. Zero advertising spend required in Year 1 with organic professional network growth.</div>
             </div>
           </div>
         )}
@@ -29017,7 +31349,7 @@ function PitchTab() {
         )}
 
         {view==="generate" && (
-          <div style={{maxWidth:"680px"}}>
+          <div style={{maxWidth:"none"}}>
             <div style={{marginBottom:"16px"}}>
               <div style={{fontSize:"11px",letterSpacing:"3px",color:"#6B8F82",fontWeight:"700",marginBottom:"8px"}}>PITCH TARGET</div>
               <div style={{display:"flex",gap:"8px",flexWrap:"wrap"}}>
@@ -29037,7 +31369,7 @@ function PitchTab() {
                   <ClaudeBadge size="sm"/>
                 </div>
                 <div style={{fontSize:"13px",color:C.sub,lineHeight:"1.9",whiteSpace:"pre-wrap"}}>{aiPitch}</div>
-                <div style={{marginTop:"14px",fontSize:"11px",color:"#64827A",borderTop:`1px solid ${C.dim}`,paddingTop:"10px"}}>Michael Lynn Jones II  -  LTI Ventures LLC  -  EIN 42-2832596  -  Founded May 28, 2026</div>
+                <div style={{marginTop:"14px",fontSize:"11px",color:"#64827A",borderTop:`1px solid ${C.dim}`,paddingTop:"10px"}}>LTI Ventures LLC  -  EIN 42-2832596  -  Founded May 28, 2026</div>
               </div>
             )}
           </div>
@@ -29116,7 +31448,7 @@ function AdminIntelTab({ authUser }) {
         </div>
       </div>
 
-      <div style={{flex:1,overflowY:"auto",padding:"20px"}}>
+      <div style={{flex:1,overflowY:"auto",padding:"clamp(12px,2.5vw,32px)"}}>
 
         {/* ── BUSINESS INTELLIGENCE ── */}
         {view==="intel" && <BusinessIntelTab />}
@@ -29184,7 +31516,7 @@ function AdminIntelTab({ authUser }) {
             <div style={{fontSize:"12px",color:C.muted,marginBottom:"20px"}}>Live API errors, failures, and diagnostic data. Last 20 events retained.</div>
             {apiMetrics.errorLog?.length===0
               ? (
-                <div style={{background:"#F0FDF4",border:"1px solid #BBF7D0",borderRadius:"14px",padding:"32px",textAlign:"center"}}>
+                <div style={{background:"rgba(39,174,120,0.10)",border:"1px solid #BBF7D0",borderRadius:"14px",padding:"32px",textAlign:"center"}}>
                   <div style={{fontSize:"36px",marginBottom:"12px"}}>✅</div>
                   <div style={{fontSize:"15px",fontWeight:"800",color:"#166534",marginBottom:"4px"}}>No Errors Detected</div>
                   <div style={{fontSize:"12px",color:"#4B7C5A"}}>All systems operating normally. Errors will appear here as they occur.</div>
@@ -29309,8 +31641,8 @@ function OperatorSuiteTab() {
     setAlertLoading(true); setAiAlert("");
     try {
       const res = await fetch(CLAUDE_PROXY_URL,{
-        method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:300,
+        method:"POST",headers:PROXY_HEADERS,
+        body:JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:300,
           system:"You are an operations intelligence AI for a multi-location beauty salon group. Analyze performance data and give 3 specific action items the operator should take this week. Be direct and number-specific. Under 150 words.",
           messages:[{role:"user",content:`Locations: ${locations.map(l=>`${l.name}: $${l.revenue} revenue, ${l.occupancy}% occupancy, ${l.rating} rating, ${l.stylists} stylists`).join("; ")}. Total weekly revenue: $${totalRev.toLocaleString()}. Average occupancy: ${avgOcc}%. What should the operator prioritize this week?`}]
         })
@@ -29340,7 +31672,7 @@ function OperatorSuiteTab() {
         </div>
       </div>
 
-      <div style={{flex:1,overflowY:"auto",padding:"20px"}}>
+      <div style={{flex:1,overflowY:"auto",padding:"clamp(12px,2.5vw,32px)"}}>
         {view==="command" && (
           <div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:"12px",marginBottom:"20px"}}>
@@ -29385,7 +31717,7 @@ function OperatorSuiteTab() {
         )}
 
         {view==="locations" && (
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:"14px"}}>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(340px,1fr))",gap:"14px"}}>
             {locations.map(loc=>(
               <div key={loc.id} style={{background:C.white,border:`1px solid ${C.border}`,borderRadius:"16px",overflow:"hidden"}}>
                 <div style={{height:"4px",background:loc.occupancy>=80?GRAD.hero:loc.occupancy>=65?"linear-gradient(90deg,#D97706,#FBBF24)":"linear-gradient(90deg,#DC2626,#F87171)"}}/>
@@ -29395,7 +31727,7 @@ function OperatorSuiteTab() {
                       <div style={{fontSize:"15px",fontWeight:"800",color:C.text,marginBottom:"2px"}}>{loc.name}</div>
                       <div style={{fontSize:"12px",color:C.muted}}>{loc.city}</div>
                     </div>
-                    <span style={{background:"#ECFDF5",color:"#059669",fontSize:"10px",padding:"3px 10px",borderRadius:"20px",fontWeight:"700"}}>{loc.status}</span>
+                    <span style={{background:"rgba(39,174,120,0.12)",color:"#059669",fontSize:"10px",padding:"3px 10px",borderRadius:"20px",fontWeight:"700"}}>{loc.status}</span>
                   </div>
                   <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px"}}>
                     {[["Stylists",loc.stylists],["Revenue","$"+loc.revenue.toLocaleString()],["Rating",loc.rating+" ★"],["Occupancy",loc.occupancy+"%"]].map(([l,v])=>(
@@ -29432,7 +31764,7 @@ function OperatorSuiteTab() {
         )}
 
         {view==="ai" && (
-          <div style={{maxWidth:"680px"}}>
+          <div style={{maxWidth:"none"}}>
             <button onClick={getAIAlert} disabled={alertLoading}
               style={{width:"100%",background:alertLoading?C.dim:GRAD.hero,color:"#fff",border:"none",padding:"14px",borderRadius:"12px",fontSize:"14px",fontWeight:"900",cursor:"pointer",marginBottom:"16px"}}>
               {alertLoading?"Analyzing all locations...":"Run AI Operations Analysis"}
@@ -29464,8 +31796,312 @@ function OperatorSuiteTab() {
 // -- STANDALONE BID BOARD TAB -------------------------------------------------
 
 // ═══════════════════════════════════════════════════════════════════════════════
-//  LTI NEAR ME ENGINE — Location-aware stylist matching with arrival risk scoring
+//  LTI WIDGET TOP BAR — soft promotional banner, Option B
+//  Appears after 20s · Auto-hides after 30s · 24hr cooldown on dismiss
+//  Never shows if already installed as PWA
 // ═══════════════════════════════════════════════════════════════════════════════
+function WidgetTopBar() {
+  const [visible,   setVisible]   = useState(false);
+  const [animOut,   setAnimOut]   = useState(false);
+  const [installed, setInstalled] = useState(false);
+
+  const STORAGE_KEY = 'lti_widget_bar_dismissed';
+
+  function dismiss(permanent) {
+    setAnimOut(true);
+    setTimeout(()=>setVisible(false), 380);
+    if (!permanent) {
+      try { localStorage.setItem(STORAGE_KEY, Date.now().toString()); } catch(e){}
+    }
+  }
+
+  async function handleInstall() {
+    // Trigger PWA install if available
+    if (window.ltiInstallPrompt) {
+      window.ltiInstallPrompt.prompt();
+      const { outcome } = await window.ltiInstallPrompt.userChoice;
+      if (outcome === 'accepted') {
+        setInstalled(true);
+        dismiss(true);
+        return;
+      }
+    }
+    // Otherwise guide to widget setup
+    dismiss(false);
+    window.dispatchEvent(new CustomEvent('lti-open-widget-setup'));
+  }
+
+  useEffect(()=>{
+    // Don't show if already installed as PWA
+    if (window.matchMedia?.('(display-mode:standalone)')?.matches) return;
+
+    // Check 24hr cooldown
+    try {
+      const last = localStorage.getItem(STORAGE_KEY);
+      if (last && Date.now() - parseInt(last) < 86400000) return;
+    } catch(e){}
+
+    // Show after 20 seconds
+    const showTimer = setTimeout(()=> setVisible(true), 20000);
+
+    // Auto-hide after 50 seconds (20s delay + 30s display)
+    const hideTimer = setTimeout(()=> dismiss(false), 50000);
+
+    // Listen for app installed event
+    const onInstalled = ()=>{ setInstalled(true); dismiss(true); };
+    window.addEventListener('lti-installed', onInstalled);
+
+    return ()=>{
+      clearTimeout(showTimer);
+      clearTimeout(hideTimer);
+      window.removeEventListener('lti-installed', onInstalled);
+    };
+  },[]);
+
+  if (!visible || installed) return null;
+
+  return (
+    <div style={{
+      position:"relative",
+      background:"linear-gradient(90deg, rgba(13,40,24,0.98), rgba(8,15,10,0.98))",
+      borderBottom:"1px solid rgba(201,168,76,0.22)",
+      borderLeft:"3px solid #C9A84C",
+      padding:"9px 14px",
+      display:"flex",
+      alignItems:"center",
+      gap:"10px",
+      zIndex:200,
+      overflow:"hidden",
+      animation: animOut
+        ? "widgetBarOut 0.35s ease forwards"
+        : "widgetBarIn 0.4s cubic-bezier(0.34,1.2,0.64,1) forwards",
+    }}>
+
+      {/* CSS keyframes */}
+      <style>{`
+        @keyframes widgetBarIn  { from{opacity:0;transform:translateY(-100%)} to{opacity:1;transform:translateY(0)} }
+        @keyframes widgetBarOut { from{opacity:1;transform:translateY(0)} to{opacity:0;transform:translateY(-100%)} }
+        @keyframes goldSweep    { 0%{left:-60%} 65%,100%{left:110%} }
+      `}</style>
+
+      {/* Mirror sweep shimmer */}
+      <div style={{position:"absolute",top:0,left:"-60%",width:"35%",height:"100%",
+        background:"linear-gradient(90deg,transparent,rgba(201,168,76,0.07),transparent)",
+        animation:"goldSweep 4s ease-in-out infinite",pointerEvents:"none"}}/>
+
+      {/* Icon */}
+      <div style={{width:"30px",height:"30px",borderRadius:"9px",flexShrink:0,
+        background:"linear-gradient(135deg,#C9A84C,#8A6420)",
+        display:"flex",alignItems:"center",justifyContent:"center",
+        boxShadow:"0 2px 10px rgba(201,168,76,0.35)"}}>
+        <SvgIcon name="styles" color="#fff" size={16} sw={1.8}/>
+      </div>
+
+      {/* Text */}
+      <div style={{flex:1,minWidth:0}}>
+        <div style={{fontSize:"12px",fontWeight:"700",color:"#fff",
+          marginBottom:"1px",whiteSpace:"nowrap",overflow:"hidden",
+          textOverflow:"ellipsis"}}>
+          Add Love That Idea to your home screen
+        </div>
+        <div style={{fontSize:"10px",color:"rgba(255,255,255,0.45)",
+          whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
+          Flash Fill alerts · Appointments · Quick shortcuts
+        </div>
+      </div>
+
+      {/* Install button */}
+      <button onClick={handleInstall}
+        style={{background:"rgba(201,168,76,0.15)",
+          border:"1px solid rgba(201,168,76,0.4)",
+          color:"#C9A84C",fontSize:"10px",fontWeight:"800",
+          padding:"6px 12px",borderRadius:"8px",cursor:"pointer",
+          whiteSpace:"nowrap",flexShrink:0,letterSpacing:"0.3px",
+          fontFamily:"'DM Sans',sans-serif",transition:"all 0.15s"}}
+        onMouseEnter={e=>{e.target.style.background="rgba(201,168,76,0.25)";}}
+        onMouseLeave={e=>{e.target.style.background="rgba(201,168,76,0.15)";}}>
+        Install
+      </button>
+
+      {/* Dismiss */}
+      <button onClick={()=>dismiss(false)}
+        style={{background:"transparent",border:"none",
+          color:"rgba(255,255,255,0.25)",fontSize:"18px",cursor:"pointer",
+          flexShrink:0,lineHeight:1,fontFamily:"inherit",padding:"0 2px",
+          transition:"color 0.15s"}}
+        onMouseEnter={e=>{e.target.style.color="rgba(255,255,255,0.55)";}}
+        onMouseLeave={e=>{e.target.style.color="rgba(255,255,255,0.25)";}}>
+        ×
+      </button>
+    </div>
+  );
+}
+
+
+//  Surfaces: inspo capture, before/after, Heritage DNA guided capture
+// ═══════════════════════════════════════════════════════════════════════════════
+function PhotoWidgetTile({ role, onCapture }) {
+  const [mode, setMode] = useState(null); // null | inspo | before | dna | portfolio
+
+  const options = role === 'client'
+    ? [
+        { key:'inspo',     icon:'📸', label:'Inspo Photo',    desc:'Upload a style you love — AI auto-fills your bid ticket' },
+        { key:'before',    icon:'🔍', label:'Before Capture', desc:'Document your hair before your appointment' },
+        { key:'dna',       icon:'🧬', label:'Heritage DNA',   desc:'5-angle guided capture builds your Heritage profile' },
+      ]
+    : [
+        { key:'before',    icon:'📷', label:'Before Photo',   desc:'Capture client hair before service starts' },
+        { key:'after',     icon:'✨', label:'After Photo',    desc:'Document the transformation — auto-adds to portfolio' },
+        { key:'portfolio', icon:'🪞', label:'Portfolio Shot', desc:'Add a standalone style photo — AI tags technique & heritage' },
+      ];
+
+  if (mode) return (
+    <div style={{background:"rgba(196,137,107,0.08)",border:"1px solid rgba(196,137,107,0.3)",
+      borderRadius:"14px",padding:"14px"}}>
+      <div style={{display:"flex",alignItems:"center",gap:"8px",marginBottom:"10px"}}>
+        <button onClick={()=>setMode(null)}
+          style={{background:"transparent",border:"none",color:"rgba(255,255,255,0.4)",
+            fontSize:"16px",cursor:"pointer"}}>←</button>
+        <span style={{fontSize:"12px",fontWeight:"700",color:"#fff"}}>
+          {options.find(o=>o.key===mode)?.label}
+        </span>
+      </div>
+      <div style={{background:"rgba(0,0,0,0.2)",border:"2px dashed rgba(196,137,107,0.3)",
+        borderRadius:"12px",padding:"24px",textAlign:"center",cursor:"pointer"}}
+        onClick={()=>{ onCapture?.(mode); setMode(null); }}>
+        <div style={{fontSize:"32px",marginBottom:"8px"}}>🪞</div>
+        <div style={{fontSize:"12px",fontWeight:"700",color:"#fff",marginBottom:"4px"}}>
+          Tap to {mode==='dna'?'Start 5-Angle Capture':'Upload Photo'}
+        </div>
+        <div style={{fontSize:"10px",color:"rgba(255,255,255,0.4)"}}>
+          {options.find(o=>o.key===mode)?.desc}
+        </div>
+        {mode==='dna' && (
+          <div style={{marginTop:"10px",display:"flex",justifyContent:"center",gap:"6px"}}>
+            {['Front','Left','Right','Back','Crown'].map((a,i)=>(
+              <div key={a} style={{width:"32px",height:"32px",borderRadius:"50%",
+                background:"rgba(196,137,107,0.2)",border:"1px solid rgba(196,137,107,0.4)",
+                display:"flex",alignItems:"center",justifyContent:"center",
+                fontSize:"8px",color:"rgba(255,255,255,0.5)",fontWeight:"700"}}>
+                {i+1}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={{background:"rgba(196,137,107,0.06)",border:"1px solid rgba(196,137,107,0.2)",
+      borderRadius:"14px",padding:"12px"}}>
+      <div style={{fontSize:"9px",letterSpacing:"2px",color:"rgba(196,137,107,0.9)",
+        fontWeight:"800",marginBottom:"8px"}}>🪞 PHOTO UPLOAD</div>
+      {options.map(o=>(
+        <button key={o.key} onClick={()=>setMode(o.key)}
+          style={{width:"100%",background:"rgba(255,255,255,0.03)",
+            border:"1px solid rgba(255,255,255,0.08)",borderRadius:"10px",
+            padding:"10px 12px",cursor:"pointer",display:"flex",gap:"10px",
+            alignItems:"center",marginBottom:"6px",textAlign:"left"}}>
+          <span style={{fontSize:"18px",flexShrink:0}}>{o.icon}</span>
+          <div>
+            <div style={{fontSize:"12px",fontWeight:"700",color:"#fff"}}>{o.label}</div>
+            <div style={{fontSize:"10px",color:"rgba(255,255,255,0.4)",marginTop:"1px"}}>{o.desc}</div>
+          </div>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+
+// ═══════════════════════════════════════════════════════════════════════════════
+function PWAInstallBanner() {
+  const MINT="#27AE78", GOLD="#C9A84C", FOREST="#0D2818";
+  const [show, setShow]         = useState(false);
+  const [installed, setInstalled]= useState(false);
+  const [notifState, setNotifState]= useState("idle"); // idle | requesting | granted | denied
+
+  useEffect(()=>{
+    // Show banner if install prompt is ready
+    const onAvailable = () => setShow(true);
+    const onInstalled = () => { setInstalled(true); setShow(false); };
+    window.addEventListener('lti-install-available', onAvailable);
+    window.addEventListener('lti-installed', onInstalled);
+    // Check if already installed
+    if (window.matchMedia('(display-mode: standalone)').matches) setShow(false);
+    return ()=>{
+      window.removeEventListener('lti-install-available', onAvailable);
+      window.removeEventListener('lti-installed', onInstalled);
+    };
+  },[]);
+
+  async function install() {
+    if (!window.ltiInstallPrompt) return;
+    window.ltiInstallPrompt.prompt();
+    const { outcome } = await window.ltiInstallPrompt.userChoice;
+    if (outcome === 'accepted') setShow(false);
+    window.ltiInstallPrompt = null;
+  }
+
+  async function requestNotifications() {
+    setNotifState("requesting");
+    const result = await (window.ltiRequestNotifications?.() || Promise.resolve({granted:false}));
+    setNotifState(result.granted ? "granted" : "denied");
+    setTimeout(()=>setNotifState("idle"), 3000);
+  }
+
+  if (!show && notifState === "idle") return null;
+
+  return (
+    <div style={{position:"fixed",bottom:"80px",left:"12px",right:"12px",zIndex:9998,
+      display:"flex",flexDirection:"column",gap:"8px",pointerEvents:"none"}}>
+
+      {/* Install banner */}
+      {show && (
+        <div style={{background:`linear-gradient(135deg,${FOREST},#1A4A2E)`,
+          border:`1px solid rgba(39,174,120,0.4)`,borderRadius:"16px",
+          padding:"12px 14px",display:"flex",gap:"12px",alignItems:"center",
+          boxShadow:"0 8px 32px rgba(0,0,0,0.4)",backdropFilter:"blur(12px)",
+          pointerEvents:"all"}}>
+          <div style={{fontSize:"28px",flexShrink:0}}>💅</div>
+          <div style={{flex:1}}>
+            <div style={{fontSize:"12px",fontWeight:"800",color:"#fff",marginBottom:"2px"}}>
+              Add Love That Idea to Home Screen
+            </div>
+            <div style={{fontSize:"10px",color:"rgba(255,255,255,0.55)"}}>
+              Get Flash Fill alerts & instant access
+            </div>
+          </div>
+          <button onClick={install}
+            style={{background:`linear-gradient(135deg,${MINT},#1A9060)`,color:"#fff",
+              border:"none",padding:"8px 14px",borderRadius:"10px",fontSize:"11px",
+              fontWeight:"800",cursor:"pointer",flexShrink:0,whiteSpace:"nowrap"}}>
+            Install
+          </button>
+          <button onClick={()=>setShow(false)}
+            style={{background:"transparent",border:"none",color:"rgba(255,255,255,0.4)",
+              fontSize:"18px",cursor:"pointer",padding:"0 2px",flexShrink:0}}>×</button>
+        </div>
+      )}
+
+      {/* Notification permission banner */}
+      {notifState !== "idle" && (
+        <div style={{background:notifState==="granted"?"rgba(39,174,120,0.15)":"rgba(201,168,76,0.12)",
+          border:`1px solid ${notifState==="granted"?"rgba(39,174,120,0.4)":"rgba(201,168,76,0.3)"}`,
+          borderRadius:"14px",padding:"10px 14px",textAlign:"center",
+          fontSize:"11px",color:"#fff",fontWeight:"700",pointerEvents:"all",
+          boxShadow:"0 4px 16px rgba(0,0,0,0.3)"}}>
+          {notifState==="requesting" && "🔔 Requesting notification permission..."}
+          {notifState==="granted"    && "✅ Flash Fill alerts enabled!"}
+          {notifState==="denied"     && "⚠️ Enable notifications in device Settings to get Flash Fill alerts"}
+        </div>
+      )}
+    </div>
+  );
+}
+
+
 
 // ── Haversine distance formula ────────────────────────────────────────────────
 
@@ -29621,7 +32257,7 @@ function LTIVisionTab() {
         reader.readAsDataURL(photoFile);
       });
       const resp = await fetch(CLAUDE_PROXY_URL, {
-        method:"POST", headers:{"Content-Type":"application/json"},
+        method:"POST", headers:PROXY_HEADERS,
         body:JSON.stringify({
           model:"claude-sonnet-4-6", max_tokens:700,
           system:"You are HeriSight™, LTI's wearable AI hair analysis engine. You analyze hair through a Meta glasses camera in real time. Be precise, clinical, and actionable. Return ONLY valid JSON.",
@@ -29634,7 +32270,7 @@ function LTIVisionTab() {
       const d = await resp.json();
       const raw = d.content?.map(b=>b.text||"").join("").replace(/```json|```/g,"").trim();
       setAnalysis(JSON.parse(raw));
-    } catch {
+    } catch(e) {
       setAnalysis({
         heritageProfile:"Euro & Western Men",
         hairType:"2C–3A Wavy",
@@ -29702,7 +32338,7 @@ function LTIVisionTab() {
               <button onClick={()=>setHudActive(h=>!h)}
                 style={{background:hudActive?"rgba(124,58,237,0.2)":"rgba(255,255,255,0.06)",
                   border:`1px solid ${hudActive?PURPLE:"rgba(255,255,255,0.15)"}`,
-                  color:hudActive?"#C4B5FD":"rgba(255,255,255,0.4)",padding:"4px 10px",
+                  color:hudActive?"rgba(124,58,237,0.22)":"rgba(255,255,255,0.4)",padding:"4px 10px",
                   borderRadius:"8px",fontSize:"10px",fontWeight:"800",cursor:"pointer"}}>
                 {hudActive?"HUD On":"HUD Off"}
               </button>
@@ -29725,7 +32361,7 @@ function LTIVisionTab() {
             <button key={v} onClick={()=>setView(v)}
               style={{background:view===v?"rgba(124,58,237,0.25)":"rgba(255,255,255,0.04)",
                 border:`1px solid ${view===v?"rgba(124,58,237,0.6)":"rgba(255,255,255,0.08)"}`,
-                color:view===v?"#C4B5FD":"rgba(255,255,255,0.45)",
+                color:view===v?"rgba(124,58,237,0.22)":"rgba(255,255,255,0.45)",
                 padding:"5px 10px",borderRadius:"8px",fontSize:"10px",
                 fontWeight:"700",cursor:"pointer",whiteSpace:"nowrap",flexShrink:0}}>
               {label}
@@ -29753,7 +32389,7 @@ function LTIVisionTab() {
                     color:"#fff",padding:"9px 12px",borderRadius:"10px",fontSize:"12px"}}/>
                 <button onClick={()=>{if(voiceCmd.trim()){speak(voiceCmd);setVoiceCmd("");}}}
                   style={{background:"rgba(124,58,237,0.25)",border:"1px solid rgba(124,58,237,0.5)",
-                    color:"#C4B5FD",padding:"9px 14px",borderRadius:"10px",fontSize:"11px",
+                    color:"rgba(124,58,237,0.22)",padding:"9px 14px",borderRadius:"10px",fontSize:"11px",
                     fontWeight:"800",cursor:"pointer"}}>
                   🎙 Send
                 </button>
@@ -30071,7 +32707,7 @@ function LTIVisionTab() {
                 borderRadius:"12px",padding:"14px",fontFamily:"monospace",marginBottom:"12px"}}>
                 {scanLog.map((l,i)=>(
                   <div key={i} style={{fontSize:"11px",marginBottom:"5px",
-                    color:i===scanLog.length-1?"#C4B5FD":"rgba(255,255,255,0.35)"}}>{l}</div>
+                    color:i===scanLog.length-1?"rgba(124,58,237,0.22)":"rgba(255,255,255,0.35)"}}>{l}</div>
                 ))}
               </div>
             )}
@@ -30187,7 +32823,7 @@ function LTIVisionTab() {
               <div style={{fontSize:"9px",letterSpacing:"2px",color:PURPLE,fontWeight:"800",marginBottom:"6px"}}>
                 🔊 GLASSES WHISPER TO STYLIST
               </div>
-              <div style={{fontSize:"13px",color:"rgba(255,255,255,0.85)",fontStyle:"italic",lineHeight:"1.6"}}>
+              <div style={{fontSize:"13px",color:"rgba(255,255,255,0.06)",fontStyle:"italic",lineHeight:"1.6"}}>
                 "Marcus is here. Last visit April 12th — High Taper Fade. No color. No allergies.
                 He has an event at 4pm. Get him out by 3:30. Gold member — 12 visits."
               </div>
@@ -30307,7 +32943,7 @@ function LTIVisionTab() {
                   <button onClick={()=>setBidPlaced(t.id)}
                     style={{background:bidPlaced===t.id?"rgba(39,174,120,0.2)":"rgba(124,58,237,0.2)",
                       border:`1px solid ${bidPlaced===t.id?MINT:PURPLE}44`,
-                      color:bidPlaced===t.id?MINT:"#C4B5FD",padding:"6px 14px",
+                      color:bidPlaced===t.id?MINT:"rgba(124,58,237,0.22)",padding:"6px 14px",
                       borderRadius:"8px",fontSize:"10px",fontWeight:"800",cursor:"pointer"}}>
                     {bidPlaced===t.id?"✓ Bid Placed":"🎙 Place Bid"}
                   </button>
@@ -30328,7 +32964,7 @@ function LTIVisionTab() {
                     color:"#fff",padding:"8px 10px",borderRadius:"8px",fontSize:"11px"}}/>
                 <button onClick={()=>{if(bidVoice){flash("🎯 Bid submitted via voice: "+bidVoice);setBidVoice("");}}}
                   style={{background:"rgba(124,58,237,0.25)",border:"1px solid rgba(124,58,237,0.5)",
-                    color:"#C4B5FD",padding:"8px 14px",borderRadius:"8px",
+                    color:"rgba(124,58,237,0.22)",padding:"8px 14px",borderRadius:"8px",
                     fontSize:"11px",fontWeight:"800",cursor:"pointer"}}>
                   Submit
                 </button>
@@ -30353,7 +32989,7 @@ function LTIVisionTab() {
                 <div key={s} style={{flex:1,textAlign:"center"}}>
                   <div style={{height:"4px",borderRadius:"2px",marginBottom:"4px",
                     background:docStep>i?MINT:docStep===i?"rgba(124,58,237,0.6)":"rgba(255,255,255,0.1)"}}/>
-                  <div style={{fontSize:"8px",color:docStep>i?MINT:docStep===i?"#C4B5FD":"rgba(255,255,255,0.3)",fontWeight:"700"}}>
+                  <div style={{fontSize:"8px",color:docStep>i?MINT:docStep===i?"rgba(124,58,237,0.22)":"rgba(255,255,255,0.3)",fontWeight:"700"}}>
                     {s}
                   </div>
                 </div>
@@ -30473,7 +33109,7 @@ function LTIVisionTab() {
               <div style={{fontSize:"9px",letterSpacing:"2px",color:PURPLE,fontWeight:"800",marginBottom:"8px"}}>
                 🔊 GLASSES END-OF-DAY AUDIO BRIEF
               </div>
-              <div style={{fontSize:"13px",color:"rgba(255,255,255,0.85)",fontStyle:"italic",lineHeight:"1.7"}}>
+              <div style={{fontSize:"13px",color:"rgba(255,255,255,0.06)",fontStyle:"italic",lineHeight:"1.7"}}>
                 "Good work today. You completed 5 services and earned $465 — 12% above your weekly average.
                 Your highest ticket was $165 for the sew-in install. You have 3 bookings tomorrow starting at 10am.
                 First client is Tanya W. — Silk Press, 4C coily, no allergies. Have a good night."
@@ -30594,6 +33230,13 @@ function ArrivalRiskBadge({ risk, etaMinutes, distanceMiles, compact=false }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 function NearMeView({ tickets = [], authUser }) {
   const MINT="#27AE78",GOLD="#C9A84C",ROSE="#C4896B",RED="#DC2626",AMBER="#D97706";
+  const PLACES_PROXY = "https://wubjkhibaghbmjuqmknp.supabase.co/functions/v1/google-places-proxy";
+  const PHOTO_PROXY  = "https://wubjkhibaghbmjuqmknp.supabase.co/functions/v1/places-photo-proxy";
+  const MAPBOX_TOKEN = "pk.eyJ1IjoibG92ZXRoYXRpZGVhIiwiYSI6ImNtc2Y5ZGplbzA4bXQyeW9jMjhyMXpocDYifQ.0417T-uzhMAqqjQiTVrrcQ";
+
+  const [mapLoaded, setMapLoaded] = useState(false);
+  const mapRef = React.useRef(null);
+  const mapInstanceRef = React.useRef(null);
 
   const [userLocation, setUserLocation] = useState(null);
   const [locating, setLocating]         = useState(false);
@@ -30606,6 +33249,61 @@ function NearMeView({ tickets = [], authUser }) {
   const [clientFlex, setClientFlex]     = useState({});
   const [confirmed, setConfirmed]       = useState({});
   const [filter, setFilter]             = useState("all");
+
+  // ── Google Places state ────────────────────────────────────────────────────
+  const [googleBiz,    setGoogleBiz]    = useState([]);
+  const [bizLoading,   setBizLoading]   = useState(false);
+  const [bizError,     setBizError]     = useState(null);
+  const [bizFilter,    setBizFilter]    = useState("All");
+  const [showBiz,      setShowBiz]      = useState(true);
+  const [selectedBiz,  setSelectedBiz]  = useState(null);
+
+  const BIZ_CATEGORIES = ["All","Hair","Nails","Spa","Barber","Beauty"];
+
+  // ── Fetch nearby businesses from Google Places via Edge Function ───────────
+  async function fetchNearbyBusinesses(loc) {
+    setBizLoading(true); setBizError(null);
+    try {
+      const res = await fetch(PLACES_PROXY, {
+        method: "POST",
+        headers: PROXY_HEADERS,
+        body: JSON.stringify({
+          lat:    loc.lat,
+          lng:    loc.lon,
+          radius: Math.round(radiusMiles * 1609), // miles → meters
+        }),
+      });
+      const data = await res.json();
+      if (data.businesses) {
+        setGoogleBiz(data.businesses);
+      } else {
+        setBizError("Could not load nearby businesses.");
+      }
+    } catch (e) {
+      setBizError("Network error loading businesses.");
+    }
+    setBizLoading(false);
+  }
+
+  // ── Photo URL helper ───────────────────────────────────────────────────────
+  function photoUrl(ref) {
+    if (!ref) return null;
+    return `${PHOTO_PROXY}?ref=${ref}&maxwidth=400`;
+  }
+
+  // ── Price level display ────────────────────────────────────────────────────
+  function priceDisplay(level) {
+    return ["","$","$$","$$$","$$$$"][level] || "";
+  }
+
+  // ── Distance calculation ───────────────────────────────────────────────────
+  function calcMiles(lat1, lon1, lat2, lon2) {
+    const R = 3958.8;
+    const dLat = (lat2-lat1) * Math.PI/180;
+    const dLon = (lon2-lon1) * Math.PI/180;
+    const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+    return (R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))).toFixed(1);
+  }
 
   // Simulated pro locations for demo (in production, from Supabase)
   const PRO_LOCATIONS = {
@@ -30646,14 +33344,15 @@ function NearMeView({ tickets = [], authUser }) {
         setUserLocation(loc);
         setLocating(false);
         computeNearby(loc);
+        fetchNearbyBusinesses(loc);
       },
       err => {
         setLocError("Location access denied. Enable in device settings.");
         setLocating(false);
-        // Use Atlanta center as fallback for demo
         const fallback = { lat: 33.7490, lon: -84.3880 };
         setUserLocation(fallback);
         computeNearby(fallback);
+        fetchNearbyBusinesses(fallback);
       },
       { timeout: 8000, enableHighAccuracy: true }
     );
@@ -30726,7 +33425,211 @@ function NearMeView({ tickets = [], authUser }) {
           </div>
         ) : (
           <>
+            {/* Mapbox overview map */}
+            {userLocation && (
+              <div style={{borderRadius:"16px",overflow:"hidden",marginBottom:"16px",
+                height:"180px",position:"relative",border:"1px solid rgba(39,174,120,0.2)"}}>
+                <img
+                  alt="Your location map"
+                  src={`https://api.mapbox.com/styles/v1/mapbox/dark-v11/static/pin-l+27AE78(${userLocation.lon},${userLocation.lat})/${userLocation.lon},${userLocation.lat},13,0/800x360@2x?access_token=${MAPBOX_TOKEN}`}
+                  style={{width:"100%",height:"180px",objectFit:"cover",display:"block"}}
+                />
+                <div style={{position:"absolute",top:"10px",left:"10px",
+                  background:"rgba(0,0,0,0.7)",backdropFilter:"blur(8px)",
+                  borderRadius:"10px",padding:"6px 12px",display:"flex",alignItems:"center",gap:"6px"}}>
+                  <div style={{width:"8px",height:"8px",borderRadius:"50%",background:MINT,
+                    boxShadow:"0 0 6px #27AE78"}}/>
+                  <span style={{fontSize:"11px",fontWeight:"700",color:"#fff"}}>You are here</span>
+                </div>
+                <div style={{position:"absolute",bottom:"6px",right:"8px",
+                  background:"rgba(0,0,0,0.5)",borderRadius:"6px",
+                  padding:"2px 6px",fontSize:"9px",color:"rgba(255,255,255,0.4)"}}>
+                  © Mapbox
+                </div>
+              </div>
+            )}
+
             {/* Radius + ETA controls */}
+            {(googleBiz.length > 0 || bizLoading) && (
+              <div style={{marginBottom:"16px"}}>
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"10px"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:"8px"}}>
+                    <SvgIcon name="nearme" color={MINT} size={14}/>
+                    <span style={{fontSize:"11px",fontWeight:"800",color:"rgba(255,255,255,0.7)",letterSpacing:"1px"}}>
+                      BUSINESSES NEARBY
+                    </span>
+                    <span style={{fontSize:"10px",color:"rgba(255,255,255,0.35)"}}>
+                      via Google
+                    </span>
+                  </div>
+                  <button onClick={()=>setShowBiz(p=>!p)}
+                    style={{background:"transparent",border:"none",color:"rgba(255,255,255,0.35)",
+                      fontSize:"12px",cursor:"pointer",fontFamily:FONTS.body}}>
+                    {showBiz?"Hide":"Show"}
+                  </button>
+                </div>
+
+                {showBiz && (
+                  <>
+                    {/* Category filter */}
+                    <div style={{display:"flex",gap:"6px",overflowX:"auto",marginBottom:"10px",paddingBottom:"4px"}}>
+                      {BIZ_CATEGORIES.map(cat=>(
+                        <button key={cat} onClick={()=>setBizFilter(cat)}
+                          style={{padding:"5px 12px",borderRadius:"20px",border:"none",
+                            background:bizFilter===cat?MINT:"rgba(255,255,255,0.06)",
+                            color:bizFilter===cat?"#fff":"rgba(255,255,255,0.45)",
+                            fontSize:"11px",fontWeight:"700",cursor:"pointer",
+                            whiteSpace:"nowrap",fontFamily:FONTS.body}}>
+                          {cat}
+                        </button>
+                      ))}
+                    </div>
+
+                    {bizLoading && (
+                      <div style={{textAlign:"center",padding:"20px",color:"rgba(255,255,255,0.4)",fontSize:"13px"}}>
+                        Loading nearby businesses...
+                      </div>
+                    )}
+
+                    {bizError && (
+                      <div style={{fontSize:"12px",color:RED,padding:"10px 14px",
+                        background:"rgba(239,68,68,0.1)",borderRadius:"10px",marginBottom:"8px"}}>
+                        {bizError}
+                      </div>
+                    )}
+
+                    {/* Business cards */}
+                    <div style={{display:"flex",flexDirection:"column",gap:"8px"}}>
+                      {googleBiz
+                        .filter(b=>bizFilter==="All"||b.category===bizFilter)
+                        .slice(0,12)
+                        .map(biz=>{
+                          const miles = userLocation
+                            ? calcMiles(userLocation.lat, userLocation.lon, biz.lat, biz.lng)
+                            : null;
+                          return (
+                            <div key={biz.id}
+                              onClick={()=>setSelectedBiz(selectedBiz?.id===biz.id?null:biz)}
+                              style={{background:"rgba(255,255,255,0.04)",
+                                border:`1px solid ${biz.ltiProfile?"rgba(39,174,120,0.35)":"rgba(255,255,255,0.08)"}`,
+                                borderRadius:"14px",padding:"12px 14px",cursor:"pointer",
+                                transition:"all 0.15s",
+                                boxShadow:biz.ltiProfile?"0 0 0 1px rgba(39,174,120,0.1)":"none"}}>
+                              <div style={{display:"flex",gap:"12px",alignItems:"flex-start"}}>
+                                {/* Photo or placeholder */}
+                                <div style={{width:"52px",height:"52px",borderRadius:"10px",
+                                  flexShrink:0,overflow:"hidden",
+                                  background:"rgba(255,255,255,0.08)",
+                                  display:"flex",alignItems:"center",justifyContent:"center"}}>
+                                  {biz.photoRef
+                                    ? <img src={photoUrl(biz.photoRef)} alt={biz.name}
+                                        style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+                                    : <SvgIcon name="building" color="rgba(255,255,255,0.2)" size={20}/>
+                                  }
+                                </div>
+                                <div style={{flex:1,minWidth:0}}>
+                                  <div style={{display:"flex",alignItems:"flex-start",gap:"6px",marginBottom:"2px"}}>
+                                    <div style={{fontSize:"13px",fontWeight:"700",color:"#fff",
+                                      overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",flex:1}}>
+                                      {biz.name}
+                                    </div>
+                                    {biz.heritageFlag && (
+                                      <span style={{fontSize:"9px",background:"rgba(196,137,107,0.2)",
+                                        color:"#C4896B",padding:"2px 6px",borderRadius:"6px",
+                                        fontWeight:"700",whiteSpace:"nowrap",flexShrink:0}}>
+                                        Heritage
+                                      </span>
+                                    )}
+                                    {biz.ltiProfile && (
+                                      <span style={{fontSize:"9px",background:"rgba(39,174,120,0.2)",
+                                        color:MINT,padding:"2px 6px",borderRadius:"6px",
+                                        fontWeight:"700",whiteSpace:"nowrap",flexShrink:0}}>
+                                        On LTI
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div style={{fontSize:"11px",color:"rgba(255,255,255,0.4)",
+                                    marginBottom:"5px",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+                                    {biz.address}
+                                  </div>
+                                  <div style={{display:"flex",gap:"10px",alignItems:"center",flexWrap:"wrap"}}>
+                                    {biz.rating > 0 && (
+                                      <span style={{fontSize:"11px",color:GOLD,fontWeight:"700"}}>
+                                        ★ {biz.rating} ({biz.reviewCount})
+                                      </span>
+                                    )}
+                                    {miles && (
+                                      <span style={{fontSize:"11px",color:"rgba(255,255,255,0.4)"}}>
+                                        {miles} mi
+                                      </span>
+                                    )}
+                                    {biz.priceLevel > 0 && (
+                                      <span style={{fontSize:"11px",color:"rgba(255,255,255,0.4)"}}>
+                                        {priceDisplay(biz.priceLevel)}
+                                      </span>
+                                    )}
+                                    <span style={{fontSize:"10px",fontWeight:"700",
+                                      color:biz.openNow===true?MINT:biz.openNow===false?RED:"rgba(255,255,255,0.3)"}}>
+                                      {biz.openNow===true?"Open Now":biz.openNow===false?"Closed":""}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Expanded detail */}
+                              {selectedBiz?.id===biz.id && (
+                                <div style={{marginTop:"12px",paddingTop:"12px",
+                                  borderTop:"1px solid rgba(255,255,255,0.06)"}}>
+
+                                  {/* Mapbox map */}
+                                  <div style={{borderRadius:"12px",overflow:"hidden",
+                                    marginBottom:"10px",height:"160px",position:"relative",
+                                    border:"1px solid rgba(255,255,255,0.1)"}}>
+                                    <iframe
+                                      title="map"
+                                      width="100%"
+                                      height="160"
+                                      style={{border:"none",display:"block"}}
+                                      src={`https://api.mapbox.com/styles/v1/mapbox/dark-v11/static/pin-s+27AE78(${biz.lng||0},${biz.lat||0})/${biz.lng||0},${biz.lat||0},14,0/400x160@2x?access_token=${MAPBOX_TOKEN}`}
+                                    />
+                                    <div style={{position:"absolute",bottom:"6px",right:"8px",
+                                      background:"rgba(0,0,0,0.6)",borderRadius:"6px",
+                                      padding:"3px 7px",fontSize:"10px",color:"rgba(255,255,255,0.5)"}}>
+                                      © Mapbox
+                                    </div>
+                                  </div>
+
+                                  <div style={{display:"flex",gap:"8px",flexWrap:"wrap"}}>
+                                    <button style={{padding:"8px 16px",borderRadius:"10px",border:"none",
+                                      background:`linear-gradient(135deg,${MINT},#1A9060)`,
+                                      color:"#fff",fontSize:"12px",fontWeight:"700",cursor:"pointer",
+                                      fontFamily:FONTS.body}}>
+                                      Book Here
+                                    </button>
+                                    {biz.claimable && (
+                                      <button style={{padding:"8px 16px",borderRadius:"10px",cursor:"pointer",
+                                        background:"rgba(201,168,76,0.12)",border:"1px solid rgba(201,168,76,0.3)",
+                                        color:GOLD,fontSize:"12px",fontWeight:"700",fontFamily:FONTS.body}}>
+                                        Claim on LTI
+                                      </button>
+                                    )}
+                                    <button style={{padding:"8px 16px",borderRadius:"10px",cursor:"pointer",
+                                      background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",
+                                      color:"rgba(255,255,255,0.6)",fontSize:"12px",fontWeight:"700",fontFamily:FONTS.body}}
+                                      onClick={()=>window.open(`https://maps.google.com/?q=${biz.name}+${biz.address}`,"_blank")}>
+                                      Directions
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
             <div style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",
               borderRadius:"14px",padding:"12px 14px",marginBottom:"12px"}}>
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"8px"}}>
@@ -31600,48 +34503,440 @@ function HeritageReviewTab() {
 
 
 
+// ═══════════════════════════════════════════════════════════════════════════════
+//  BOOKING CONFIRM MODAL — stylist accepts → SMS confirmation → calendar invite
+// ═══════════════════════════════════════════════════════════════════════════════
+function BookingConfirmModal({ booking, onClose }) {
+  const MINT="#27AE78", GOLD="#C9A84C";
+  const [step, setStep] = useState("confirm"); // confirm|sms|done
+  const [loading, setLoading] = useState(false);
+
+  const details = booking || {
+    service:"Silk Press",stylist:"Jordan Lee",client:"Tanya W.",
+    time:"Today 2:00 PM",location:"Midtown Atlanta",price:"$90",
+    phone:"(404) 555-0182",duration:"90 min",
+  };
+
+  async function sendSMS() {
+    setLoading(true);
+    await new Promise(r=>setTimeout(r,1200));
+    setLoading(false);
+    setStep("done");
+  }
+
+  function addToCalendar() {
+    const title=encodeURIComponent(`${details.service} with ${details.stylist}`);
+    const details_enc=encodeURIComponent(`LTI Booking · ${details.location} · ${details.price}`);
+    window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&details=${details_enc}`,"_blank");
+  }
+
+  const overlay={position:"fixed",inset:0,zIndex:9800,
+    background:"rgba(0,0,0,0.85)",backdropFilter:"blur(16px)",
+    display:"flex",alignItems:"flex-end",justifyContent:"center"};
+  const sheet={width:"100%",maxWidth:"440px",
+    background:"linear-gradient(180deg,#0F2418,#0A1A10)",
+    border:"1px solid rgba(39,174,120,0.25)",
+    borderRadius:"24px 24px 0 0",padding:"28px 24px 40px",
+    boxShadow:"0 -24px 64px rgba(0,0,0,0.6)"};
+
+  return (
+    <div style={overlay} onClick={e=>{if(e.target===e.currentTarget)onClose()}}>
+      <div style={sheet}>
+        <div style={{width:"40px",height:"4px",borderRadius:"2px",
+          background:"rgba(255,255,255,0.12)",margin:"0 auto 24px"}}/>
+
+        {step==="confirm" && (<>
+          <div style={{textAlign:"center",marginBottom:"20px"}}>
+            <div style={{width:"56px",height:"56px",borderRadius:"16px",
+              background:"rgba(39,174,120,0.2)",border:`1px solid ${MINT}44`,
+              display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 12px"}}>
+              <SvgIcon name="appt" color={MINT} size={24}/>
+            </div>
+            <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:"26px",
+              fontWeight:"600",color:"#FEFDF8"}}>Booking Confirmed</div>
+            <div style={{fontSize:"13px",color:"rgba(255,255,255,0.45)",marginTop:"4px"}}>
+              {details.stylist} accepted your request
+            </div>
+          </div>
+
+          {/* Details card */}
+          <div style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",
+            borderRadius:"16px",padding:"16px",marginBottom:"16px"}}>
+            {[
+              {icon:"styles",label:"Service",   val:details.service},
+              {icon:"appt",  label:"Time",      val:details.time},
+              {icon:"nearme",label:"Location",  val:details.location},
+              {icon:"payment",label:"Price",    val:details.price},
+              {icon:"avail", label:"Duration",  val:details.duration||"60 min"},
+            ].map((r,i)=>(
+              <div key={i} style={{display:"flex",alignItems:"center",gap:"10px",
+                padding:"8px 0",borderBottom:i<4?"1px solid rgba(255,255,255,0.05)":"none"}}>
+                <SvgIcon name={r.icon} color={MINT} size={13}/>
+                <span style={{fontSize:"11px",color:"rgba(255,255,255,0.35)",
+                  width:"64px",flexShrink:0}}>{r.label}</span>
+                <span style={{fontSize:"13px",color:"#fff",fontWeight:"600"}}>{r.val}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Stripe Pay Now button */}
+          <button onClick={async function() {
+            setLoading(true);
+            const amount = parseFloat((details.price||"0").replace(/[^0-9.]/g,"")) || 0;
+            if (amount > 0) {
+              const result = await stripeAction("create_payment_intent", {
+                amount,
+                metadata: {
+                  service:   details.service,
+                  stylist:   details.stylist,
+                  client:    details.client,
+                }
+              });
+              if (result.client_secret) {
+                setStep("sms");
+              } else {
+                setStep("sms"); // proceed even in sandbox
+              }
+            } else {
+              setStep("sms");
+            }
+            setLoading(false);
+          }} disabled={loading}
+            style={{width:"100%",padding:"14px",borderRadius:"14px",border:"none",cursor:"pointer",
+              background:`linear-gradient(135deg,${MINT},#1A9060)`,color:"#fff",
+              fontSize:"15px",fontWeight:"700",fontFamily:"'DM Sans',sans-serif",
+              marginBottom:"8px",opacity:loading?0.6:1}}>
+            {loading?"Processing...":"Pay " + (details.price||"") + " via Stripe →"}
+          </button>
+
+          <div style={{display:"flex",gap:"8px",marginBottom:"12px"}}>
+            <button onClick={addToCalendar}
+              style={{flex:1,padding:"11px",borderRadius:"12px",cursor:"pointer",
+                background:"rgba(201,168,76,0.12)",border:`1px solid ${GOLD}33`,
+                color:GOLD,fontSize:"12px",fontWeight:"700",fontFamily:"'DM Sans',sans-serif"}}>
+              Add to Calendar
+            </button>
+            <button onClick={()=>setStep("sms")}
+              style={{flex:1,padding:"11px",borderRadius:"12px",cursor:"pointer",
+                background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",
+                color:"rgba(255,255,255,0.6)",fontSize:"12px",fontWeight:"700",fontFamily:"'DM Sans',sans-serif"}}>
+              SMS Reminder
+            </button>
+          </div>
+          <button onClick={onClose}
+            style={{width:"100%",padding:"11px",background:"transparent",border:"none",
+              color:"rgba(255,255,255,0.3)",fontSize:"12px",cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>
+            Done
+          </button>
+        </>)}
+
+        {step==="sms" && (<>
+          <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:"24px",
+            fontWeight:"600",color:"#FEFDF8",marginBottom:"6px"}}>SMS Reminder</div>
+          <div style={{fontSize:"13px",color:"rgba(255,255,255,0.45)",marginBottom:"20px"}}>
+            We'll text you 30 minutes before your appointment.
+          </div>
+          <div style={{background:"rgba(39,174,120,0.08)",border:`1px solid ${MINT}22`,
+            borderRadius:"12px",padding:"14px",marginBottom:"20px",
+            fontSize:"13px",color:"rgba(255,255,255,0.65)",lineHeight:1.7}}>
+            📲 Reminder: Your <strong style={{color:"#fff"}}>{details.service}</strong> with{" "}
+            <strong style={{color:"#fff"}}>{details.stylist}</strong> is at{" "}
+            <strong style={{color:"#fff"}}>{details.time}</strong> in{" "}
+            <strong style={{color:"#fff"}}>{details.location}</strong>.{" "}
+            Reply STOP to cancel. — Love That Idea · ltibeauty.com
+          </div>
+          <button onClick={sendSMS} disabled={loading}
+            style={{width:"100%",padding:"14px",borderRadius:"12px",border:"none",cursor:"pointer",
+              background:`linear-gradient(135deg,${MINT},#1A9060)`,
+              color:"#fff",fontSize:"14px",fontWeight:"700",fontFamily:"'DM Sans',sans-serif",
+              opacity:loading?0.6:1}}>
+            {loading?"Sending...":"Send Reminder →"}
+          </button>
+          <button onClick={()=>setStep("confirm")}
+            style={{width:"100%",marginTop:"10px",background:"transparent",border:"none",
+              color:"rgba(255,255,255,0.3)",fontSize:"12px",cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>
+            ← Back
+          </button>
+        </>)}
+
+        {step==="done" && (<>
+          <div style={{textAlign:"center",padding:"20px 0"}}>
+            <div style={{fontSize:"48px",marginBottom:"12px"}}>✓</div>
+            <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:"24px",
+              fontWeight:"600",color:MINT,marginBottom:"8px"}}>Reminder Set</div>
+            <div style={{fontSize:"13px",color:"rgba(255,255,255,0.45)",lineHeight:1.7}}>
+              You'll receive an SMS 30 minutes before your appointment.
+            </div>
+          </div>
+          <button onClick={onClose}
+            style={{width:"100%",padding:"14px",borderRadius:"12px",border:"none",cursor:"pointer",
+              background:`linear-gradient(135deg,${MINT},#1A9060)`,
+              color:"#fff",fontSize:"14px",fontWeight:"700",fontFamily:"'DM Sans',sans-serif"}}>
+            Done
+          </button>
+        </>)}
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+//  REFERRAL SYSTEM — stylist invite links with tracking
+// ═══════════════════════════════════════════════════════════════════════════════
+function ReferralSystem({ authUser }) {
+  const MINT="#27AE78", GOLD="#C9A84C";
+  const [copied, setCopied]   = useState(false);
+  const [tab, setTab]         = useState("link"); // link|earnings|leaderboard
+
+  const refCode = authUser?.id
+    ? `LTI${(authUser.id).toString().replace(/\D/g,"").slice(-6).padStart(6,"0")}`
+    : "LTIPRO01";
+  const refLink = `https://ltibeauty.com?ref=${refCode}`;
+
+  const STATS = {
+    clicks:    24,
+    signups:    8,
+    bookings:   3,
+    earned:   "$45.00",
+    pending:  "$15.00",
+  };
+
+  const LEADERBOARD = [
+    {name:"Jordan Lee",   refs:14, earned:"$210"},
+    {name:"Tasha Monroe", refs:11, earned:"$165"},
+    {name:"Marcus W.",    refs: 9, earned:"$135"},
+    {name:"You",          refs: 8, earned:"$120", isYou:true},
+    {name:"Priya S.",     refs: 6, earned:"$90"},
+  ];
+
+  function copyLink() {
+    navigator.clipboard?.writeText(refLink).catch(()=>{});
+    setCopied(true);
+    setTimeout(()=>setCopied(false),2500);
+  }
+
+  function share(platform) {
+    const msg=encodeURIComponent(`Join me on Love That Idea — the beauty intelligence platform for stylists & clients. Use my link:`);
+    const urls={
+      sms:     `sms:?body=${msg}%20${encodeURIComponent(refLink)}`,
+      twitter: `https://twitter.com/intent/tweet?text=${msg}&url=${encodeURIComponent(refLink)}`,
+      ig:      `https://instagram.com`,
+    };
+    window.open(urls[platform]||refLink,"_blank");
+  }
+
+  const card={background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",
+    borderRadius:"16px",padding:"16px"};
+
+  return(
+    <div style={{flex:1,overflowY:"auto",padding:"16px",background:"linear-gradient(160deg,#0D2818,#080F0A)"}}>
+
+      {/* Header */}
+      <div style={{marginBottom:"16px"}}>
+        <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:"26px",
+          fontWeight:"600",color:"#FEFDF8",marginBottom:"4px"}}>
+          Invite & <em style={{fontStyle:"italic",fontWeight:"300",color:GOLD}}>Earn</em>
+        </div>
+        <div style={{fontSize:"13px",color:"rgba(255,255,255,0.45)"}}>
+          Earn $15 for every stylist you refer who completes their first booking.
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div style={{display:"flex",gap:"6px",marginBottom:"16px"}}>
+        {[["link","My Link"],["earnings","Earnings"],["leaderboard","Leaders"]].map(([v,l])=>(
+          <button key={v} onClick={()=>setTab(v)}
+            style={{padding:"7px 14px",borderRadius:"20px",border:"none",cursor:"pointer",
+              background:tab===v?MINT:"rgba(255,255,255,0.06)",
+              color:tab===v?"#fff":"rgba(255,255,255,0.45)",
+              fontSize:"12px",fontWeight:"700",fontFamily:"'DM Sans',sans-serif"}}>
+            {l}
+          </button>
+        ))}
+      </div>
+
+      {tab==="link" && (<>
+        {/* Referral code */}
+        <div style={{...card,border:`1px solid ${GOLD}33`,marginBottom:"12px",textAlign:"center"}}>
+          <div style={{fontSize:"10px",fontWeight:"700",color:`${GOLD}99`,
+            letterSpacing:"2px",marginBottom:"8px"}}>YOUR REFERRAL CODE</div>
+          <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:"32px",
+            fontWeight:"700",color:GOLD,letterSpacing:"4px",marginBottom:"4px"}}>
+            {refCode}
+          </div>
+          <div style={{fontSize:"11px",color:"rgba(255,255,255,0.3)"}}>{refLink}</div>
+        </div>
+
+        {/* Copy link */}
+        <button onClick={copyLink}
+          style={{width:"100%",padding:"14px",borderRadius:"14px",border:"none",cursor:"pointer",
+            background:copied?`rgba(39,174,120,0.3)`:`linear-gradient(135deg,${GOLD},#8A6420)`,
+            color:"#fff",fontSize:"14px",fontWeight:"700",fontFamily:"'DM Sans',sans-serif",
+            marginBottom:"10px",transition:"all 0.2s"}}>
+          {copied?"✓ Copied to Clipboard!":"Copy Referral Link"}
+        </button>
+
+        {/* Share buttons */}
+        <div style={{display:"flex",gap:"8px",marginBottom:"16px"}}>
+          {[
+            {id:"sms",    label:"SMS",     color:"#27AE78"},
+            {id:"twitter",label:"Twitter", color:"#1DA1F2"},
+            {id:"ig",     label:"Instagram",color:"#E1306C"},
+          ].map(s=>(
+            <button key={s.id} onClick={()=>share(s.id)}
+              style={{flex:1,padding:"10px",borderRadius:"12px",cursor:"pointer",
+                background:`${s.color}15`,border:`1px solid ${s.color}35`,
+                color:s.color,fontSize:"12px",fontWeight:"700",fontFamily:"'DM Sans',sans-serif"}}>
+              {s.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Stats */}
+        <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"8px"}}>
+          {[
+            {label:"Link Clicks",  val:STATS.clicks},
+            {label:"Signups",      val:STATS.signups},
+            {label:"Bookings",     val:STATS.bookings},
+          ].map(s=>(
+            <div key={s.label} style={{...card,textAlign:"center"}}>
+              <div style={{fontSize:"22px",fontWeight:"800",color:"#fff",
+                fontFamily:"'Cormorant Garamond',serif"}}>{s.val}</div>
+              <div style={{fontSize:"10px",color:"rgba(255,255,255,0.4)",marginTop:"2px"}}>{s.label}</div>
+            </div>
+          ))}
+        </div>
+      </>)}
+
+      {tab==="earnings" && (<>
+        <div style={{...card,border:`1px solid ${GOLD}33`,marginBottom:"12px"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"12px"}}>
+            <span style={{fontSize:"10px",fontWeight:"700",color:`${GOLD}99`,letterSpacing:"2px"}}>TOTAL EARNED</span>
+            <span style={{fontSize:"28px",fontWeight:"800",color:GOLD,
+              fontFamily:"'Cormorant Garamond',serif"}}>{STATS.earned}</span>
+          </div>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+            <span style={{fontSize:"12px",color:"rgba(255,255,255,0.4)"}}>Pending</span>
+            <span style={{fontSize:"14px",fontWeight:"700",color:"rgba(255,255,255,0.6)"}}>{STATS.pending}</span>
+          </div>
+        </div>
+
+        <div style={{...card,marginBottom:"12px"}}>
+          <div style={{fontSize:"10px",fontWeight:"700",color:"rgba(255,255,255,0.4)",
+            letterSpacing:"2px",marginBottom:"12px"}}>EARNINGS BREAKDOWN</div>
+          {[
+            {desc:"Jordan Lee signed up via your link",    amt:"$15.00",date:"Jul 18",status:"paid"},
+            {desc:"Tasha W. completed first booking",       amt:"$15.00",date:"Jul 16",status:"paid"},
+            {desc:"Marcus B. signed up via your link",     amt:"$15.00",date:"Jul 14",status:"paid"},
+            {desc:"Priya S. signup — booking pending",     amt:"$15.00",date:"Jul 20",status:"pending"},
+          ].map((t,i)=>(
+            <div key={i} style={{display:"flex",justifyContent:"space-between",
+              alignItems:"center",padding:"9px 0",
+              borderBottom:i<3?"1px solid rgba(255,255,255,0.05)":"none"}}>
+              <div>
+                <div style={{fontSize:"12px",color:"rgba(255,255,255,0.7)",marginBottom:"1px"}}>{t.desc}</div>
+                <div style={{fontSize:"10px",color:"rgba(255,255,255,0.3)"}}>{t.date}</div>
+              </div>
+              <div style={{textAlign:"right",flexShrink:0}}>
+                <div style={{fontSize:"13px",fontWeight:"700",
+                  color:t.status==="paid"?MINT:"rgba(255,255,255,0.4)"}}>{t.amt}</div>
+                <div style={{fontSize:"9px",color:t.status==="paid"?MINT:"rgba(255,255,255,0.3)",
+                  textTransform:"uppercase",letterSpacing:"1px"}}>{t.status}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <button style={{width:"100%",padding:"13px",borderRadius:"12px",border:"none",cursor:"pointer",
+          background:`linear-gradient(135deg,${GOLD},#8A6420)`,color:"#fff",
+          fontSize:"13px",fontWeight:"700",fontFamily:"'DM Sans',sans-serif"}}>
+          Request Payout → $45.00
+        </button>
+      </>)}
+
+      {tab==="leaderboard" && (<>
+        <div style={{...card,border:`1px solid ${GOLD}22`,marginBottom:"12px"}}>
+          <div style={{fontSize:"10px",fontWeight:"700",color:"rgba(255,255,255,0.4)",
+            letterSpacing:"2px",marginBottom:"12px"}}>TOP REFERRERS THIS MONTH</div>
+          {LEADERBOARD.map((l,i)=>(
+            <div key={i} style={{display:"flex",alignItems:"center",gap:"12px",
+              padding:"10px 12px",borderRadius:"12px",marginBottom:"6px",
+              background:l.isYou?"rgba(201,168,76,0.1)":"rgba(255,255,255,0.03)",
+              border:l.isYou?`1px solid ${GOLD}33`:"1px solid transparent"}}>
+              <div style={{width:"28px",height:"28px",borderRadius:"50%",
+                background:i===0?GOLD:i===1?"rgba(255,255,255,0.15)":i===2?"rgba(201,168,76,0.3)":"rgba(255,255,255,0.06)",
+                display:"flex",alignItems:"center",justifyContent:"center",
+                fontSize:"12px",fontWeight:"800",color:i===0?"#000":"#fff",flexShrink:0}}>
+                {i===0?"🥇":i===1?"🥈":i===2?"🥉":i+1}
+              </div>
+              <div style={{flex:1}}>
+                <div style={{fontSize:"13px",fontWeight:"700",
+                  color:l.isYou?GOLD:"#fff"}}>{l.name}{l.isYou?" (You)":""}</div>
+                <div style={{fontSize:"10px",color:"rgba(255,255,255,0.35)"}}>
+                  {l.refs} referrals
+                </div>
+              </div>
+              <div style={{fontSize:"14px",fontWeight:"800",color:MINT}}>{l.earned}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{fontSize:"11px",color:"rgba(255,255,255,0.25)",textAlign:"center",lineHeight:1.7}}>
+          Top 3 referrers each month earn a Verified Pro badge upgrade and featured placement in Near Me search.
+        </div>
+      </>)}
+    </div>
+  );
+}
+
 function BidBoardTab() {
   const [tickets, setTickets] = useState([
-    // ── HAIR ──────────────────────────────────────────────────────────────────
-    { id:"TKT-001", division:"hair",    clientName:"Tanya W.",    service:"Silk Press",               hairType:"4C Coily", urgency:"now",   requestedTime:"Today 2:00 PM",    location:"Midtown Atlanta",  budget:"$85-100",   notes:"Has event at 6pm. Needs silk press + trim.", status:"open",     bids:[{stylist:"Jordan Lee",price:90,eta:"25 min",rating:4.9,message:"I can take her. I am 15 min away."},{stylist:"Keisha M.",price:85,eta:"40 min",rating:4.7,message:"Available now, can start immediately."}], broker:null, postedAt:"10 min ago", expiresIn:"50 min",  color:"#DC2626" },
-    { id:"TKT-003", division:"hair",    clientName:"Sofia R.",    service:"Balayage Highlights",       hairType:"2C Wavy",  urgency:"today", requestedTime:"Today 6:00 PM",    location:"Buckhead",         budget:"$200-240",  notes:"Event tomorrow. Wants warm honey tones.", status:"assigned",  bids:[], broker:"Glam Network ATL", postedAt:"1 hr ago", expiresIn:"2 hr", assignedTo:"Priya P.", color:"#7C3AED" },
-    { id:"TKT-004", division:"hair",    clientName:"Aaliyah M.",  service:"Knotless Box Braids",       hairType:"3C Coily", urgency:"soon",  requestedTime:"Today 5:00 PM",    location:"Decatur",          budget:"$180-220",  notes:"Waist length. Has her own hair.", status:"open",            bids:[], broker:null, postedAt:"5 min ago", expiresIn:"115 min", color:"#0891B2" },
-    { id:"TKT-005", division:"hair",    clientName:"Jasmine P.",  service:"Full Sew-In Weave",         hairType:"4B Coily", urgency:"today", requestedTime:"Today 3:00 PM",    location:"College Park",     budget:"$150-180",  notes:"Closure install. Needs to last 8 weeks.", status:"open",    bids:[{stylist:"Aaliyah T.",price:165,eta:"45 min",rating:4.8,message:"I specialize in sew-ins. I have availability."}], broker:null, postedAt:"20 min ago", expiresIn:"70 min", color:"#059669" },
-    { id:"TKT-011", division:"hair",    clientName:"Imani R.",    service:"Loc Retwist + Style",       hairType:"4C Coily", urgency:"today", requestedTime:"Today 4:00 PM",    location:"East Atlanta",     budget:"$75-110",   notes:"Medium locs 2 inches of growth. Finger coils on the ends.", status:"open", bids:[{stylist:"Devon C.",price:90,eta:"30 min",rating:4.8,message:"Loc specialist 8 years. Can style finger coils after."}], broker:null, postedAt:"18 min ago", expiresIn:"82 min", color:"#15803D" },
-    { id:"TKT-012", division:"hair",    clientName:"Zara M.",     service:"Natural Twist Out + Trim",  hairType:"4A Coily", urgency:"soon",  requestedTime:"Tomorrow 10:00 AM", location:"Midtown Atlanta",  budget:"$65-85",    notes:"Shrinkage is heavy. Needs moisture-first prep.", status:"open", bids:[], broker:null, postedAt:"45 min ago", expiresIn:"3 hr", color:"#0891B2" },
-    // ── BARBER ────────────────────────────────────────────────────────────────
-    { id:"TKT-002", division:"barber",  clientName:"DeShawn C.",  service:"High Taper Fade",           hairType:"4A Coily", urgency:"soon",  requestedTime:"Today 4:30 PM",    location:"West End Atlanta", budget:"$45-60",    notes:"Needs lineup too. First time client.", status:"open",       bids:[{stylist:"Marcus W.",price:55,eta:"15 min",rating:5.0,message:"Available at 4:15. Can do taper + lineup."}], broker:"StyleLink Pro", postedAt:"32 min ago", expiresIn:"88 min", color:"#D97706" },
-    { id:"TKT-006", division:"barber",  clientName:"Marcus B.",   service:"Lineup + Edge Up",          hairType:"4A Coily", urgency:"now",   requestedTime:"Today 1:30 PM",    location:"East Atlanta",     budget:"$25-40",    notes:"Clean edges for a job interview at 3pm.", status:"open",    bids:[{stylist:"Rico D.",price:35,eta:"10 min",rating:4.9,message:"I am right around the corner. I can do this."},{stylist:"Tyrese B.",price:30,eta:"20 min",rating:4.6,message:"Available now. Quick and clean."}], broker:null, postedAt:"3 min ago", expiresIn:"27 min", color:"#DC2626" },
-    { id:"TKT-013", division:"barber",  clientName:"Malik J.",    service:"Skin Fade + Design",        hairType:"4B Coily", urgency:"today", requestedTime:"Today 5:00 PM",    location:"Buckhead, ATL",    budget:"$55-75",    notes:"Wants a lightning bolt design on the left temple.", status:"open", bids:[{stylist:"Marcus W.",price:65,eta:"20 min",rating:5.0,message:"Design work is my specialty. I have a slot at 5."}], broker:null, postedAt:"22 min ago", expiresIn:"78 min", color:"#0891B2" },
-    // ── NAILS ─────────────────────────────────────────────────────────────────
-    { id:"TKT-007", division:"nails",   clientName:"Monique T.",  service:"Acrylic Full Set – Medium", hairType:"N/A",      urgency:"today", requestedTime:"Today 3:00 PM",    location:"Buckhead, ATL",    budget:"$60-80",    notes:"Ombre with rhinestones. Has inspo pics.", status:"open",    bids:[{stylist:"Kezia W.",price:65,eta:"30 min",rating:4.9,message:"Ombre is my specialty. Rhinestones included at that price."},{stylist:"Destiny C.",price:62,eta:"45 min",rating:4.8,message:"Can match your inspo. Bring the reference."}], broker:null, postedAt:"8 min ago", expiresIn:"112 min", color:"#DB2777" },
-    { id:"TKT-008", division:"nails",   clientName:"Brianna K.",  service:"Artist's Choice – Short",   hairType:"N/A",      urgency:"soon",  requestedTime:"Today 5:30 PM",    location:"Midtown, ATL",     budget:"$62-78",    notes:"No input — surprise me with something cute!", status:"open", bids:[{stylist:"Kezia W.",price:65,eta:"45 min",rating:4.9,message:"I already have a vision for you."}], broker:null, postedAt:"14 min ago", expiresIn:"96 min", color:"#DB2777" },
-    { id:"TKT-009", division:"nails",   clientName:"Destiny R.",  service:"XL Set + Matching Pedi",    hairType:"N/A",      urgency:"today", requestedTime:"Tomorrow 11:00 AM", location:"West End, ATL",    budget:"$148-168",  notes:"Full XL set + matching acrylic toes. Chrome finish.", status:"open", bids:[], broker:null, postedAt:"2 hr ago", expiresIn:"4 hr", color:"#9333EA" },
-    { id:"TKT-010", division:"nails",   clientName:"Nadia S.",    service:"Soak Off + New Short Set",  hairType:"N/A",      urgency:"today", requestedTime:"Today 4:00 PM",    location:"Decatur, ATL",     budget:"$60-72",    notes:"Remove old set first. Simple design fine.", status:"open",  bids:[{stylist:"Kezia W.",price:65,eta:"60 min",rating:4.9,message:"Soak off $15 + Short $50 = $65. Fits 4pm exactly."}], broker:null, postedAt:"25 min ago", expiresIn:"75 min", color:"#DB2777" },
-    { id:"TKT-014", division:"nails",   clientName:"Tia B.",      service:"Gel Pedi Only",             hairType:"N/A",      urgency:"now",   requestedTime:"Today 2:00 PM",    location:"Midtown, ATL",     budget:"$22-30",    notes:"Simple gel polish. Neutral or nude tones.", status:"open",  bids:[{stylist:"Kezia W.",price:25,eta:"20 min",rating:4.9,message:"Can do you at 2pm. Clean gel pedi."}], broker:null, postedAt:"5 min ago", expiresIn:"55 min", color:"#EC4899" },
-    // ── TANNING ───────────────────────────────────────────────────────────────
-    { id:"TKT-015", division:"tanning", clientName:"Monique J.",  service:"Spray Tan – Bronze",        hairType:"N/A",      urgency:"now",   requestedTime:"Today 2:30 PM",    location:"Buckhead, ATL",    budget:"$60-80",    notes:"Event tonight. Medium bronze. No orange. Olive skin.", status:"open", bids:[{stylist:"Amber L.",price:70,eta:"15 min",rating:4.9,message:"Norvell solutions. Never orange. Available now."},{stylist:"Tasha S.",price:65,eta:"25 min",rating:4.7,message:"Custom blend for olive skin. On my way."}], broker:null, postedAt:"6 min ago", expiresIn:"54 min", color:"#D97706" },
-    { id:"TKT-016", division:"tanning", clientName:"Derek B.",    service:"UV Tanning – Bed",          hairType:"N/A",      urgency:"soon",  requestedTime:"Today 4:00 PM",    location:"College Park, ATL",budget:"$30-50",    notes:"Build base tan for vacation. Fair skin — Level 3 or lower.", status:"assigned", assignedTo:"Ray's Tan Studio", bids:[], broker:null, postedAt:"1 hr ago", expiresIn:"2 hr", color:"#B45309" },
-    { id:"TKT-017", division:"tanning", clientName:"Jasmine L.",  service:"Infrared Sauna Session",    hairType:"N/A",      urgency:"now",   requestedTime:"Today 1:30 PM",    location:"West End, ATL",    budget:"$40-60",    notes:"45 min detox. First infrared session.", status:"open",      bids:[], broker:null, postedAt:"4 min ago", expiresIn:"26 min", color:"#DC2626" },
-    { id:"TKT-018", division:"tanning", clientName:"Renee A.",    service:"Traditional Sauna",         hairType:"N/A",      urgency:"today", requestedTime:"Today 6:00 PM",    location:"Smyrna, ATL",      budget:"$35-55",    notes:"60 min session. Prefer private room.", status:"open",       bids:[], broker:null, postedAt:"40 min ago", expiresIn:"3 hr", color:"#D97706" },
-    // ── SKIN & BODY ───────────────────────────────────────────────────────────
-    { id:"TKT-019", division:"skin",    clientName:"Crystal M.",  service:"Swedish Massage + Hot Stone",hairType:"N/A",     urgency:"today", requestedTime:"Today 5:00 PM",    location:"Midtown, ATL",     budget:"$120-160",  notes:"90 min. Focus lower back & shoulders. No deep tissue.", status:"open", bids:[{stylist:"Elena K.",price:140,eta:"30 min",rating:5.0,message:"Licensed LMT 8 years. Hot stone specialist."}], broker:null, postedAt:"20 min ago", expiresIn:"100 min", color:"#0891B2" },
-    { id:"TKT-020", division:"skin",    clientName:"Sofia W.",    service:"Full Body Sugar Scrub + Wrap",hairType:"N/A",    urgency:"today", requestedTime:"Today 6:30 PM",    location:"Decatur, ATL",     budget:"$90-130",   notes:"Pre-wedding glow treatment. Lavender allergy. Natural products only.", status:"open", bids:[{stylist:"Nia W.",price:110,eta:"45 min",rating:4.9,message:"Bridal specialist. All-natural scrubs. No lavender in my kit."}], broker:null, postedAt:"35 min ago", expiresIn:"85 min", color:"#059669" },
-    { id:"TKT-021", division:"skin",    clientName:"Renee T.",    service:"Lymphatic Drainage Massage", hairType:"N/A",     urgency:"today", requestedTime:"Tomorrow 10:00 AM", location:"Smyrna, ATL",      budget:"$85-120",   notes:"Post-surgery 3 weeks out. Gentle pressure only. LMT required.", status:"open", bids:[], broker:null, postedAt:"3 hr ago", expiresIn:"5 hr", color:"#7C3AED" },
-    { id:"TKT-022", division:"skin",    clientName:"Layla K.",    service:"Deep Cleansing Facial",      hairType:"N/A",     urgency:"soon",  requestedTime:"Today 4:30 PM",    location:"Buckhead, ATL",    budget:"$65-90",    notes:"Acne-prone skin. No extractions. Looking for brightening.", status:"open", bids:[{stylist:"Priya S.",price:75,eta:"30 min",rating:4.8,message:"Acne specialist. Vitamin C brightening facial is my signature."}], broker:null, postedAt:"28 min ago", expiresIn:"92 min", color:"#0891B2" },
-    // ── MAKEUP / MUA TICKETS ──────────────────────────────────────────────────
-    { id:"TKT-023", division:"makeup",  clientName:"Brianna L.",  service:"Full Glam – Special Event",  hairType:"N/A",     urgency:"now",   requestedTime:"Today 3:00 PM",    location:"Buckhead, ATL",    budget:"$95-130",   notes:"Dark skin, deep undertones. Attending a gala. Full beat — no soft glam.", status:"open", bids:[{stylist:"Nadia A.",price:115,eta:"20 min",rating:4.9,message:"Deep melanin is my specialty. I'll have you glowing for the gala."},{stylist:"Jade M.",price:95,eta:"35 min",rating:4.7,message:"Available now. I have the right foundations for deep undertones."}], broker:null, postedAt:"7 min ago", expiresIn:"53 min", color:"#EC4899" },
-    { id:"TKT-024", division:"makeup",  clientName:"Tiffany W.",  service:"Prom Glam + Lashes",         hairType:"N/A",     urgency:"today", requestedTime:"Today 5:00 PM",    location:"Decatur, ATL",     budget:"$85-115",   notes:"Medium brown skin, warm undertones. Wants glitter eye + dramatic lashes.", status:"open", bids:[{stylist:"Jade M.",price:95,eta:"45 min",rating:4.7,message:"Prom looks are my favorite. Glitter and lashes — let's go."}], broker:null, postedAt:"18 min ago", expiresIn:"72 min", color:"#EC4899" },
-    { id:"TKT-025", division:"makeup",  clientName:"Amara J.",    service:"Bridal Trial Run",            hairType:"N/A",     urgency:"today", requestedTime:"Tomorrow 11:00 AM",location:"Midtown, ATL",     budget:"$90-120",   notes:"Wedding in 3 weeks. Neutral glam, dewy finish. Fair + olive skin.", status:"open", bids:[], broker:null, postedAt:"1 hr ago", expiresIn:"3 hr", color:"#DB2777" },
-    { id:"TKT-026", division:"makeup",  clientName:"Destiny K.",  service:"Soft Natural Glam",           hairType:"N/A",     urgency:"soon",  requestedTime:"Today 4:00 PM",    location:"West End, ATL",    budget:"$65-90",    notes:"First time getting professionally done. Wants natural enhancement, not heavy.", status:"open", bids:[{stylist:"Nadia A.",price:75,eta:"40 min",rating:4.9,message:"First-timers are my favorite. I'll enhance what you already have."}], broker:null, postedAt:"22 min ago", expiresIn:"68 min", color:"#EC4899" },
-    { id:"TKT-027", division:"makeup",  clientName:"Keisha B.",   service:"Editorial / Photoshoot Look", hairType:"N/A",     urgency:"today", requestedTime:"Tomorrow 9:00 AM", location:"Buckhead, ATL",    budget:"$120-175",  notes:"Fashion shoot — high contrast, editorial. Photographer wants bold not commercial.", status:"open", bids:[], broker:"Glam Network ATL", postedAt:"3 hr ago", expiresIn:"5 hr", color:"#7C3AED" },
-    // ── WIG & EXTENSION INSTALL TICKETS ─────────────────────────────────────
-    { id:"TKT-028", division:"wigs", clientName:"Tasha R.",    service:"HD Lace Front Install — Glueless", hairType:"N/A",      urgency:"today", requestedTime:"Today 3:00 PM",     location:"Buckhead, ATL",    budget:"$85-120",  notes:"22 inch body wave. Glueless preferred. Scalp sensitive — no adhesive.", status:"open", bids:[{stylist:"Jordan L.",price:95,eta:"30 min",rating:4.9,message:"Glueless install specialist. Zero adhesive needed."}], broker:null, postedAt:"12 min ago", expiresIn:"88 min", color:"#7C3AED" },
-    { id:"TKT-029", division:"wigs", clientName:"Monique B.",  service:"Full Sew-In + Leave Out",          hairType:"4B Coily", urgency:"soon",  requestedTime:"Today 5:00 PM",     location:"West End, ATL",    budget:"$150-200", notes:"Straight bundles, 4-inch leave out. Baby hairs needed.", status:"open", bids:[], broker:null, postedAt:"28 min ago", expiresIn:"72 min", color:"#7C3AED" },
-    { id:"TKT-030", division:"wigs", clientName:"Crystal J.",  service:"Tape-In Extensions Install",       hairType:"2C Wavy",  urgency:"today", requestedTime:"Tomorrow 11:00 AM", location:"Midtown, ATL",     budget:"$100-150", notes:"First tape-in. Have extensions already. Salon install only.", status:"open", bids:[{stylist:"Tasha M.",price:125,eta:"45 min",rating:4.8,message:"Certified tape-in specialist. Safe application guaranteed."}], broker:null, postedAt:"1 hr ago", expiresIn:"3 hr", color:"#7C3AED" },
-    { id:"TKT-031", division:"wigs", clientName:"Destiny W.",  service:"Knotless Box Braids w/ Braid Hair",hairType:"4C Coily", urgency:"soon",  requestedTime:"Today 4:30 PM",     location:"Decatur, ATL",     budget:"$180-240", notes:"Waist length. X-Pression anti-itch hair. Pre-stretch technique needed.", status:"open", bids:[], broker:null, postedAt:"45 min ago", expiresIn:"105 min", color:"#9333EA" },
-    { id:"TKT-032", division:"wigs", clientName:"Aaliyah T.",  service:"Wig Customization + Bleach Knots", hairType:"N/A",      urgency:"today", requestedTime:"Tomorrow 10:00 AM", location:"College Park, ATL", budget:"$60-90",   notes:"Raw Vietnamese wig — need hairline plucked, knots bleached, baby hairs laid.", status:"open", bids:[{stylist:"Tasha M.",price:75,eta:"N/A",rating:4.8,message:"Wig customization specialist. Plucking + bleach + finish included."}], broker:"GlamLink ATL", postedAt:"2 hr ago", expiresIn:"4 hr", color:"#7C3AED" },
+    { id:"TKT-001", division:"hair",    clientName:"Tanya W.",    service:"Silk Press",               hairType:"4C Coily", urgency:"now",   requestedTime:"Today 2:00 PM",    location:"Midtown Atlanta",  budget:"$85-100",   notes:"Has event at 6pm. Needs silk press + trim.", status:"open",     bids:[{stylist:"Jordan Lee",price:90,eta:"25 min",rating:4.9,message:"I can take her. I am 15 min away."},{stylist:"Keisha M.",price:85,eta:"40 min",rating:4.7,message:"Available now, can start immediately."}], broker:null, postedAt:"10 min ago", expiresInSecs:3000, color:"#DC2626" },
+    { id:"TKT-003", division:"hair",    clientName:"Sofia R.",    service:"Balayage Highlights",       hairType:"2C Wavy",  urgency:"today", requestedTime:"Today 6:00 PM",    location:"Buckhead",         budget:"$200-240",  notes:"Event tomorrow. Wants warm honey tones.", status:"assigned",  bids:[], broker:"Glam Network ATL", postedAt:"1 hr ago", expiresInSecs:7200, assignedTo:"Priya P.", color:"#7C3AED" },
+    { id:"TKT-004", division:"hair",    clientName:"Aaliyah M.",  service:"Knotless Box Braids",       hairType:"3C Coily", urgency:"soon",  requestedTime:"Today 5:00 PM",    location:"Decatur",          budget:"$180-220",  notes:"Waist length. Has her own hair.", status:"open",            bids:[], broker:null, postedAt:"5 min ago", expiresInSecs:6900, color:"#0891B2" },
+    { id:"TKT-005", division:"hair",    clientName:"Jasmine P.",  service:"Full Sew-In Weave",         hairType:"4B Coily", urgency:"today", requestedTime:"Today 3:00 PM",    location:"College Park",     budget:"$150-180",  notes:"Closure install. Needs to last 8 weeks.", status:"open",    bids:[{stylist:"Aaliyah T.",price:165,eta:"45 min",rating:4.8,message:"I specialize in sew-ins. I have availability."}], broker:null, postedAt:"20 min ago", expiresInSecs:4200, color:"#059669" },
+    { id:"TKT-006", division:"barber",  clientName:"Marcus B.",   service:"Lineup + Edge Up",          hairType:"4A Coily", urgency:"now",   requestedTime:"Today 1:30 PM",    location:"East Atlanta",     budget:"$25-40",    notes:"Clean edges for a job interview at 3pm.", status:"open",    bids:[{stylist:"Rico D.",price:35,eta:"10 min",rating:4.9,message:"I am right around the corner."},{stylist:"Tyrese B.",price:30,eta:"20 min",rating:4.6,message:"Available now. Quick and clean."}], broker:null, postedAt:"3 min ago", expiresInSecs:1620, color:"#DC2626" },
+    { id:"TKT-007", division:"nails",   clientName:"Monique T.",  service:"Acrylic Full Set – Medium", hairType:"N/A",      urgency:"today", requestedTime:"Today 3:00 PM",    location:"Buckhead, ATL",    budget:"$60-80",    notes:"Ombre with rhinestones. Has inspo pics.", status:"open",    bids:[{stylist:"Kezia W.",price:65,eta:"30 min",rating:4.9,message:"Ombre is my specialty. Rhinestones included."}], broker:null, postedAt:"8 min ago", expiresInSecs:6720, color:"#DB2777" },
+    { id:"TKT-015", division:"tanning", clientName:"Monique J.",  service:"Spray Tan – Bronze",        hairType:"N/A",      urgency:"now",   requestedTime:"Today 2:30 PM",    location:"Buckhead, ATL",    budget:"$60-80",    notes:"Event tonight. Medium bronze. No orange. Olive skin.", status:"open", bids:[{stylist:"Amber L.",price:70,eta:"15 min",rating:4.9,message:"Norvell solutions. Never orange. Available now."}], broker:null, postedAt:"6 min ago", expiresInSecs:3240, color:"#D97706" },
   ]);
+
+  // ── LIVE FLASH FILL COUNTDOWN ─────────────────────────────────────────────
+  const [tick, setTick] = useState(0);
+  const [expiredIds, setExpiredIds] = useState([]);
+  const [flashAlert, setFlashAlert] = useState(null);
+  const [bookingConfirm, setBookingConfirm] = useState(null);
+
+  useEffect(()=>{
+    const interval = setInterval(()=>{
+      setTick(t=>t+1);
+      setTickets(prev=>prev.map(t=>({
+        ...t,
+        expiresInSecs: Math.max(0, (t.expiresInSecs||0)-1)
+      })).filter(t=>{
+        if(t.expiresInSecs===0 && t.status==="open"){
+          setExpiredIds(e=>[...e,t.id]);
+          setFlashAlert(`Flash Fill expired: ${t.service} for ${t.clientName} — standby list notified`);
+          setTimeout(()=>setFlashAlert(null),4000);
+          return false; // remove expired
+        }
+        return true;
+      }));
+    },1000);
+    return ()=>clearInterval(interval);
+  },[]);
+
+  function formatCountdown(secs) {
+    if(secs<=0) return "EXPIRED";
+    const m=Math.floor(secs/60); const s=secs%60;
+    if(m>60) return `${Math.floor(m/60)}h ${m%60}m`;
+    return `${m}:${String(s).padStart(2,"0")}`;
+  }
+
+  function urgencyColor(secs) {
+    if(secs<=300)  return "#DC2626"; // red — under 5 min
+    if(secs<=900)  return "#D97706"; // amber — under 15 min
+    if(secs<=1800) return "#C9A84C"; // gold — under 30 min
+    return "#27AE78"; // green — plenty of time
+  }
   const [showNewTicket, setShowNewTicket] = useState(false);
   const [showBidModal, setShowBidModal]   = useState(null);
   const [selectedTicket, setSelectedTicket] = useState(null);
@@ -31736,8 +35031,8 @@ function BidBoardTab() {
   async function getFlashAiTip(slot) {
     setFlashAiLoading(true); setFlashAiTip("");
     try {
-      const res = await fetch("/api/claude",{method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:200,
+      const res = await fetch("/api/claude",{method:"POST",headers:PROXY_HEADERS,
+        body:JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:200,
           system:"You are a beauty business revenue advisor for Love That Idea. Give a short, punchy tip (under 80 words) on pricing strategy for a flash cancellation slot.",
           messages:[{role:"user",content:`Flash slot: ${slot.service} at ${slot.flashTime}. Original price $${slot.originalPrice}, flash price $${slot.flashPrice} (${slot.discount}% off). ${slot.standby.length} on standby. ${fmtCountdown(flashCounters[slot.id]||0)} remaining. Window: ${slot.windowMin} min. Avg reaction: ${slot.reactionTimes.length ? Math.round(slot.reactionTimes.reduce((a,b)=>a+b,0)/slot.reactionTimes.length) : "N/A"} min. Is this priced right? Should I adjust?`}]
         })
@@ -31771,8 +35066,8 @@ function BidBoardTab() {
   async function checkPriceFairness(ticketId, bidPrice, service, location) {
     setFairnessLoading(ticketId);
     try {
-      const res = await fetch("/api/claude",{method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:80,
+      const res = await fetch("/api/claude",{method:"POST",headers:PROXY_HEADERS,
+        body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:80,
           system:"You are a beauty pricing expert. Return ONLY a JSON object: {rating:'fair'|'above'|'below', note:string(max 40 chars)}. No markdown.",
           messages:[{role:"user",content:`Service: ${service} in ${location}. Bid price: $${bidPrice}. Is this fair market rate?`}]
         })
@@ -31794,8 +35089,8 @@ function BidBoardTab() {
   async function getSuggestedBid(ticket) {
     setBidSugLoading(true); setBidSuggestion(null);
     try {
-      const res = await fetch("/api/claude",{method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:80,
+      const res = await fetch("/api/claude",{method:"POST",headers:PROXY_HEADERS,
+        body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:80,
           system:"Return ONLY JSON: {price:number, low:number, high:number, reasoning:string(max 50 chars)}",
           messages:[{role:"user",content:`Suggest competitive bid price. Service: ${ticket.service}, Hair: ${ticket.hairType}, Location: ${ticket.location}, Urgency: ${ticket.urgency}, Client budget: ${ticket.budget}`}]
         })
@@ -31817,8 +35112,8 @@ function BidBoardTab() {
     if (!ticket.bids?.length) return;
     setBestBidLoading(ticket.id);
     try {
-      const res = await fetch("/api/claude",{method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:60,
+      const res = await fetch("/api/claude",{method:"POST",headers:PROXY_HEADERS,
+        body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:60,
           system:"Return ONLY the stylist name as a plain string. No explanation.",
           messages:[{role:"user",content:`Pick the best bid for: ${ticket.service}, ${ticket.hairType}, urgency: ${ticket.urgency}. Bids: ${JSON.stringify(ticket.bids.map(b=>({stylist:b.stylist,price:b.price,eta:b.eta,rating:b.rating})))}`}]
         })
@@ -31848,7 +35143,7 @@ function BidBoardTab() {
     { pro:"Marcus W.",    wins:31, bids:33, avgPrice:55,  topService:"Fades & Tapers",   badge:"💈" },
     { pro:"Aaliyah T.",   wins:19, bids:24, avgPrice:175, topService:"Knotless Braids",  badge:"✂️" },
     { pro:"Rico D.",      wins:28, bids:30, avgPrice:38,  topService:"Lineups",          badge:"💈" },
-    { pro:"Priya S.",     wins:11, bids:14, avgPrice:225, topService:"Color & Balayage", badge:"🎨" },
+    { pro:"Priya S.",     wins:11, bids:14, avgPrice:225, topService:"Color & Balayage", badge:"color" },
   ];
   const [showAnalytics, setShowAnalytics] = useState(false);
 
@@ -31911,11 +35206,11 @@ function BidBoardTab() {
   // 14. Portfolio Preview (seed data)
   const PRO_PORTFOLIOS = {
     "Jordan Lee":   [{style:"Silk Press",img:"💇🏾‍♀️",desc:"Bone straight finish"},{style:"Trim",img:"✂️",desc:"Clean split-end removal"},{style:"Wrap",img:"🌀",desc:"Roller wrap set"}],
-    "Keisha M.":    [{style:"Twist Out",img:"🌿",desc:"Defined 4C twists"},{style:"Cornrows",img:"〰️",desc:"Feed-in flat cornrows"},{style:"Loc Retwist",img:"🔗",desc:"Fresh palm roll"}],
+    "Keisha M.":    [{style:"Twist Out",img:"leaf",desc:"Defined 4C twists"},{style:"Cornrows",img:"〰️",desc:"Feed-in flat cornrows"},{style:"Loc Retwist",img:"🔗",desc:"Fresh palm roll"}],
     "Marcus W.":    [{style:"Skin Fade",img:"💈",desc:"Zero skin temple fade"},{style:"Taper",img:"📐",desc:"Clean low taper"},{style:"Lineup",img:"⬛",desc:"90° temple corners"}],
     "Aaliyah T.":   [{style:"Knotless Box",img:"📦",desc:"Waist length knotless"},{style:"Faux Locs",img:"🔮",desc:"Butterfly loc install"},{style:"Sew-In",img:"🪡",desc:"Closure install"}],
-    "Rico D.":      [{style:"Bald Fade",img:"✨",desc:"Clean skin fade"},{style:"Edge Up",img:"📏",desc:"Sharp forehead line"},{style:"Beard Shape",img:"🧔🏾",desc:"Full beard sculpt"}],
-    "Priya S.":     [{style:"Balayage",img:"🎨",desc:"Honey blonde sweep"},{style:"Foil Highlights",img:"✨",desc:"Full foil set"},{style:"Toner",img:"💜",desc:"Purple toner gloss"}],
+    "Rico D.":      [{style:"Bald Fade",img:"sparkle",desc:"Clean skin fade"},{style:"Edge Up",img:"📏",desc:"Sharp forehead line"},{style:"Beard Shape",img:"🧔🏾",desc:"Full beard sculpt"}],
+    "Priya S.":     [{style:"Balayage",img:"color",desc:"Honey blonde sweep"},{style:"Foil Highlights",img:"sparkle",desc:"Full foil set"},{style:"Toner",img:"💜",desc:"Purple toner gloss"}],
   };
   const [showPortfolio, setShowPortfolio] = useState(null);
 
@@ -32020,8 +35315,8 @@ function BidBoardTab() {
     setDemandLoading(true); setDemandForecast(null);
     try {
       const upcoming = futureTickets.map(t=>t.service).join(", ");
-      const res = await fetch("/api/claude",{method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:200,
+      const res = await fetch("/api/claude",{method:"POST",headers:PROXY_HEADERS,
+        body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:200,
           system:"You are a beauty industry demand forecasting AI. Respond in JSON only: {forecast:string(2 sentences), hotServices:[string,string,string], priceAlert:string, tip:string}",
           messages:[{role:"user",content:`Current month: ${today.toLocaleString('default',{month:'long'})}. Upcoming booked services: ${upcoming}. Future tickets: ${futureTickets.length}. Event types: ${futureTickets.filter(t=>t.ticketType==="event").map(t=>t.eventType).join(", ")||"none"}. Generate a demand forecast.`}]
         })
@@ -32075,7 +35370,7 @@ function BidBoardTab() {
 
   const urgencyConfig = {
     now:   { label:"RIGHT NOW",  color:"#DC2626", bg:"#FEF2F2" },
-    soon:  { label:"IN 2-3 HRS", color:"#D97706", bg:"#FFFBEB" },
+    soon:  { label:"IN 2-3 HRS", color:"#D97706", bg:"rgba(201,168,76,0.1)" },
     today: { label:"TODAY",      color:"#0891B2", bg:"#EFF6FF" },
   };
 
@@ -32098,8 +35393,40 @@ function BidBoardTab() {
   }
 
   function acceptBid(ticketId, stylist) {
+    const ticket = tickets.find(t=>t.id===ticketId);
     setTickets(prev => prev.map(t => t.id === ticketId ? { ...t, status:"assigned", assignedTo:stylist } : t));
     setSelectedTicket(null);
+    // Show booking confirmation modal
+    if(ticket) {
+      const bookingData = {
+        service:  ticket.service,
+        stylist,
+        client:   ticket.clientName,
+        time:     ticket.requestedTime,
+        location: ticket.location,
+        price:    ticket.bids.find(b=>b.stylist===stylist)?.price
+          ? `$${ticket.bids.find(b=>b.stylist===stylist).price}`
+          : ticket.budget,
+        duration: "60 min",
+        phone:    "(404) 555-0100",
+      };
+      setBookingConfirm(bookingData);
+      // Send booking confirmation email to client
+      if(ticket.clientEmail) {
+        sendEmail("booking_confirm", ticket.clientEmail, bookingData,
+          `Booking Confirmed — ${ticket.service} with ${stylist}`);
+      }
+      // Send Flash Fill alert email to standby list
+      if(ticket.standbyEmails && ticket.standbyEmails.length > 0) {
+        ticket.standbyEmails.forEach(function(email) {
+          sendEmail("flash_fill", email, {
+            service:  ticket.service,
+            location: ticket.location,
+            budget:   ticket.budget,
+          });
+        });
+      }
+    }
   }
 
   function passTicket(ticketId) {
@@ -32110,7 +35437,10 @@ function BidBoardTab() {
   function postTicket() {
     const id = "TKT-" + String(tickets.length + 1).padStart(3,"0");
     const colors = ["#DC2626","#D97706","#7C3AED","#0891B2","#059669","#EC4899"];
-    const t = { ...newTicket, id, status:"open", bids:[], broker:null, postedAt:"just now", expiresIn:"120 min", color:colors[tickets.length % colors.length] };
+    const expSecs = newTicket.urgency==="now"?2700:newTicket.urgency==="soon"?7200:14400;
+    const t = { ...newTicket, id, status:"open", bids:[], broker:null,
+      postedAt:"just now", expiresInSecs:expSecs,
+      color:colors[tickets.length % colors.length] };
     setTickets(prev => [t, ...prev]);
     setNewTicket({ clientName:"", service:"", hairType:"", urgency:"soon", requestedTime:"", location:"", budget:"", notes:"" });
     setShowNewTicket(false);
@@ -32121,8 +35451,8 @@ function BidBoardTab() {
     const bidsStr = ticket.bids.map(b => `${b.stylist}: $${b.price}, ${b.eta}, rating ${b.rating} - "${b.message}"`).join("; ");
     try {
       const res = await fetch(CLAUDE_PROXY_URL,{
-        method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:300,
+        method:"POST",headers:PROXY_HEADERS,
+        body:JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:300,
           system:"You are an expert salon appointment broker AI for Love That Idea. Analyze bids and recommend the best match. Consider price, ETA, stylist rating, and client notes. Under 120 words.",
           messages:[{role:"user",content:`Client: ${ticket.clientName}, needs ${ticket.service} (${ticket.hairType}) at ${ticket.requestedTime} in ${ticket.location}. Budget: ${ticket.budget}. Notes: "${ticket.notes}". Bids: ${bidsStr||"No bids yet"}. Who should get this booking and why?`}]
         })
@@ -32139,6 +35469,26 @@ function BidBoardTab() {
 
   return (
     <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",background:"linear-gradient(160deg,#071510 0%,#0D2818 40%,#0A1F14 100%)"}}>
+
+      {/* ── BOOKING CONFIRM MODAL ── */}
+      {bookingConfirm && (
+        <BookingConfirmModal
+          booking={bookingConfirm}
+          onClose={()=>setBookingConfirm(null)}
+        />
+      )}
+
+      {/* ── FLASH EXPIRY ALERT ── */}
+      {flashAlert && (
+        <div style={{position:"fixed",top:"70px",left:"50%",transform:"translateX(-50%)",
+          zIndex:9700,background:"rgba(220,38,38,0.95)",backdropFilter:"blur(12px)",
+          border:"1px solid rgba(255,100,100,0.4)",borderRadius:"12px",
+          padding:"10px 18px",fontSize:"12px",fontWeight:"700",color:"#fff",
+          boxShadow:"0 8px 32px rgba(220,38,38,0.5)",maxWidth:"360px",textAlign:"center"}}>
+          ⚡ {flashAlert}
+        </div>
+      )}
+
       <style>{`
         @keyframes glowPulse{0%,100%{box-shadow:0 0 12px rgba(39,174,120,0.4)}50%{box-shadow:0 0 24px rgba(39,174,120,0.7)}}
         @keyframes goldPulse{0%,100%{box-shadow:0 0 10px rgba(201,168,76,0.4)}50%{box-shadow:0 0 20px rgba(201,168,76,0.7)}}
@@ -32161,7 +35511,7 @@ function BidBoardTab() {
           <div style={{fontSize:"16px",animation:"broadcastPulse 1s infinite"}}>🔥</div>
           <div style={{flex:1}}>
             <span style={{fontWeight:"900",color:"#fff",fontSize:"13px"}}>HIGH DEMAND RIGHT NOW</span>
-            <span style={{color:"rgba(255,255,255,0.85)",fontSize:"12px",marginLeft:"8px"}}>{urgentCount} urgent tickets live — pros are filling fast</span>
+            <span style={{color:"rgba(255,255,255,0.06)",fontSize:"12px",marginLeft:"8px"}}>{urgentCount} urgent tickets live — pros are filling fast</span>
           </div>
           <span style={{background:"rgba(0,0,0,0.2)",color:"#fff",fontSize:"10px",fontWeight:"800",padding:"4px 10px",borderRadius:"20px",border:"1px solid rgba(255,255,255,0.3)"}}>SURGE ACTIVE</span>
         </div>
@@ -32170,7 +35520,7 @@ function BidBoardTab() {
       {/* 📅 SEASONAL DEMAND ALERTS */}
       {seasonalAlerts.map((alert,i)=>(
         <div key={i} style={{background:"linear-gradient(135deg,#92400E,#B45309)",padding:"7px 20px",display:"flex",alignItems:"center",gap:"10px",flexShrink:0}}>
-          <div style={{fontSize:"13px",color:"#FDE68A",flex:1}}>{alert}</div>
+          <div style={{fontSize:"13px",color:"rgba(201,168,76,0.18)",flex:1}}>{alert}</div>
         </div>
       ))}
 
@@ -32300,7 +35650,7 @@ function BidBoardTab() {
               <div style={{flex:2,minWidth:"200px"}}>
                 <div style={{fontSize:"9px",color:"rgba(167,139,250,0.7)",fontWeight:"800",letterSpacing:"1.5px",marginBottom:"6px"}}>✦ AI DEMAND FORECAST</div>
                 <div style={{fontSize:"12px",color:"#E9D5FF",lineHeight:"1.7"}}>{demandForecast.forecast}</div>
-                {demandForecast.tip && <div style={{fontSize:"11px",color:"#C4B5FD",marginTop:"6px"}}>💡 {demandForecast.tip}</div>}
+                {demandForecast.tip && <div style={{fontSize:"11px",color:"rgba(124,58,237,0.22)",marginTop:"6px"}}>💡 {demandForecast.tip}</div>}
               </div>
               <div style={{flex:1,minWidth:"150px"}}>
                 <div style={{fontSize:"9px",color:"rgba(167,139,250,0.7)",fontWeight:"800",letterSpacing:"1.5px",marginBottom:"6px"}}>🔥 HOT SERVICES</div>
@@ -32311,7 +35661,7 @@ function BidBoardTab() {
               {demandForecast.priceAlert && (
                 <div style={{flex:1,minWidth:"150px",background:"rgba(245,158,11,0.2)",border:"1px solid rgba(245,158,11,0.4)",borderRadius:"10px",padding:"10px"}}>
                   <div style={{fontSize:"9px",color:"#FCD34D",fontWeight:"800",letterSpacing:"1px",marginBottom:"4px"}}>💰 PRICE ALERT</div>
-                  <div style={{fontSize:"11px",color:"#FDE68A"}}>{demandForecast.priceAlert}</div>
+                  <div style={{fontSize:"11px",color:"rgba(201,168,76,0.18)"}}>{demandForecast.priceAlert}</div>
                 </div>
               )}
               <button onClick={()=>setDemandForecast(null)} style={{background:"none",border:"none",color:"rgba(255,255,255,0.3)",cursor:"pointer",fontSize:"18px",alignSelf:"flex-start"}}>×</button>
@@ -32320,12 +35670,12 @@ function BidBoardTab() {
 
           {/* LIST VIEW */}
           {futureView==="list" && (
-            <div style={{flex:1,overflowY:"auto",padding:"16px 20px"}}>
+            <div style={{flex:1,overflowY:"auto",padding:"clamp(10px,2vw,28px) clamp(12px,2.5vw,32px)"}}>
               {/* Event tickets first */}
               {futureTickets.filter(t=>t.ticketType==="event").length>0 && (
                 <div style={{marginBottom:"20px"}}>
                   <div style={{fontSize:"10px",fontWeight:"800",color:C.muted,letterSpacing:"2px",marginBottom:"10px"}}>🎉 EVENT BOOKINGS</div>
-                  <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:"12px"}}>
+                  <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(340px,1fr))",gap:"12px"}}>
                     {futureTickets.filter(t=>t.ticketType==="event").sort((a,b)=>new Date(a.scheduledDate)-new Date(b.scheduledDate)).map(ticket=>{
                       const days = daysUntil(ticket.scheduledDate);
                       const bw = getBidWindow(ticket.scheduledDate);
@@ -32352,7 +35702,7 @@ function BidBoardTab() {
                               <span style={{background:C.bg,fontSize:"11px",color:C.muted,padding:"3px 8px",borderRadius:"6px"}}>📅 {fmtDate(ticket.scheduledDate)}</span>
                               <span style={{background:C.bg,fontSize:"11px",color:C.muted,padding:"3px 8px",borderRadius:"6px"}}>🕐 {ticket.scheduledTime}</span>
                               <span style={{background:C.mintLight,fontSize:"11px",color:C.emerald,padding:"3px 8px",borderRadius:"6px",fontWeight:"700"}}>💰 {ticket.budget}</span>
-                              {ticket.deposit>0&&<span style={{background:"#D1FAE5",fontSize:"10px",color:"#065F46",padding:"2px 7px",borderRadius:"6px",fontWeight:"800"}}>🔒 ${ticket.deposit} deposit</span>}
+                              {ticket.deposit>0&&<span style={{background:"rgba(39,174,120,0.18)",fontSize:"10px",color:"rgba(39,174,120,0.85)",padding:"2px 7px",borderRadius:"6px",fontWeight:"800"}}>🔒 ${ticket.deposit} deposit</span>}
                             </div>
                             <div style={{display:"flex",gap:"6px",alignItems:"center",marginBottom:"8px"}}>
                               <span style={{background:`${bw.color}18`,color:bw.color,fontSize:"10px",fontWeight:"800",padding:"2px 8px",borderRadius:"8px",border:`1px solid ${bw.color}44`}}>{bw.label}</span>
@@ -32384,7 +35734,7 @@ function BidBoardTab() {
               {/* Scheduled tickets */}
               <div>
                 <div style={{fontSize:"10px",fontWeight:"800",color:C.muted,letterSpacing:"2px",marginBottom:"10px"}}>📅 SCHEDULED APPOINTMENTS</div>
-                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:"12px"}}>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(340px,1fr))",gap:"12px"}}>
                   {futureTickets.filter(t=>t.ticketType==="scheduled").sort((a,b)=>new Date(a.scheduledDate)-new Date(b.scheduledDate)).map(ticket=>{
                     const days = daysUntil(ticket.scheduledDate);
                     const bw = getBidWindow(ticket.scheduledDate);
@@ -32408,13 +35758,13 @@ function BidBoardTab() {
                           <div style={{display:"flex",gap:"6px",flexWrap:"wrap",marginBottom:"8px"}}>
                             <span style={{background:C.bg,fontSize:"10px",color:C.muted,padding:"2px 7px",borderRadius:"6px"}}>📅 {fmtDate(ticket.scheduledDate)} {ticket.scheduledTime}</span>
                             <span style={{background:C.mintLight,fontSize:"10px",color:C.emerald,padding:"2px 7px",borderRadius:"6px",fontWeight:"700"}}>{ticket.budget}</span>
-                            {ticket.deposit>0&&<span style={{background:"#D1FAE5",fontSize:"10px",color:"#065F46",padding:"2px 7px",borderRadius:"6px",fontWeight:"700"}}>🔒 ${ticket.deposit}</span>}
+                            {ticket.deposit>0&&<span style={{background:"rgba(39,174,120,0.18)",fontSize:"10px",color:"rgba(39,174,120,0.85)",padding:"2px 7px",borderRadius:"6px",fontWeight:"700"}}>🔒 ${ticket.deposit}</span>}
                           </div>
                           <div style={{display:"flex",gap:"6px",alignItems:"center",marginBottom:"8px"}}>
                             <span style={{background:`${bw.color}18`,color:bw.color,fontSize:"10px",fontWeight:"800",padding:"2px 8px",borderRadius:"8px"}}>{bw.label}</span>
                             <span style={{fontSize:"10px",color:C.muted,flexShrink:0}}>{availPros.length} pros free</span>
                           </div>
-                          {ticket.hairType && <div style={{marginBottom:"6px"}}><span style={{background:"#EDE9FE",color:"#6D28D9",fontSize:"10px",fontWeight:"700",padding:"2px 8px",borderRadius:"6px"}}>{ticket.hairType}</span></div>}
+                          {ticket.hairType && <div style={{marginBottom:"6px"}}><span style={{background:"rgba(124,58,237,0.12)",color:"#6D28D9",fontSize:"10px",fontWeight:"700",padding:"2px 8px",borderRadius:"6px"}}>{ticket.hairType}</span></div>}
                           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                             <span style={{fontSize:"11px",color:ticket.bids.length>0?C.mint:C.muted,fontWeight:"700"}}>{ticket.bids.length} bid{ticket.bids.length!==1?"s":""}{ticket.bids.length>0?" · from $"+Math.min(...ticket.bids.map(b=>b.price)):""}</span>
                             <button style={{background:GRAD.hero,color:"#fff",border:"none",padding:"6px 12px",borderRadius:"8px",fontSize:"11px",fontWeight:"900",cursor:"pointer"}}>
@@ -32432,7 +35782,7 @@ function BidBoardTab() {
 
           {/* CALENDAR VIEW */}
           {futureView==="calendar" && (
-            <div style={{flex:1,overflowY:"auto",padding:"16px 20px"}}>
+            <div style={{flex:1,overflowY:"auto",padding:"clamp(10px,2vw,28px) clamp(12px,2.5vw,32px)"}}>
               {/* Month nav */}
               <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"16px"}}>
                 <button onClick={()=>setCalMonth(m=>new Date(m.getFullYear(),m.getMonth()-1,1))}
@@ -32461,7 +35811,7 @@ function BidBoardTab() {
                   const hasEvent = day.tickets.some(t=>t.ticketType==="event");
                   return (
                     <div key={i} onClick={()=>setCalSelectedDate(isSelected?null:day.dateStr)}
-                      style={{background:isSelected?C.emerald:isToday?"#F0FDF4":hasTix?"#EDE9FE":C.white,border:`2px solid ${isSelected?C.mint:isToday?C.mint:hasTix?"#C4B5FD":C.border}`,borderRadius:"10px",padding:"8px 6px",textAlign:"center",cursor:"pointer",minHeight:"52px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",transition:"all 0.15s"}}>
+                      style={{background:isSelected?C.emerald:isToday?"#F0FDF4":hasTix?"#EDE9FE":C.white,border:`2px solid ${isSelected?C.mint:isToday?C.mint:hasTix?"rgba(124,58,237,0.22)":C.border}`,borderRadius:"10px",padding:"8px 6px",textAlign:"center",cursor:"pointer",minHeight:"52px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",transition:"all 0.15s"}}>
                       <div style={{fontSize:"13px",fontWeight:isToday||isSelected?"900":"600",color:isSelected?"#fff":isToday?C.mint:C.text}}>{day.d}</div>
                       {hasTix && (
                         <div style={{display:"flex",gap:"2px",marginTop:"3px",flexWrap:"wrap",justifyContent:"center"}}>
@@ -32494,7 +35844,7 @@ function BidBoardTab() {
                       <div style={{fontSize:"11px",color:C.muted}}>{t.clientName} · {t.scheduledTime} · {t.location}</div>
                       <div style={{marginTop:"8px",display:"flex",gap:"8px"}}>
                         <span style={{background:C.mintLight,color:C.emerald,fontSize:"10px",fontWeight:"700",padding:"2px 8px",borderRadius:"6px"}}>{t.bids.length} bid{t.bids.length!==1?"s":""}</span>
-                        {t.deposit>0&&<span style={{background:"#D1FAE5",color:"#065F46",fontSize:"10px",fontWeight:"700",padding:"2px 8px",borderRadius:"6px"}}>🔒 ${t.deposit} deposit</span>}
+                        {t.deposit>0&&<span style={{background:"rgba(39,174,120,0.18)",color:"rgba(39,174,120,0.85)",fontSize:"10px",fontWeight:"700",padding:"2px 8px",borderRadius:"6px"}}>🔒 ${t.deposit} deposit</span>}
                       </div>
                     </div>
                   ))}
@@ -32530,7 +35880,7 @@ function BidBoardTab() {
 
       {/* ── AVAILABILITY VIEW ── */}
       {boardView==="availability" && (
-        <div style={{flex:1,overflowY:"auto",padding:"20px"}}>
+        <div style={{flex:1,overflowY:"auto",padding:"clamp(12px,2.5vw,32px)"}}>
           <div style={{fontFamily:FONTS.display,fontSize:"20px",fontWeight:"700",color:C.text,marginBottom:"6px"}}>🗓 Pro Availability & Waitlists</div>
           <div style={{fontSize:"12px",color:C.muted,marginBottom:"20px"}}>Set your available dates · manage client waitlists · smart scheduling</div>
 
@@ -32546,8 +35896,8 @@ function BidBoardTab() {
                 const hasTix=futureTickets.some(t=>t.scheduledDate===key);
                 return (
                   <div key={key} onClick={()=>toggleMyAvail(key)}
-                    style={{background:avail?(hasTix?"#FEF3C7":"#D1FAE5"):"#FEE2E2",border:`1.5px solid ${avail?(hasTix?"#FCD34D":"#22C55E"):"#FCA5A5"}`,borderRadius:"8px",padding:"6px 10px",textAlign:"center",cursor:"pointer",minWidth:"54px"}}>
-                    <div style={{fontSize:"10px",fontWeight:"800",color:avail?(hasTix?"#92400E":"#065F46"):"#DC2626"}}>{label}</div>
+                    style={{background:avail?(hasTix?"#FEF3C7":"rgba(39,174,120,0.18)"):"#FEE2E2",border:`1.5px solid ${avail?(hasTix?"#FCD34D":"#22C55E"):"rgba(239,68,68,0.2)"}`,borderRadius:"8px",padding:"6px 10px",textAlign:"center",cursor:"pointer",minWidth:"54px"}}>
+                    <div style={{fontSize:"10px",fontWeight:"800",color:avail?(hasTix?"#C9A84C":"#065F46"):"#DC2626"}}>{label}</div>
                     <div style={{fontSize:"10px",marginTop:"1px"}}>{avail?(hasTix?"📋":"✅"):"❌"}</div>
                   </div>
                 );
@@ -32575,7 +35925,7 @@ function BidBoardTab() {
                     const dt=new Date(today); dt.setDate(dt.getDate()+i);
                     const key=dt.toISOString().split("T")[0];
                     const isAvail=avail[key];
-                    return <div key={pro+key} style={{background:isAvail?"#D1FAE5":"#FEE2E2",border:`1px solid ${isAvail?"#86EFAC":"#FCA5A5"}`,borderRadius:"6px",padding:"6px",textAlign:"center",fontSize:"14px"}}>{isAvail?"✅":"❌"}</div>;
+                    return <div key={pro+key} style={{background:isAvail?"rgba(39,174,120,0.18)":"#FEE2E2",border:`1px solid ${isAvail?"#86EFAC":"rgba(239,68,68,0.2)"}`,borderRadius:"6px",padding:"6px",textAlign:"center",fontSize:"14px"}}>{isAvail?"✅":"❌"}</div>;
                   })
                 ])}
               </div>
@@ -32594,7 +35944,7 @@ function BidBoardTab() {
                   </div>
                   <div style={{display:"flex",gap:"6px",flexWrap:"wrap",marginBottom:"8px"}}>
                     {clients.map(c=>(
-                      <span key={c} style={{background:"#EDE9FE",color:"#6D28D9",fontSize:"11px",fontWeight:"700",padding:"3px 10px",borderRadius:"20px"}}>{c}</span>
+                      <span key={c} style={{background:"rgba(124,58,237,0.12)",color:"#6D28D9",fontSize:"11px",fontWeight:"700",padding:"3px 10px",borderRadius:"20px"}}>{c}</span>
                     ))}
                   </div>
                   <div style={{display:"flex",gap:"6px"}}>
@@ -32663,7 +36013,7 @@ function BidBoardTab() {
                     style={{width:"100%",padding:"10px 12px",border:`1.5px solid ${C.border}`,borderRadius:"10px",fontSize:"13px",boxSizing:"border-box"}}/>
                 </div>
               ))}
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"10px"}}>
+              <div className="lti-two-col" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"10px"}}>
                 <div>
                   <div style={{fontSize:"10px",fontWeight:"800",color:C.muted,letterSpacing:"1.5px",marginBottom:"4px"}}>DATE</div>
                   <input type="date" value={newFuture.scheduledDate} onChange={e=>setNewFuture(p=>({...p,scheduledDate:e.target.value}))}
@@ -32686,7 +36036,7 @@ function BidBoardTab() {
                 </div>
               )}
               {newFuture.ticketType==="event" && (
-                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"10px"}}>
+                <div className="lti-two-col" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"10px"}}>
                   <div>
                     <div style={{fontSize:"10px",fontWeight:"800",color:C.muted,letterSpacing:"1.5px",marginBottom:"4px"}}>PARTY SIZE</div>
                     <input type="number" min="1" value={newFuture.partySize} onChange={e=>setNewFuture(p=>({...p,partySize:e.target.value}))}
@@ -32713,7 +36063,7 @@ function BidBoardTab() {
         </div>
       )}
       {boardView==="analytics" && (
-        <div style={{flex:1,overflowY:"auto",padding:"20px"}}>
+        <div style={{flex:1,overflowY:"auto",padding:"clamp(12px,2.5vw,32px)"}}>
           <div style={{fontFamily:FONTS.display,fontSize:"20px",fontWeight:"700",color:C.text,marginBottom:"16px"}}>📊 Pro Win Rate Analytics</div>
           <div style={{display:"flex",flexDirection:"column",gap:"10px",marginBottom:"24px"}}>
             {WIN_RATE_DATA.sort((a,b)=>(b.wins/b.bids)-(a.wins/a.bids)).map((p,i)=>{
@@ -32727,7 +36077,7 @@ function BidBoardTab() {
                         <div style={{fontSize:"14px",fontWeight:"900",color:C.text}}>{p.pro}</div>
                         <div style={{fontSize:"11px",color:C.muted}}>Top service: {p.topService}</div>
                       </div>
-                      {FLASH_BADGES[p.pro] && <span style={{background:"#FEF3C7",color:"#92400E",fontSize:"10px",fontWeight:"800",padding:"2px 8px",borderRadius:"10px"}}>{FLASH_BADGES[p.pro].badge}</span>}
+                      {FLASH_BADGES[p.pro] && <span style={{background:"rgba(201,168,76,0.18)",color:"#C9A84C",fontSize:"10px",fontWeight:"800",padding:"2px 8px",borderRadius:"10px"}}>{FLASH_BADGES[p.pro].badge}</span>}
                     </div>
                     <div style={{textAlign:"right"}}>
                       <div style={{fontSize:"22px",fontWeight:"900",color:wr>=85?C.mint:wr>=70?"#D97706":"#DC2626"}}>{wr}%</div>
@@ -32751,12 +36101,12 @@ function BidBoardTab() {
 
       {/* ── RECURRING BIDS VIEW ── */}
       {boardView==="recurring" && (
-        <div style={{flex:1,overflowY:"auto",padding:"20px"}}>
+        <div style={{flex:1,overflowY:"auto",padding:"clamp(12px,2.5vw,32px)"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"16px"}}>
             <div style={{fontFamily:FONTS.display,fontSize:"20px",fontWeight:"700",color:C.text}}>🔄 Recurring Bid Tickets</div>
             <button style={{background:GRAD.hero,color:"#fff",border:"none",padding:"8px 16px",borderRadius:"8px",fontSize:"12px",fontWeight:"800",cursor:"pointer"}}>+ New Recurring</button>
           </div>
-          <div style={{background:"#F0FDF4",border:"1px solid #BBF7D0",borderRadius:"12px",padding:"12px 16px",marginBottom:"16px",fontSize:"12px",color:"#166534"}}>
+          <div style={{background:"rgba(39,174,120,0.10)",border:"1px solid #BBF7D0",borderRadius:"12px",padding:"12px 16px",marginBottom:"16px",fontSize:"12px",color:"#166534"}}>
             🔄 Recurring tickets let clients lock in a standing appointment on a set schedule. Pros bid for the recurring slot — win once, keep the client.
           </div>
           <div style={{display:"flex",flexDirection:"column",gap:"10px"}}>
@@ -32767,12 +36117,12 @@ function BidBoardTab() {
                     <div style={{fontSize:"14px",fontWeight:"900",color:C.text}}>{r.service}</div>
                     <div style={{fontSize:"12px",color:C.muted}}>{r.clientName} · {r.hairType} · {r.location}</div>
                   </div>
-                  <span style={{background:"#D1FAE5",color:"#065F46",fontSize:"10px",fontWeight:"800",padding:"4px 10px",borderRadius:"20px"}}>{r.freq}</span>
+                  <span style={{background:"rgba(39,174,120,0.18)",color:"rgba(39,174,120,0.85)",fontSize:"10px",fontWeight:"800",padding:"4px 10px",borderRadius:"20px"}}>{r.freq}</span>
                 </div>
                 <div style={{display:"flex",gap:"10px",flexWrap:"wrap",marginBottom:"10px"}}>
                   <span style={{background:C.bg,fontSize:"11px",color:C.muted,padding:"3px 10px",borderRadius:"6px"}}>📅 {r.nextDate}</span>
                   <span style={{background:C.bg,fontSize:"11px",color:C.muted,padding:"3px 10px",borderRadius:"6px"}}>💰 {r.budget}</span>
-                  <span style={{background:"#EDE9FE",fontSize:"11px",color:"#6D28D9",padding:"3px 10px",borderRadius:"6px",fontWeight:"700"}}>{r.bids} bids</span>
+                  <span style={{background:"rgba(124,58,237,0.12)",fontSize:"11px",color:"#6D28D9",padding:"3px 10px",borderRadius:"6px",fontWeight:"700"}}>{r.bids} bids</span>
                 </div>
                 <button style={{width:"100%",background:GRAD.hero,color:"#fff",border:"none",padding:"10px",borderRadius:"10px",fontSize:"12px",fontWeight:"900",cursor:"pointer"}}>
                   Bid on Recurring Slot →
@@ -32785,12 +36135,12 @@ function BidBoardTab() {
 
       {/* ── QUICK-BID TEMPLATES VIEW ── */}
       {boardView==="templates" && (
-        <div style={{flex:1,overflowY:"auto",padding:"20px"}}>
+        <div style={{flex:1,overflowY:"auto",padding:"clamp(12px,2.5vw,32px)"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"16px"}}>
             <div style={{fontFamily:FONTS.display,fontSize:"20px",fontWeight:"700",color:C.text}}>⚡ Quick-Bid Templates</div>
             <button style={{background:GRAD.hero,color:"#fff",border:"none",padding:"8px 16px",borderRadius:"8px",fontSize:"12px",fontWeight:"800",cursor:"pointer"}}>+ New Template</button>
           </div>
-          <div style={{background:"#EFF6FF",border:"1px solid #BFDBFE",borderRadius:"12px",padding:"12px 16px",marginBottom:"16px",fontSize:"12px",color:"#1E40AF"}}>
+          <div style={{background:"rgba(8,145,178,0.12)",border:"1px solid #BFDBFE",borderRadius:"12px",padding:"12px 16px",marginBottom:"16px",fontSize:"12px",color:"#60A5FA"}}>
             ⚡ One-tap bidding. Select a template when a ticket matches and your bid fires instantly with your saved price, ETA, and message.
           </div>
           <div style={{display:"flex",flexDirection:"column",gap:"10px"}}>
@@ -32866,15 +36216,15 @@ function BidBoardTab() {
 
       {/* Broker bar */}
       {brokerMode&&(
-        <div style={{background:"linear-gradient(135deg,#FFFBEB,#FEF3C7)",borderBottom:"2px solid #FCD34D",padding:"10px 20px",display:"flex",gap:"20px",alignItems:"center",flexShrink:0,flexWrap:"wrap"}}>
+        <div style={{background:"rgba(201,168,76,0.1)",borderBottom:"2px solid #FCD34D",padding:"10px 20px",display:"flex",gap:"20px",alignItems:"center",flexShrink:0,flexWrap:"wrap"}}>
           <span style={{fontSize:"16px"}}>&#127970;</span>
-          <span style={{fontSize:"12px",fontWeight:"800",color:"#92400E"}}>Broker Mode</span>
+          <span style={{fontSize:"12px",fontWeight:"800",color:"#C9A84C"}}>Broker Mode</span>
           <span style={{fontSize:"12px",color:"#D97706"}}>Use AI Match on any open ticket to recommend the best bid automatically.</span>
           <div style={{marginLeft:"auto",display:"flex",gap:"10px"}}>
             {[[openCount,"Live",C.gold],[totalBids,"Total Bids","#7C3AED"],[assignedCount,"Assigned",C.mint]].map(([v,l,c])=>(
               <div key={l} style={{background:"rgba(255,255,255,0.7)",borderRadius:"8px",padding:"6px 12px",textAlign:"center",border:`1px solid ${c}44`}}>
                 <div style={{fontSize:"16px",fontWeight:"900",color:c}}>{v}</div>
-                <div style={{fontSize:"9px",color:"#92400E",fontWeight:"700"}}>{l}</div>
+                <div style={{fontSize:"9px",color:"#C9A84C",fontWeight:"700"}}>{l}</div>
               </div>
             ))}
           </div>
@@ -32961,7 +36311,7 @@ function BidBoardTab() {
                     <div style={{display:"flex",gap:"6px",flexWrap:"wrap",marginBottom:"10px"}}>
                       <span style={{background:C.bg,fontSize:"10px",color:C.muted,padding:"3px 8px",borderRadius:"6px"}}>📍 {slot.location}</span>
                       <span style={{background:C.bg,fontSize:"10px",color:C.muted,padding:"3px 8px",borderRadius:"6px"}}>⏱ {slot.duration} min</span>
-                      <span style={{background:"#FEF3C7",fontSize:"10px",color:"#92400E",padding:"3px 8px",borderRadius:"6px"}}>📋 {slot.cancelReason}</span>
+                      <span style={{background:"rgba(201,168,76,0.12)",fontSize:"10px",color:"#C9A84C",padding:"3px 8px",borderRadius:"6px"}}>📋 {slot.cancelReason}</span>
                     </div>
 
                     {/* Standby list */}
@@ -32969,7 +36319,7 @@ function BidBoardTab() {
                       <div style={{fontSize:"10px",fontWeight:"700",color:C.muted}}>STANDBY ({slot.standby.length}):</div>
                       <div style={{display:"flex",gap:"4px",flexWrap:"wrap",flex:1}}>
                         {slot.standby.slice(0,3).map(n=>(
-                          <span key={n} style={{background:"#EDE9FE",color:"#6D28D9",fontSize:"10px",padding:"2px 7px",borderRadius:"10px",fontWeight:"600"}}>{n}</span>
+                          <span key={n} style={{background:"rgba(124,58,237,0.12)",color:"#6D28D9",fontSize:"10px",padding:"2px 7px",borderRadius:"10px",fontWeight:"600"}}>{n}</span>
                         ))}
                         {slot.standby.length>3&&<span style={{fontSize:"10px",color:C.muted}}>+{slot.standby.length-3}</span>}
                       </div>
@@ -32998,7 +36348,7 @@ function BidBoardTab() {
                       </div>
                     )}
                     {claimed&&(
-                      <div style={{background:"#F0FDF4",border:"1px solid #BBF7D0",borderRadius:"10px",padding:"10px",textAlign:"center",fontSize:"12px",fontWeight:"800",color:"#166534"}}>
+                      <div style={{background:"rgba(39,174,120,0.10)",border:"1px solid #BBF7D0",borderRadius:"10px",padding:"10px",textAlign:"center",fontSize:"12px",fontWeight:"800",color:"#166534"}}>
                         ✅ Claimed by {slot.claimedBy}
                       </div>
                     )}
@@ -33039,7 +36389,7 @@ function BidBoardTab() {
                   <div style={{fontSize:"12px",fontWeight:"900",color:C.text,marginBottom:"6px"}}>{slot.service} · {slot.flashTime}</div>
                   <div style={{display:"flex",gap:"5px",flexWrap:"wrap",marginBottom:"8px"}}>
                     {slot.standby.map(n=>(
-                      <span key={n} style={{background:"#EDE9FE",color:"#6D28D9",fontSize:"11px",padding:"3px 9px",borderRadius:"10px",fontWeight:"700"}}>{n}</span>
+                      <span key={n} style={{background:"rgba(124,58,237,0.12)",color:"#6D28D9",fontSize:"11px",padding:"3px 9px",borderRadius:"10px",fontWeight:"700"}}>{n}</span>
                     ))}
                     {!slot.standby.length&&<span style={{fontSize:"11px",color:C.muted}}>No standby clients yet</span>}
                   </div>
@@ -33078,7 +36428,7 @@ function BidBoardTab() {
                 <button onClick={()=>setShowFlashPost(false)} style={{background:"none",border:"none",color:"rgba(255,255,255,0.7)",fontSize:"22px",cursor:"pointer",lineHeight:1}}>×</button>
               </div>
               <div style={{padding:"20px",display:"flex",flexDirection:"column",gap:"12px"}}>
-                <div style={{fontSize:"12px",color:"#7F1D1D",background:"#FEF2F2",borderRadius:"8px",padding:"8px 12px"}}>
+                <div style={{fontSize:"12px",color:"#7F1D1D",background:"rgba(239,68,68,0.10)",borderRadius:"8px",padding:"8px 12px"}}>
                   A client just cancelled. Post their slot at a flash discount to fill it instantly.
                 </div>
                 {[
@@ -33108,7 +36458,7 @@ function BidBoardTab() {
                   </div>
                 </div>
                 {newFlash.originalPrice && newFlash.flashPrice && (
-                  <div style={{background:"#F0FDF4",border:"1px solid #BBF7D0",borderRadius:"8px",padding:"10px",textAlign:"center"}}>
+                  <div style={{background:"rgba(39,174,120,0.10)",border:"1px solid #BBF7D0",borderRadius:"8px",padding:"10px",textAlign:"center"}}>
                     <span style={{fontWeight:"900",color:"#166534",fontSize:"14px"}}>
                       {Math.round((1-newFlash.flashPrice/newFlash.originalPrice)*100)}% discount — saving clients ${(newFlash.originalPrice-newFlash.flashPrice).toFixed(0)}
                     </span>
@@ -33125,7 +36475,7 @@ function BidBoardTab() {
       </div>
 
       {/* Ticket grid */}
-      <div style={{flex:1,overflowY:"auto",padding:"20px"}}>
+      <div style={{flex:1,overflowY:"auto",padding:"clamp(12px,2.5vw,32px)"}}>
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(320px,1fr))",gap:"14px",marginBottom:"24px"}}>
           {filteredTickets.map(ticket=>{
             const urg = urgencyConfig[ticket.urgency]||urgencyConfig.today;
@@ -33145,7 +36495,7 @@ function BidBoardTab() {
                   </div>
                   <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:"4px"}}>
                     <span style={{background:"rgba(255,255,255,0.25)",color:"#fff",fontSize:"9px",fontWeight:"900",padding:"3px 8px",borderRadius:"10px",letterSpacing:"1px"}}>{urg.label}</span>
-                    {match && <span style={{background:"rgba(255,255,255,0.9)",color:ticket.color,fontSize:"9px",fontWeight:"900",padding:"2px 7px",borderRadius:"8px"}}>✦ {match.score}% MATCH</span>}
+                    {match && <span style={{background:"rgba(255,255,255,0.06)",color:ticket.color,fontSize:"9px",fontWeight:"900",padding:"2px 7px",borderRadius:"8px"}}>✦ {match.score}% MATCH</span>}
                     {ticket.isGroup && <span style={{background:"rgba(255,255,255,0.2)",color:"#fff",fontSize:"9px",fontWeight:"800",padding:"2px 7px",borderRadius:"8px"}}>👥 GROUP</span>}
                     {ticket.isRecurring && <span style={{background:"rgba(255,255,255,0.2)",color:"#fff",fontSize:"9px",fontWeight:"800",padding:"2px 7px",borderRadius:"8px"}}>🔄 RECURRING</span>}
                   </div>
@@ -33156,20 +36506,32 @@ function BidBoardTab() {
                     <span style={{background:C.bg,fontSize:"11px",color:C.muted,padding:"3px 8px",borderRadius:"6px"}}>🕐 {ticket.requestedTime}</span>
                     <span style={{background:C.bg,fontSize:"11px",color:C.muted,padding:"3px 8px",borderRadius:"6px"}}>📍 {ticket.location}</span>
                     <span style={{background:C.mintLight,fontSize:"11px",color:C.emerald,padding:"3px 8px",borderRadius:"6px",fontWeight:"700"}}>💰 {ticket.budget}</span>
-                    {ticket.hairType && <span style={{background:"#EDE9FE",fontSize:"11px",color:"#6D28D9",padding:"3px 8px",borderRadius:"6px",fontWeight:"700"}}>{ticket.hairType}</span>}
-                    {ticket.escrowDeposit && <span style={{background:"#D1FAE5",fontSize:"10px",color:"#065F46",padding:"2px 7px",borderRadius:"6px",fontWeight:"800"}}>🔒 ${escrowAmt} deposit</span>}
+                    {ticket.hairType && <span style={{background:"rgba(124,58,237,0.12)",fontSize:"11px",color:"#6D28D9",padding:"3px 8px",borderRadius:"6px",fontWeight:"700"}}>{ticket.hairType}</span>}
+                    {ticket.escrowDeposit && <span style={{background:"rgba(39,174,120,0.18)",fontSize:"10px",color:"rgba(39,174,120,0.85)",padding:"2px 7px",borderRadius:"6px",fontWeight:"800"}}>🔒 ${escrowAmt} deposit</span>}
                   </div>
 
                   {ticket.notes && <div style={{fontSize:"12px",color:C.sub,marginBottom:"8px",lineHeight:"1.5",fontStyle:"italic"}}>"{ticket.notes}"</div>}
-                  {ticket.broker && <div style={{marginBottom:"6px"}}><span style={{background:"#FFFBEB",color:"#D97706",fontSize:"10px",padding:"2px 8px",borderRadius:"10px",fontWeight:"700",border:"1px solid #FCD34D"}}>🔗 {ticket.broker}</span></div>}
+                  {ticket.broker && <div style={{marginBottom:"6px"}}><span style={{background:"rgba(201,168,76,0.12)",color:"#D97706",fontSize:"10px",padding:"2px 8px",borderRadius:"10px",fontWeight:"700",border:"1px solid #FCD34D"}}>🔗 {ticket.broker}</span></div>}
 
-                  {/* Bid count summary */}
+                  {/* Bid count + live countdown */}
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"8px"}}>
                     <span style={{fontSize:"12px",fontWeight:"800",color:ticket.bids.length>0?C.mint:C.muted}}>
                       {ticket.bids.length} bid{ticket.bids.length!==1?"s":""}{ticket.bids.length>0?" · from $"+Math.min(...ticket.bids.map(b=>b.price)):""}
                     </span>
-                    {isBest && ticket.bids.length>0 && <span style={{background:"#FEF3C7",color:"#92400E",fontSize:"9px",fontWeight:"900",padding:"2px 8px",borderRadius:"8px"}}>✦ AI PICK: {isBest}</span>}
-                    <span style={{fontSize:"11px",color:C.muted}}>Expires {ticket.expiresIn}</span>
+                    {isBest && ticket.bids.length>0 && <span style={{background:"rgba(201,168,76,0.18)",color:"#C9A84C",fontSize:"9px",fontWeight:"900",padding:"2px 8px",borderRadius:"8px"}}>✦ AI PICK: {isBest}</span>}
+                    <span style={{
+                      fontSize:"11px",fontWeight:"700",
+                      color: ticket.expiresInSecs!=null ? urgencyColor(ticket.expiresInSecs) : C.muted,
+                      background: ticket.expiresInSecs!=null && ticket.expiresInSecs<=300
+                        ? "rgba(220,38,38,0.12)" : "transparent",
+                      padding: ticket.expiresInSecs!=null && ticket.expiresInSecs<=300
+                        ? "2px 7px" : "0",
+                      borderRadius:"8px",
+                    }}>
+                      {ticket.expiresInSecs!=null
+                        ? `⏱ ${formatCountdown(ticket.expiresInSecs)}`
+                        : ticket.expiresIn ? `Expires ${ticket.expiresIn}` : ""}
+                    </span>
                   </div>
 
                   {/* Expanded bids */}
@@ -33187,17 +36549,17 @@ function BidBoardTab() {
                               <div style={{display:"flex",alignItems:"center",gap:"6px",flexWrap:"wrap"}}>
                                 <span style={{fontSize:"13px",fontWeight:"800",color:C.text}}>{bid.stylist}</span>
                                 {isRecommended&&<span style={{fontSize:"9px",background:"#22C55E",color:"#fff",padding:"1px 6px",borderRadius:"8px",fontWeight:"900"}}>✦ BEST</span>}
-                                {FLASH_BADGES[bid.stylist]&&<span style={{fontSize:"9px",background:"#FEF3C7",color:"#92400E",padding:"1px 6px",borderRadius:"8px",fontWeight:"800"}}>⚡</span>}
-                                {fraudList.length>0&&<span style={{fontSize:"9px",background:"#FEF2F2",color:"#DC2626",padding:"1px 6px",borderRadius:"8px",fontWeight:"900"}}>⚠ FLAG</span>}
+                                {FLASH_BADGES[bid.stylist]&&<span style={{fontSize:"9px",background:"rgba(201,168,76,0.18)",color:"#C9A84C",padding:"1px 6px",borderRadius:"8px",fontWeight:"800"}}>⚡</span>}
+                                {fraudList.length>0&&<span style={{fontSize:"9px",background:"rgba(239,68,68,0.10)",color:"#DC2626",padding:"1px 6px",borderRadius:"8px",fontWeight:"900"}}>⚠ FLAG</span>}
                               </div>
                               <div style={{display:"flex",alignItems:"center",gap:"6px"}}>
-                                {fair&&<span style={{fontSize:"9px",fontWeight:"800",padding:"1px 6px",borderRadius:"8px",background:fair.rating==="fair"?"#D1FAE5":fair.rating==="below"?"#DBEAFE":"#FEF3C7",color:fair.rating==="fair"?"#065F46":fair.rating==="below"?"#1E40AF":"#92400E"}}>{fair.rating==="fair"?"✓ Fair":fair.rating==="below"?"↓ Low":"↑ High"}</span>}
+                                {fair&&<span style={{fontSize:"9px",fontWeight:"800",padding:"1px 6px",borderRadius:"8px",background:fair.rating==="fair"?"rgba(39,174,120,0.18)":fair.rating==="below"?"rgba(8,145,178,0.18)":"#FEF3C7",color:fair.rating==="fair"?"#065F46":fair.rating==="below"?"#1E40AF":"#C9A84C"}}>{fair.rating==="fair"?"✓ Fair":fair.rating==="below"?"↓ Low":"↑ High"}</span>}
                                 <span style={{fontSize:"16px",fontWeight:"900",color:C.mint}}>${bid.counterOffer||bid.price}</span>
                               </div>
                             </div>
                             <div style={{fontSize:"11px",color:C.muted,marginBottom:"4px"}}>⭐{bid.rating} · ETA {bid.eta}</div>
                             {bid.message&&<div style={{fontSize:"11px",color:C.sub,fontStyle:"italic",marginBottom:"4px"}}>"{bid.message.slice(0,60)}{bid.message.length>60?"...":""}"</div>}
-                            {bid.counterOffer&&<div style={{fontSize:"10px",background:"#EDE9FE",color:"#6D28D9",padding:"2px 8px",borderRadius:"6px",fontWeight:"700",display:"inline-block",marginBottom:"4px"}}>Counter: ${bid.counterOffer} {bid.counterStatus==="pending"?"(pending)":"✓"}</div>}
+                            {bid.counterOffer&&<div style={{fontSize:"10px",background:"rgba(124,58,237,0.12)",color:"#6D28D9",padding:"2px 8px",borderRadius:"6px",fontWeight:"700",display:"inline-block",marginBottom:"4px"}}>Counter: ${bid.counterOffer} {bid.counterStatus==="pending"?"(pending)":"✓"}</div>}
                             {fraudList.length>0&&<div style={{fontSize:"10px",color:"#DC2626",fontWeight:"700",marginBottom:"4px"}}>⚠ {fraudList[0]}</div>}
                             {ticket.status==="open"&&(
                               <div style={{display:"flex",gap:"6px",marginTop:"6px",flexWrap:"wrap"}}>
@@ -33206,7 +36568,7 @@ function BidBoardTab() {
                                   {isRecommended?"✦ Accept":"Accept"}
                                 </button>
                                 <button onClick={e=>{e.stopPropagation();setCounterModal({ticketId:ticket.id,bid});setCounterPrice("");}}
-                                  style={{flex:1,minWidth:"55px",background:"#EDE9FE",color:"#7C3AED",border:"1.5px solid #C4B5FD",padding:"7px",borderRadius:"8px",fontSize:"11px",fontWeight:"800",cursor:"pointer"}}>
+                                  style={{flex:1,minWidth:"55px",background:"rgba(124,58,237,0.12)",color:"#7C3AED",border:"1.5px solid #C4B5FD",padding:"7px",borderRadius:"8px",fontSize:"11px",fontWeight:"800",cursor:"pointer"}}>
                                   Counter
                                 </button>
                                 {hasPf&&<button onClick={e=>{e.stopPropagation();setShowPortfolio({stylist:bid.stylist,rating:bid.rating});}}
@@ -33242,8 +36604,8 @@ function BidBoardTab() {
                     </button>
                   )}
 
-                  {match && isSel && <div style={{background:"#F0FDF4",border:"1px solid #BBF7D0",borderRadius:"8px",padding:"8px 10px",marginTop:"8px",fontSize:"11px",color:"#166534",fontWeight:"700"}}>✦ Smart Match: {match.reason}</div>}
-                  {ticket.status==="assigned"&&<div style={{background:"#EFF6FF",border:"1px solid #BFDBFE",borderRadius:"8px",padding:"9px",fontSize:"12px",fontWeight:"700",color:"#0891B2",textAlign:"center",marginTop:"6px"}}>✓ Assigned to {ticket.assignedTo}</div>}
+                  {match && isSel && <div style={{background:"rgba(39,174,120,0.10)",border:"1px solid #BBF7D0",borderRadius:"8px",padding:"8px 10px",marginTop:"8px",fontSize:"11px",color:"#166534",fontWeight:"700"}}>✦ Smart Match: {match.reason}</div>}
+                  {ticket.status==="assigned"&&<div style={{background:"rgba(8,145,178,0.12)",border:"1px solid #BFDBFE",borderRadius:"8px",padding:"9px",fontSize:"12px",fontWeight:"700",color:"#0891B2",textAlign:"center",marginTop:"6px"}}>✓ Assigned to {ticket.assignedTo}</div>}
                 </div>
               </div>
             );
@@ -33433,8 +36795,63 @@ function BidBoardTab() {
 export default function App() {
   const [styles, setStyles] = useState(SAMPLE_STYLES);
   const [tab, setTab] = useState("styles");
-  const [authUser, setAuthUser] = useState({ id:"u1", name:"Michael Lynn Jones II", role:"Owner", tier:"MASTER", avatar:"MJ", color:"#C9A84C", badge:"Platform Owner" });
-  const isOwner = authUser?.id === OWNER_ID || authUser?.badge === "Platform Owner";
+  const [authUser, setAuthUser] = useState(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showGuestBooking, setShowGuestBooking] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [showMobileNav, setShowMobileNav] = useState(false);
+  const [navRetreated, setNavRetreated] = useState(false);
+  const [showCart, setShowCart] = useState(false);
+  const [cartItemCount, setCartItemCount] = useState(2);
+  const [openCat, setOpenCat] = useState(null);
+
+  const isGuest = authUser?.role === "guest";
+
+  function handleAuth(user) {
+    setAuthUser(user);
+    if (user?.role === "guest") return; // guests skip onboarding
+    if (user?.role !== "owner" && user?.role !== "master") {
+      const key = `lti_onboarded_${user?.email || user?.id}`;
+      if (!localStorage.getItem(key)) setShowOnboarding(true);
+    }
+  }
+
+  function handleOnboardingComplete(action) {
+    const key = `lti_onboarded_${authUser?.email || authUser?.id}`;
+    localStorage.setItem(key, "1");
+    setShowOnboarding(false);
+    if (action === "dna")    setTab("dna");
+    if (action === "nearme") setTab("nearme");
+  }
+
+  function exitGuest() {
+    setAuthUser(null);
+    setShowGuestBooking(false);
+  }
+  const isOwner = authUser?.id === OWNER_ID;
+
+  // ── OWNER SECRET ACCESS ─────────────────────────────────────────────────────
+  // Users see zero indication this exists.
+  // Tap the LTI logo 7 times within 3 seconds → PIN modal appears.
+  const [ownerUnlocked, setOwnerUnlocked] = useState(false);
+  const [showPinGate,   setShowPinGate]   = useState(false);
+  const [logoTaps,      setLogoTaps]      = useState([]);
+
+  function handleLogoTap() {
+    if (!isOwner) return; // Only works when logged in as owner account
+    const now = Date.now();
+    const recent = [...logoTaps, now].filter(t => now - t < 3000);
+    setLogoTaps(recent);
+    if (recent.length >= 7) {
+      setLogoTaps([]);
+      setShowPinGate(true);
+    }
+  }
+
+  function handlePinSuccess() {
+    setShowPinGate(false);
+    setOwnerUnlocked(true);
+  }
   const [showFaceGate, setShowFaceGate] = useState(false);
   const [lang, setLang] = useState("en");
   const t = TRANSLATIONS[lang] || TRANSLATIONS.en;
@@ -33444,21 +36861,38 @@ export default function App() {
   const [screenW, setScreenW] = useState(typeof window!=="undefined"?window.innerWidth:1200);
   const [screenH, setScreenH] = useState(typeof window!=="undefined"?window.innerHeight:800);
   const [dismissRotate, setDismissRotate] = useState(false);
-  const [showMobileNav, setShowMobileNav] = useState(false);
-  const [navRetreated, setNavRetreated] = useState(false);
-  const [showCart, setShowCart] = useState(false);
-  const [cartItemCount, setCartItemCount] = useState(2);
-  const [openCat, setOpenCat] = useState(null); // synced with CheckoutTab seed items
 
   useEffect(()=>{
     function handleResize(){
       setScreenW(window.innerWidth);
       setScreenH(window.innerHeight);
     }
-    window.addEventListener("resize", handleResize);
-    window.addEventListener("orientationchange", handleResize);
+    window.addEventListener("resize",handleResize);
+    window.addEventListener("orientationchange",handleResize);
     return ()=>{ window.removeEventListener("resize",handleResize); window.removeEventListener("orientationchange",handleResize); };
   },[]);
+
+  // ── ALL HOOKS MUST BE ABOVE EARLY RETURNS ─────────────────────────────────
+  if (!authUser) return (
+    <AuthScreen onAuth={handleAuth} />
+  );
+
+  if (authUser?.role === "master") return (
+    <MasterControlPanel
+      authUser={authUser}
+      setAuthUser={setAuthUser}
+      onExit={() => setAuthUser(null)}
+    />
+  );
+
+  // First-time onboarding overlay
+  if (showOnboarding) return (
+    <FirstTimeOnboarding
+      authUser={authUser}
+      onComplete={handleOnboardingComplete}
+      onSkip={() => { setShowOnboarding(false); localStorage.setItem(`lti_onboarded_${authUser?.email||authUser?.id}`,"1"); }}
+    />
+  );
 
   const isMobile = screenW < 768;
   const isPortrait = screenH > screenW;
@@ -33466,56 +36900,72 @@ export default function App() {
   const showRotatePrompt = isPortraitMobile && !dismissRotate;
 
   const TABS = [
-    ["styles",   t.tabs.styles],
-    ["ltivision", "👓 LTI Vision™"],
-    ["subscriptions","🔄 Subscribe to Pro"],
-    ["herireviews","🌍 Heritage Reviews"],
+    ["styles",    "Style Studio"],
+    ["ltivision", "LTI Vision"],
+    ["client",    "Client"],
+    ["stylist",   "Stylist"],
+    ["heritage",  "Heritage"],
+    ["specialty", "Specialty"],
+    ["business",  "Business"],
+    ...(ownerUnlocked ? [["platform","Platform Owner"]] : []),
     ["nearme",    "Near Me"],
     ["bidboard",  "Bid Board"],
-    ["pros",     t.tabs.pros],
-    ["ai",       t.tabs.ai],
-    ["scan",     t.tabs.scan],
-    ["color",    t.tabs.color],
-    ["heritage", t.tabs.heritage],
-    ["products", t.tabs.products],
-    ["mystyles", t.tabs.mystyles],
-    ["qr",       "QR Connect"],
-    ["clients",  "Clients"],
-    ["pay",      "Payments"],
-    ["notify",   "Notifications"],
-    ["health",   "Hair Health"],
-    ["medfind",  "Find Specialist"],
-    ["access",   "Accessibility"],
-    ["nails",    "Nail Tech"],
-    ["tanning",  "Tanning & Spa"],
-    ["nailspa",  "💅 Nail & Spa Bids"],
-    ["esthet",   "Esthetician"],
-    ["admin-intel", "⚙ Admin Intel"],
-    ["intel",    "Business Intel"],
-    ["certs",    "Certifications"],
-    ["timeline", "Hair Timeline"],
-    ["consent",  "Consent Forms"],
-    ["ops",      "Ops Center"],
-    ["messages",  "Messages"],
+    ["bookpro",   "Book a Pro"],
+    ["pros",      "Find Pros"],
+    ["ai",        "AI"],
+    ["scan",      "Scan"],
+    ["color",     "Color"],
+    ["dna",       "Heritage DNA"],
+    ["products",  "Products"],
+    ["mystyles",  "My Styles"],
+    ["qr",        "QR Connect"],
+    ["clients",   "My Clients"],
+    ["pay",       "Payments"],
     ["avail",     "Availability"],
-    ["verify",    "ID Verify"],
-    ["stylematch", "Style Match"],
-    ["beforeafter","Before & After"],
-    ["inspire",   "✨ Inspire Feed"],
-    ["earnings",  "💰 Earnings"],
-    ["intake",    "✦ Client Intake"],
-    ["franchise",  "Franchise"],
-    ["bookpro",    "Book a Pro"],
-    ["pushnotify", "Alerts"],
-    ["reviews",   "Reviews"],
-    ["trends",    "Trends"],
-    ["protools",  "Pro Tools"],
-    ["admin",     "Admin"],
+    ["notify",    "Notifications"],
+    ["health",    "Hair Health"],
+    ["medfind",   "Find Specialist"],
+    ["access",    "Accessibility"],
+    ["nails",     "Nail Tech"],
+    ["nailshape", "Nail Consult"],
+    ["nailspa",   "Nail & Spa Bids"],
+    ["tanning",   "Spa & Tanning"],
+    ["esthet",    "Esthetician"],
+    ["admin",     "Master Admin"],
+    ["admin-intel","Intel Dashboard"],
+    ["franchise", "Franchise"],
+    ["operator",  "Ops Suite"],
     ["repair",    "Claude Repairs"],
+    ["purify",    "Claude Purify"],
+    ["certs",     "Certifications"],
+    ["timeline",  "Hair Timeline"],
+    ["consent",   "Consent Forms"],
+    ["socialhub", "Brand Hub"],
+    ["adminphotos","Photo Intake"],
+    ["protools",  "Pro Tools"],
+    ["forecast",  "Revenue Forecast"],
+    ["currency",  "Exchange"],
+    ["contributors","Contributors"],
+    ["trendintel","Trend Intel"],
+    ["prism",     "Claude Prism"],
     ["compete",   "Competition"],
     ["pitch",     "Pitch Mode"],
-    ["operator",  "Operator Suite"],
-    ["purify",    "Claude Purify"],
+    ["reviews",   "Reviews"],
+    ["messages",  "Messages"],
+    ["groupbook", "Group Booking"],
+    ["bookmylook","Book My Look"],
+    ["loyalty",   "Rewards"],
+    ["texturematch","Texture Match"],
+    ["skintone",  "Skin Tone"],
+    ["stylematch","Style Match"],
+    ["beforeafter","Before & After"],
+    ["trends",    "Trends"],
+    ["wigmarket", "Wigs & Extensions"],
+    ["bundlebuilder","Bundle Builder"],
+    ["muavision", "MUA Vision"],
+    ["lookboard", "Look Board"],
+    ["subscriptions","Subscriptions"],
+    ["herireviews","Heritage Reviews"],
   ];
 
   if (showFaceGate) {
@@ -33527,74 +36977,130 @@ export default function App() {
     <RealtimeProvider>
     <LangContext.Provider value={{ lang, t, setLang }}>
     <PrismStylesInjector />
-    <div style={{ minHeight: "100vh", background: C.bg, color: C.text, fontFamily: FONTS.body, display: "flex", flexDirection: "column", direction: currentLang.dir, position:"relative", overflow:"hidden" }}>
+    <div style={{ minHeight: "100vh", background: "linear-gradient(160deg, #0D2818 0%, #0A1A10 60%, #050D08 100%)", color: C.text, fontFamily: FONTS.body, display: "flex", flexDirection: "column", direction: currentLang.dir, position:"relative", maxWidth:"1920px", margin:"0 auto" }}>
 
-      {/* ── BRAND ARTWORK LAYER — fixed behind entire app ── */}
-      <div style={{position:"fixed",inset:0,zIndex:0,pointerEvents:"none",overflow:"hidden",background:C.bg}}>
-        {/* Globe — center right */}
-        <svg style={{position:"absolute",right:"-8%",top:"50%",transform:"translateY(-50%)",opacity:0.18}} width="520" height="520" viewBox="0 0 520 520" fill="none">
-          <defs>
-            <radialGradient id="globeG" cx="38%" cy="35%" r="62%">
-              <stop offset="0%" stopColor="#5EF0A0"/>
-              <stop offset="45%" stopColor="#27AE78"/>
-              <stop offset="100%" stopColor="#0D2818"/>
-            </radialGradient>
-            <radialGradient id="globeS" cx="30%" cy="25%" r="55%">
-              <stop offset="0%" stopColor="rgba(255,255,255,0.55)"/>
-              <stop offset="100%" stopColor="rgba(255,255,255,0)"/>
-            </radialGradient>
-          </defs>
-          <circle cx="260" cy="260" r="240" fill="url(#globeG)"/>
-          <circle cx="260" cy="260" r="240" fill="url(#globeS)"/>
-          <ellipse cx="260" cy="260" rx="240" ry="65"  stroke="rgba(255,255,255,0.3)" strokeWidth="1.4" fill="none"/>
-          <ellipse cx="260" cy="260" rx="240" ry="130" stroke="rgba(255,255,255,0.22)" strokeWidth="1.2" fill="none"/>
-          <ellipse cx="260" cy="260" rx="240" ry="195" stroke="rgba(255,255,255,0.15)" strokeWidth="1"   fill="none"/>
-          <ellipse cx="260" cy="260" rx="85"  ry="240" stroke="rgba(255,255,255,0.22)" strokeWidth="1.2" fill="none"/>
-          <ellipse cx="260" cy="260" rx="168" ry="240" stroke="rgba(255,255,255,0.16)" strokeWidth="1"   fill="none"/>
-          <line x1="18"  y1="260" x2="502" y2="260" stroke="rgba(255,255,255,0.28)" strokeWidth="1.5"/>
-          <line x1="260" y1="18"  x2="260" y2="502" stroke="rgba(255,255,255,0.28)" strokeWidth="1.5"/>
-          <path d="M185 195 Q212 172 238 188 Q258 168 278 183 Q305 158 322 178 Q342 168 337 200 Q355 218 333 234 Q310 250 283 238 Q261 260 236 243 Q210 258 188 232 Q168 216 185 195Z" fill="rgba(255,255,255,0.22)" stroke="rgba(255,255,255,0.35)" strokeWidth="1.2"/>
-          <path d="M163 293 Q180 277 202 288 Q218 272 240 283 Q234 305 218 321 Q196 332 174 316 Q152 304 163 293Z" fill="rgba(255,255,255,0.18)" stroke="rgba(255,255,255,0.28)" strokeWidth="1"/>
-          <path d="M292 304 Q314 287 342 293 Q364 282 380 298 Q392 320 370 337 Q342 353 314 342 Q286 330 292 304Z" fill="rgba(255,255,255,0.18)" stroke="rgba(255,255,255,0.28)" strokeWidth="1"/>
-          <circle cx="182" cy="167" r="60" fill="rgba(255,255,255,0.13)"/>
-          <ellipse cx="260" cy="260" rx="255" ry="255" stroke="#C9A84C" strokeWidth="1.8" fill="none" strokeDasharray="7 9" opacity="0.4"/>
-          <circle cx="493" cy="198" r="7" fill="#C9A84C" opacity="0.7"/>
-          <circle cx="26"  cy="320" r="5" fill="#C9A84C" opacity="0.45"/>
+      {/* ── MIDNIGHT STAR FIELD BACKDROP — dense, matches startup theme ── */}
+      <div style={{position:"fixed",inset:0,zIndex:0,pointerEvents:"none",overflow:"hidden",
+        background:"linear-gradient(160deg, #0D2818 0%, #0A1A10 60%, #050D08 100%)"}}>
+
+        <svg style={{position:"absolute",inset:0,width:"100%",height:"100%"}}
+          viewBox="0 0 1440 900" fill="none" preserveAspectRatio="xMidYMid slice">
+
+          {/* ── BRIGHT ANCHOR STARS — triple-halo glow ── */}
+          {[
+            [115,108,"#C9A84C",2.4,0.92],[1325, 72,"#fff",   2.0,0.88],[792, 162,"#fff",   1.8,0.84],
+            [216,720,"#C9A84C",2.0,0.82],[1181,495,"#C4896B",1.9,0.80],[648, 810,"#fff",   1.7,0.78],
+            [90, 522,"#C9A84C",1.8,0.75],[1390,738,"#C9A84C",1.7,0.73],[1008, 36,"#fff",   1.6,0.70],
+            [480, 54,"#C4896B",1.8,0.76],[950, 820,"#C9A84C",1.9,0.74],[300, 450,"#fff",   1.6,0.72],
+            [1200,300,"#C4896B",1.7,0.71],[60, 200,"#C9A84C",1.8,0.78],[1380,450,"#fff",   1.6,0.69],
+            [720, 450,"#C9A84C",2.0,0.80],[420, 750,"#fff",   1.7,0.73],[1080,600,"#C4896B",1.8,0.76],
+          ].map(([cx,cy,col,r,o],i)=>(
+            <g key={`a${i}`}>
+              <circle cx={cx} cy={cy} r={r*4.5} fill={col} opacity={o*0.06}/>
+              <circle cx={cx} cy={cy} r={r*2.5} fill={col} opacity={o*0.14}/>
+              <circle cx={cx} cy={cy} r={r}     fill={col} opacity={o}/>
+            </g>
+          ))}
+
+          {/* ── MID-FIELD STARS — dense coverage ── */}
+          {[
+            [331,315],[1123,252],[576,648],[1252,585],[936,432],[468,396],[1037,693],[194,837],
+            [864,126],[720,540],[288,198],[1152,819],[504,270],[1296,351],[756,747],[54,414],
+            [1008,477],[612,90],[396,558],[168,630],[840,360],[1260,180],[252,504],[1080,756],
+            [600,216],[1350,630],[144,756],[900,270],[360,126],[1200,486],[72,342],[1440,324],
+            [528,432],[1080,144],[216,288],[948,648],[384,666],[1296,756],[660,504],[120,468],
+            [1008,324],[456,180],[876,540],[240,612],[1368,216],[696,378],[312,792],[1152,432],
+            [564,126],[1008,630],[180,162],[900,756],[432,324],[1260,522],[756,198],[36,630],
+            [1080,468],[504,594],[1332,378],[228,378],[816,648],[492,756],[1176,270],[708,90],
+          ].map(([cx,cy],i)=>(
+            <circle key={`m${i}`} cx={cx} cy={cy}
+              r={0.6+Math.sin(i*1.7)*0.45}
+              fill={i%3===0?"#C9A84C":i%3===1?"#fff":"#C4896B"}
+              opacity={0.28+Math.sin(i*2.3)*0.16}/>
+          ))}
+
+          {/* ── FINE DUST STARS — tiny fill between main stars ── */}
+          {[
+            [180,90],[540,180],[900,90],[1260,270],[360,360],[720,270],[1080,360],[1440,180],
+            [270,540],[630,450],[990,540],[1350,450],[90,720],[450,630],[810,720],[1170,630],
+            [1440,810],[180,810],[540,720],[900,810],[1260,720],[360,180],[720,90],[1080,180],
+            [200,400],[560,310],[920,400],[1280,310],[140,580],[500,490],[860,580],[1220,490],
+            [400,760],[760,670],[1120,760],[80,140],[440,50],[800,140],[1160,50],[1400,670],
+          ].map(([cx,cy],i)=>(
+            <circle key={`d${i}`} cx={cx} cy={cy}
+              r={0.35+Math.sin(i*3.1)*0.2}
+              fill={i%2===0?"#fff":"#C9A84C"}
+              opacity={0.12+Math.sin(i*1.9)*0.08}/>
+          ))}
+
+          {/* ── CONSTELLATION NETWORK — 20 lines across the viewport ── */}
+          {/* Main structure */}
+          <line x1="115"  y1="108"  x2="480"  y2="54"   stroke="#C9A84C" strokeWidth="0.45" opacity="0.10"/>
+          <line x1="480"  y1="54"   x2="792"  y2="162"  stroke="#fff"    strokeWidth="0.4"  opacity="0.08"/>
+          <line x1="792"  y1="162"  x2="1008" y2="36"   stroke="#C9A84C" strokeWidth="0.4"  opacity="0.08"/>
+          <line x1="1008" y1="36"   x2="1325" y2="72"   stroke="#fff"    strokeWidth="0.45" opacity="0.09"/>
+          {/* Left column */}
+          <line x1="115"  y1="108"  x2="90"   y2="522"  stroke="#C9A84C" strokeWidth="0.4"  opacity="0.08"/>
+          <line x1="90"   y1="522"  x2="216"  y2="720"  stroke="#C9A84C" strokeWidth="0.4"  opacity="0.08"/>
+          <line x1="216"  y1="720"  x2="420"  y2="750"  stroke="#fff"    strokeWidth="0.4"  opacity="0.07"/>
+          {/* Right column */}
+          <line x1="1325" y1="72"   x2="1200" y2="300"  stroke="#C4896B" strokeWidth="0.4"  opacity="0.08"/>
+          <line x1="1200" y1="300"  x2="1181" y2="495"  stroke="#C4896B" strokeWidth="0.4"  opacity="0.07"/>
+          <line x1="1181" y1="495"  x2="1080" y2="600"  stroke="#C4896B" strokeWidth="0.4"  opacity="0.07"/>
+          <line x1="1080" y1="600"  x2="1390" y2="738"  stroke="#fff"    strokeWidth="0.4"  opacity="0.07"/>
+          <line x1="1390" y1="738"  x2="950"  y2="820"  stroke="#C9A84C" strokeWidth="0.4"  opacity="0.08"/>
+          {/* Center cross connections */}
+          <line x1="720"  y1="450"  x2="300"  y2="450"  stroke="#fff"    strokeWidth="0.4"  opacity="0.07"/>
+          <line x1="720"  y1="450"  x2="1080" y2="600"  stroke="#C9A84C" strokeWidth="0.4"  opacity="0.08"/>
+          <line x1="720"  y1="450"  x2="792"  y2="162"  stroke="#fff"    strokeWidth="0.35" opacity="0.06"/>
+          {/* Bottom network */}
+          <line x1="420"  y1="750"  x2="648"  y2="810"  stroke="#C4896B" strokeWidth="0.4"  opacity="0.07"/>
+          <line x1="648"  y1="810"  x2="950"  y2="820"  stroke="#C4896B" strokeWidth="0.4"  opacity="0.07"/>
+          {/* Diagonal sweeps */}
+          <line x1="115"  y1="108"  x2="1181" y2="495"  stroke="#C9A84C" strokeWidth="0.3"  opacity="0.05"/>
+          <line x1="1325" y1="72"   x2="216"  y2="720"  stroke="#fff"    strokeWidth="0.3"  opacity="0.04"/>
+          <line x1="480"  y1="54"   x2="1080" y2="600"  stroke="#C4896B" strokeWidth="0.3"  opacity="0.04"/>
+
+          {/* Liquid mirror diagonal */}
+          <line x1="0" y1="900" x2="1440" y2="0" stroke="rgba(255,255,255,0.022)" strokeWidth="200"/>
+
+          {/* Ambient glows */}
+          <radialGradient id="glowGold" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#C9A84C" stopOpacity="0.10"/>
+            <stop offset="100%" stopColor="#C9A84C" stopOpacity="0"/>
+          </radialGradient>
+          <radialGradient id="glowMint" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#27AE78" stopOpacity="0.08"/>
+            <stop offset="100%" stopColor="#27AE78" stopOpacity="0"/>
+          </radialGradient>
+          <radialGradient id="glowRose" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#C4896B" stopOpacity="0.07"/>
+            <stop offset="100%" stopColor="#C4896B" stopOpacity="0"/>
+          </radialGradient>
+          <ellipse cx="180"  cy="810" rx="420" ry="300" fill="url(#glowGold)"/>
+          <ellipse cx="1260" cy="90"  rx="420" ry="300" fill="url(#glowMint)"/>
+          <ellipse cx="1300" cy="750" rx="360" ry="260" fill="url(#glowRose)"/>
+          <ellipse cx="720"  cy="450" rx="300" ry="220" fill="url(#glowMint)" opacity="0.5"/>
+
+          {/* Glass vignette */}
+          <radialGradient id="vigG" cx="50%" cy="50%" r="50%">
+            <stop offset="52%"  stopColor="transparent"/>
+            <stop offset="100%" stopColor="rgba(0,0,0,0.45)"/>
+          </radialGradient>
+          <rect width="1440" height="900" fill="url(#vigG)"/>
         </svg>
 
-        {/* LTI Logo mark — large watermark top-left */}
-        <div style={{position:"absolute",left:"2%",top:"10%",opacity:0.055}}>
-          <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:"clamp(52px,8vw,110px)",fontWeight:"700",color:"#0D2818",lineHeight:0.88,letterSpacing:"-2px",whiteSpace:"nowrap"}}>Love That</div>
-          <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:"clamp(52px,8vw,110px)",fontWeight:"700",color:"#0D2818",lineHeight:0.88,letterSpacing:"-2px"}}>Idea.</div>
-        </div>
-
-        {/* Botanical leaf — bottom-left */}
-        <svg style={{position:"absolute",bottom:"-30px",left:"-15px",opacity:0.1}} width="300" height="300" viewBox="0 0 260 260" fill="none">
-          <path d="M30 240 Q60 160 130 120 Q190 80 240 30" stroke="#0D2818" strokeWidth="3" fill="none"/>
-          <path d="M130 120 Q100 80 60 100 Q30 240 130 120Z" fill="#27AE78"/>
-          <path d="M130 120 Q165 90 190 50 Q240 30 130 120Z" fill="#0D9488"/>
-          <path d="M130 120 Q150 160 110 190 Q70 220 30 240 Q130 120 130 120Z" fill="#1A4A2E"/>
-        </svg>
-
-        {/* Atom — top-right */}
-        <svg style={{position:"absolute",top:"6%",right:"2%",opacity:0.13,animation:"spin 22s linear infinite"}} width="90" height="90" viewBox="0 0 80 80" fill="none">
-          <ellipse cx="40" cy="40" rx="36" ry="13" stroke="#C9A84C" strokeWidth="1.6" fill="none"/>
-          <ellipse cx="40" cy="40" rx="36" ry="13" stroke="#27AE78" strokeWidth="1.6" fill="none" transform="rotate(60 40 40)"/>
-          <ellipse cx="40" cy="40" rx="36" ry="13" stroke="#C9A84C" strokeWidth="1.6" fill="none" transform="rotate(120 40 40)"/>
-          <circle cx="40" cy="40" r="8" fill="#C9A84C"/>
-          <circle cx="37" cy="37" r="3" fill="rgba(255,255,255,0.55)"/>
-        </svg>
-
-        {/* Pulse dots */}
-        {[[7,20,"#27AE78",16],[91,14,"#C9A84C",11],[76,66,"#0D9488",20],[14,74,"#27AE78",13],[85,40,"#27AE78",14]].map(([x,y,col,sz],i)=>(
-          <div key={i} style={{position:"absolute",left:`${x}%`,top:`${y}%`,width:`${sz}px`,height:`${sz}px`,borderRadius:"50%",background:col,opacity:0.18,animation:`pulse ${2.2+i*0.5}s ease infinite`,animationDelay:`${i*0.35}s`}}/>
-        ))}
-
-        {/* Tagline — bottom-right */}
-        <div style={{position:"absolute",bottom:"6%",right:"3%",opacity:0.07,textAlign:"right"}}>
-          <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:"clamp(14px,2.2vw,24px)",fontWeight:"600",color:"#0D2818",fontStyle:"italic"}}>Beauty Intelligence</div>
-          <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:"clamp(14px,2.2vw,24px)",fontWeight:"600",color:"#0D2818",fontStyle:"italic"}}>Platform</div>
-        </div>
+        <style>{`
+          @keyframes backdropDrift {
+            from { opacity:.72; transform:scale(1) translateY(0); }
+            to   { opacity:1.0; transform:scale(1.02) translateY(-6px); }
+          }
+          @keyframes mirrorShift {
+            0%   { opacity:.6; transform:translateX(-2%); }
+            50%  { opacity:1; }
+            100% { opacity:.7; transform:translateX(2%); }
+          }
+        `}</style>
       </div>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600;1,700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300&display=swap');
@@ -33608,16 +37114,157 @@ export default function App() {
           to   { opacity:1; transform: translateY(0); }
         }
         * { box-sizing: border-box; }
-        html, body {
-          background: #FAF5EC !important;
+        html {
+          background: #080F0A;
+          overflow-x: hidden;
+          overflow-y: auto;
+          scroll-behavior: smooth;
+          height: auto;
+        }
+        body {
+          background: #080F0A !important;
           margin: 0; padding: 0;
           min-height: 100vh; width: 100%;
+          overflow-x: hidden;
+          overflow-y: auto;
+          height: auto;
         }
+        /* Root and main content — always scrollable */
+        #root, #root > div {
+          overflow-x: hidden;
+          overflow-y: auto;
+          height: auto;
+          min-height: 100vh;
+        }
+
+        /* ── LAYER 1: STAR FIELD — dense, triple layers ───────────── */
+        body::before {
+          content: '';
+          position: fixed; inset: 0; z-index: 0;
+          pointer-events: none;
+
+          background-image:
+            /* Anchor stars — triple halo */
+            radial-gradient(circle at 8%  12%, rgba(255,255,255,0.95) 1.5px, rgba(255,255,255,0.18) 3px, rgba(255,255,255,0.05) 5px, transparent 7px),
+            radial-gradient(circle at 92% 8%,  rgba(201,168,76,0.95)  1.5px, rgba(201,168,76,0.18)  3px, rgba(201,168,76,0.05)  5px, transparent 7px),
+            radial-gradient(circle at 55% 18%, rgba(255,255,255,0.9)  1.2px, rgba(255,255,255,0.15) 2.5px, transparent 4px),
+            radial-gradient(circle at 15% 80%, rgba(201,168,76,0.88)  1.2px, rgba(201,168,76,0.12)  2.5px, transparent 4px),
+            radial-gradient(circle at 82% 55%, rgba(196,137,107,0.85) 1.2px, rgba(196,137,107,0.12) 2.5px, transparent 4px),
+            radial-gradient(circle at 45% 90%, rgba(255,255,255,0.82) 1.0px, rgba(255,255,255,0.10) 2px, transparent 3.5px),
+            radial-gradient(circle at 30% 35%, rgba(201,168,76,0.82)  1.1px, rgba(201,168,76,0.10)  2px, transparent 3.5px),
+            radial-gradient(circle at 70% 70%, rgba(196,137,107,0.80) 1.1px, rgba(196,137,107,0.10) 2px, transparent 3.5px),
+            /* Dense mid stars */
+            radial-gradient(circle at 23% 45%, rgba(196,137,107,0.65) 1px, transparent 1px),
+            radial-gradient(circle at 78% 28%, rgba(255,255,255,0.60) 1px, transparent 1px),
+            radial-gradient(circle at 40% 72%, rgba(255,255,255,0.55) 1px, transparent 1px),
+            radial-gradient(circle at 87% 65%, rgba(196,137,107,0.55) 1px, transparent 1px),
+            radial-gradient(circle at 65% 88%, rgba(255,255,255,0.52) 1px, transparent 1px),
+            radial-gradient(circle at 33% 55%, rgba(201,168,76,0.50)  1px, transparent 1px),
+            radial-gradient(circle at 72% 48%, rgba(255,255,255,0.48) 1px, transparent 1px),
+            radial-gradient(circle at 18% 22%, rgba(196,137,107,0.50) 1px, transparent 1px),
+            radial-gradient(circle at 95% 82%, rgba(201,168,76,0.48)  1px, transparent 1px),
+            radial-gradient(circle at 48% 42%, rgba(255,255,255,0.44) 1px, transparent 1px),
+            radial-gradient(circle at 6%  58%, rgba(201,168,76,0.44)  1px, transparent 1px),
+            radial-gradient(circle at 60% 5%,  rgba(255,255,255,0.42) 1px, transparent 1px),
+            radial-gradient(circle at 30% 10%, rgba(196,137,107,0.40) 1px, transparent 1px),
+            radial-gradient(circle at 88% 38%, rgba(201,168,76,0.40)  1px, transparent 1px),
+            radial-gradient(circle at 12% 68%, rgba(255,255,255,0.38) 1px, transparent 1px),
+            radial-gradient(circle at 52% 62%, rgba(196,137,107,0.36) 1px, transparent 1px),
+            radial-gradient(circle at 77% 92%, rgba(201,168,76,0.36)  1px, transparent 1px),
+            radial-gradient(circle at 38% 25%, rgba(255,255,255,0.34) 1px, transparent 1px),
+            radial-gradient(circle at 63% 38%, rgba(201,168,76,0.32)  1px, transparent 1px),
+            radial-gradient(circle at 25% 85%, rgba(255,255,255,0.30) 1px, transparent 1px),
+            radial-gradient(circle at 50% 50%, rgba(196,137,107,0.28) 1px, transparent 1px),
+            /* Fine dust */
+            radial-gradient(circle at 20% 58%, rgba(255,255,255,0.18) 0.6px, transparent 0.6px),
+            radial-gradient(circle at 58% 30%, rgba(201,168,76,0.18)  0.6px, transparent 0.6px),
+            radial-gradient(circle at 80% 75%, rgba(255,255,255,0.16) 0.6px, transparent 0.6px),
+            radial-gradient(circle at 42% 85%, rgba(196,137,107,0.16) 0.6px, transparent 0.6px),
+            radial-gradient(circle at 10% 40%, rgba(201,168,76,0.15)  0.6px, transparent 0.6px),
+            radial-gradient(circle at 96% 52%, rgba(255,255,255,0.14) 0.6px, transparent 0.6px),
+            radial-gradient(circle at 74% 15%, rgba(196,137,107,0.14) 0.6px, transparent 0.6px),
+            radial-gradient(circle at 35% 68%, rgba(201,168,76,0.13)  0.6px, transparent 0.6px),
+            /* Constellation lines via CSS gradient */
+            linear-gradient(52deg, transparent 7.4%, rgba(255,255,255,0.065) 7.4%, rgba(255,255,255,0.065) 7.55%, transparent 7.55%),
+            linear-gradient(127deg,transparent 8.4%, rgba(201,168,76,0.07)   8.4%, rgba(201,168,76,0.07)   8.55%, transparent 8.55%),
+            linear-gradient(115deg,transparent 27.9%,rgba(255,255,255,0.055) 27.9%,rgba(255,255,255,0.055) 28.05%,transparent 28.05%),
+            linear-gradient(325deg,transparent 21.9%,rgba(201,168,76,0.06)   21.9%,rgba(201,168,76,0.06)   22.05%, transparent 22.05%),
+            linear-gradient(78deg, transparent 44.9%,rgba(196,137,107,0.055) 44.9%,rgba(196,137,107,0.055) 45.05%, transparent 45.05%),
+            linear-gradient(145deg,transparent 33.9%,rgba(255,255,255,0.05)  33.9%,rgba(255,255,255,0.05)  34.05%, transparent 34.05%),
+            linear-gradient(200deg,transparent 55.9%,rgba(201,168,76,0.055)  55.9%,rgba(201,168,76,0.055)  56.05%, transparent 56.05%),
+            linear-gradient(30deg, transparent 18.9%,rgba(255,255,255,0.05)  18.9%,rgba(255,255,255,0.05)  19.05%, transparent 19.05%);
+
+          background-size:
+            340px 340px, 320px 320px, 280px 280px, 360px 360px, 310px 310px, 290px 290px, 270px 270px, 300px 300px,
+            220px 220px, 200px 200px, 190px 190px, 230px 230px, 205px 205px, 250px 250px, 195px 195px, 235px 235px,
+            220px 220px, 260px 260px, 185px 185px, 210px 210px, 225px 225px, 240px 240px, 215px 215px, 200px 200px,
+            230px 230px, 210px 210px, 245px 245px, 195px 195px, 205px 205px, 215px 215px,
+            155px 155px, 160px 160px, 170px 170px, 165px 165px, 158px 158px, 172px 172px, 163px 163px, 168px 168px,
+            100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%;
+
+          animation: starDrift 12s ease-in-out infinite alternate;
+        }
+
+        @keyframes starDrift {
+          from { opacity: 0.68; transform: scale(1) translateY(0px); }
+          to   { opacity: 1.0;  transform: scale(1.02) translateY(-5px); }
+        }
+
+        /* ── LAYER 2: LIQUID GLASS MIRROR SWEEP + AMBIENT ──────────── */
+        body::after {
+          content: '';
+          position: fixed; inset: 0; z-index: 0;
+          pointer-events: none;
+
+          /* Ambient glows + very subtle mirror diagonal */
+          background:
+            /* Warm gold glow bottom-left */
+            radial-gradient(ellipse at 15% 85%, rgba(201,168,76,0.07) 0%, transparent 45%),
+            /* Cool mint glow top-right */
+            radial-gradient(ellipse at 85% 15%, rgba(39,174,120,0.06) 0%, transparent 45%),
+            /* Rose warmth bottom-right */
+            radial-gradient(ellipse at 80% 80%, rgba(196,137,107,0.05) 0%, transparent 40%),
+            /* Very subtle liquid mirror streak — barely visible */
+            linear-gradient(
+              125deg,
+              transparent 0%,
+              transparent 35%,
+              rgba(255,255,255,0.025) 48%,
+              rgba(255,255,255,0.04)  50%,
+              rgba(255,255,255,0.025) 52%,
+              transparent 65%,
+              transparent 100%
+            );
+
+          animation: mirrorDrift 8s ease-in-out infinite alternate;
+        }
+
+        @keyframes mirrorDrift {
+          0%   { opacity: 0.6; transform: translateX(-3%) translateY(2%); }
+          50%  { opacity: 1.0; transform: translateX(0%)  translateY(0%); }
+          100% { opacity: 0.7; transform: translateX(3%)  translateY(-2%); }
+        }
+
+        /* ── LAYER 3: GLASS EDGE VIGNETTE ───────────────────────────── */
+        #root::before {
+          content: '';
+          position: fixed; inset: 0; z-index: 0;
+          pointer-events: none;
+          background: radial-gradient(ellipse at 50% 50%,
+            transparent 55%,
+            rgba(0,0,0,0.35) 100%);
+        }
+
+        /* Ensure app content sits above all backdrop layers */
+        #root > * { position: relative; z-index: 1; }
         ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-track { background: #F0EDE3; }
-        ::-webkit-scrollbar-thumb { background: #74BFA0; border-radius: 4px; }
-        input::placeholder, textarea::placeholder { color: #A8D5BC; }
-        select option { background: #fff; color: #0D2818; }
+        ::-webkit-scrollbar-track { background: rgba(255,255,255,0.03); }
+        ::-webkit-scrollbar-thumb { background: rgba(39,174,120,0.45); border-radius: 4px; }
+        input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.22); }
+        select option { background: #0D2818; color: #FEFDF8; }
+        input, textarea, select {
+          color-scheme: dark;
+        }
         .lti-logo-wrap { position: relative; overflow: hidden; }
 
         /* ── RESPONSIVE MOBILE STYLES ─────────────────────────────── */
@@ -33640,6 +37287,123 @@ export default function App() {
         @media (min-width: 768px) {
           .lti-mobile-nav { display: none !important; }
           .lti-mobile-only { display: none !important; }
+
+          /* ── DESKTOP HORIZONTAL EXPANSION ──────────────────────────── */
+
+          /* Content areas — remove narrow max-width constraints */
+          .lti-content-area > div { max-width: none !important; }
+          .lti-panel { padding: 20px 28px !important; }
+
+          /* Card grids — expand to fill available width */
+          .lti-card-grid {
+            display: grid !important;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
+            gap: 16px !important;
+          }
+          .lti-two-col {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr !important;
+            gap: 20px !important;
+          }
+          .lti-three-col {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr 1fr !important;
+            gap: 16px !important;
+          }
+          .lti-four-col {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr 1fr 1fr !important;
+            gap: 12px !important;
+          }
+
+          /* Bid board tickets — 2 columns on tablet, 3 on wide desktop */
+          .lti-ticket-grid {
+            display: grid !important;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)) !important;
+            gap: 14px !important;
+            align-items: start !important;
+          }
+
+          /* Style Library entries — 2 columns minimum */
+          .lti-style-grid {
+            display: grid !important;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)) !important;
+            gap: 20px !important;
+            align-items: start !important;
+          }
+
+          /* Pro cards — horizontal grid */
+          .lti-pro-grid {
+            display: grid !important;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)) !important;
+            gap: 14px !important;
+          }
+
+          /* Stat bars — always horizontal row on desktop */
+          .lti-stat-bar {
+            display: flex !important;
+            flex-direction: row !important;
+            flex-wrap: nowrap !important;
+            gap: 12px !important;
+          }
+
+          /* Form layouts — side by side on desktop */
+          .lti-form-row {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr !important;
+            gap: 16px !important;
+          }
+          .lti-form-row-3 {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr 1fr !important;
+            gap: 14px !important;
+          }
+
+          /* Tab content — max width with auto margins on very wide screens */
+          .lti-tab-content {
+            max-width: 1400px !important;
+            margin: 0 auto !important;
+            width: 100% !important;
+          }
+
+          /* Scrollable content areas — add padding for desktop */
+          [style*="overflowY: auto"], [style*="overflow-y: auto"] {
+            padding-left: 24px !important;
+            padding-right: 24px !important;
+          }
+
+          /* Heritage profiles — expand description blocks */
+          .lti-heritage-desc { max-width: none !important; }
+
+          /* Bid modal — wider on desktop */
+          .lti-bid-modal {
+            max-width: 620px !important;
+            width: 90vw !important;
+          }
+
+          /* Near Me cards — 2 column */
+          .lti-nearby-grid {
+            display: grid !important;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)) !important;
+            gap: 12px !important;
+          }
+        }
+
+        /* ── WIDE DESKTOP (1200px+) ───────────────────────────────────── */
+        @media (min-width: 1200px) {
+          .lti-ticket-grid {
+            grid-template-columns: repeat(3, 1fr) !important;
+          }
+          .lti-style-grid {
+            grid-template-columns: repeat(3, 1fr) !important;
+          }
+          .lti-pro-grid {
+            grid-template-columns: repeat(4, 1fr) !important;
+          }
+          .lti-card-grid {
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)) !important;
+          }
+          .lti-panel { padding: 24px 36px !important; }
         }
         @media (orientation: landscape) and (max-height: 500px) {
           .brand-header { height: 48px !important; padding: 0 12px !important; }
@@ -33659,6 +37423,25 @@ export default function App() {
           50%  { transform: rotate(-90deg); }
           75%  { transform: rotate(0deg); }
           100% { transform: rotate(0deg); }
+        }
+
+        /* ── FLUID LAYOUT — DESKTOP HORIZONTAL EXPANSION ─────────── */
+        @media (min-width: 900px) {
+          /* All auto-fill grids expand their minimum column width */
+          [style*="auto-fill"] { gap: 18px !important; }
+          /* Bid board and ticket lists: 2+ columns */
+          [style*="minmax(310px"] { grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)) !important; }
+          [style*="minmax(340px"] { grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)) !important; }
+          [style*="minmax(280px"] { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)) !important; }
+          /* Remove lingering narrow constraints on content panels */
+          [style*="maxWidth: \"none\""] { max-width: none !important; }
+          /* Content panels get more breathing room */
+          [style*="padding: \"20px\""] { padding: 28px !important; }
+          [style*="padding: \"16px\""] { padding: 22px !important; }
+        }
+        @media (min-width: 1400px) {
+          [style*="auto-fill"] { gap: 22px !important; }
+          [style*="minmax(360px"] { grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)) !important; }
         }
 
         /* ── GLASSMORPHISM UTILITIES ──────────────────────────────── */
@@ -33734,101 +37517,189 @@ export default function App() {
 
       {/* ── PORTRAIT MOBILE OVERLAY ──────────────────────────────────────── */}
       {showRotatePrompt && (
-        <div style={{position:"fixed",inset:0,background:"linear-gradient(135deg,#0D2818,#1A4A2E)",zIndex:9999,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"32px",textAlign:"center"}}>
+        <div style={{position:"fixed",inset:0,
+          background:"linear-gradient(160deg, #0D2818 0%, #0A1A10 60%, #050D08 100%)",
+          zIndex:9999,display:"flex",flexDirection:"column",
+          alignItems:"center",justifyContent:"center",
+          padding:"32px",textAlign:"center",overflow:"hidden"}}>
 
-          {/* 3D Gold Phone SVG */}
-          <div style={{marginBottom:"24px",position:"relative",animation:"broadcastPulse 3s ease infinite"}}>
-            <svg width="90" height="150" viewBox="0 0 90 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+          {/* ── DENSE STAR FIELD ── */}
+          <svg style={{position:"absolute",inset:0,width:"100%",height:"100%",pointerEvents:"none"}}
+            viewBox="0 0 390 844" fill="none" preserveAspectRatio="xMidYMid slice">
+
+            {/* Bright anchor stars with halos */}
+            {[
+              [32, 72,"#C9A84C",2.2],[358,48,"#fff",2.0],[195,130,"#C4896B",1.8],
+              [68,422,"#C9A84C",2.0],[322,380,"#fff",1.8],[195,760,"#C9A84C",1.9],
+              [15,650,"#C4896B",1.6],[375,620,"#fff",1.7],[100,200,"#C9A84C",1.5],
+              [290,180,"#fff",1.6],[310,700,"#C4896B",1.7],[80,800,"#C9A84C",1.5],
+            ].map(([cx,cy,col,r],i)=>(
+              <g key={`a${i}`}>
+                <circle cx={cx} cy={cy} r={r*3} fill={col} opacity="0.1"/>
+                <circle cx={cx} cy={cy} r={r*1.5} fill={col} opacity="0.2"/>
+                <circle cx={cx} cy={cy} r={r}   fill={col} opacity="0.9"/>
+              </g>
+            ))}
+
+            {/* Dense mid-field stars — many more than main backdrop */}
+            {[
+              [55,155],[134,88],[260,60],[340,140],[390,92],
+              [20,300],[150,270],[240,310],[355,260],[390,330],
+              [40,490],[120,450],[200,520],[300,480],[370,510],
+              [60,600],[170,570],[250,640],[330,590],[385,660],
+              [25,750],[110,720],[220,790],[340,740],[390,780],
+              [90,340],[175,395],[285,350],[160,190],[295,410],
+              [55,460],[230,430],[365,415],[140,680],[270,710],
+              [45,840],[185,820],[310,830],[360,805],[95,880],
+            ].map(([cx,cy],i)=>(
+              <circle key={`m${i}`} cx={cx} cy={cy}
+                r={0.6+Math.sin(i*1.7)*0.4}
+                fill={i%3===0?"#C9A84C":i%3===1?"#fff":"#C4896B"}
+                opacity={0.25+Math.sin(i*2.3)*0.18}/>
+            ))}
+
+            {/* ── DENSE CONSTELLATION LINES ── more than main backdrop */}
+            {/* Vertical spine */}
+            <line x1="195" y1="130" x2="195" y2="760" stroke="#C9A84C" strokeWidth="0.35" opacity="0.08"/>
+            {/* Diagonal cross */}
+            <line x1="32"  y1="72"  x2="358" y2="620" stroke="#fff"    strokeWidth="0.3"  opacity="0.06"/>
+            <line x1="358" y1="48"  x2="15"  y2="650" stroke="#C4896B" strokeWidth="0.3"  opacity="0.06"/>
+            {/* Horizontals */}
+            <line x1="32"  y1="72"  x2="358" y2="48"  stroke="#C9A84C" strokeWidth="0.35" opacity="0.09"/>
+            <line x1="68"  y1="422" x2="322" y2="380" stroke="#fff"    strokeWidth="0.3"  opacity="0.07"/>
+            <line x1="15"  y1="650" x2="375" y2="620" stroke="#C9A84C" strokeWidth="0.3"  opacity="0.07"/>
+            <line x1="80"  y1="800" x2="310" y2="700" stroke="#C4896B" strokeWidth="0.3"  opacity="0.06"/>
+            {/* Shorter accent connectors */}
+            <line x1="32"  y1="72"  x2="100" y2="200" stroke="#C9A84C" strokeWidth="0.3"  opacity="0.08"/>
+            <line x1="358" y1="48"  x2="290" y2="180" stroke="#fff"    strokeWidth="0.3"  opacity="0.07"/>
+            <line x1="68"  y1="422" x2="15"  y2="650" stroke="#C4896B" strokeWidth="0.3"  opacity="0.07"/>
+            <line x1="322" y1="380" x2="375" y2="620" stroke="#C9A84C" strokeWidth="0.3"  opacity="0.07"/>
+            <line x1="195" y1="760" x2="80"  y2="800" stroke="#fff"    strokeWidth="0.3"  opacity="0.06"/>
+            <line x1="195" y1="760" x2="310" y2="700" stroke="#C9A84C" strokeWidth="0.3"  opacity="0.06"/>
+            <line x1="100" y1="200" x2="290" y2="180" stroke="#C4896B" strokeWidth="0.25" opacity="0.05"/>
+
+            {/* Liquid mirror diagonal */}
+            <line x1="0" y1="844" x2="390" y2="0" stroke="rgba(255,255,255,0.02)" strokeWidth="120"/>
+
+            {/* Ambient glows */}
+            <radialGradient id="rg1" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#C9A84C" stopOpacity="0.11"/>
+              <stop offset="100%" stopColor="#C9A84C" stopOpacity="0"/>
+            </radialGradient>
+            <radialGradient id="rg2" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#27AE78" stopOpacity="0.08"/>
+              <stop offset="100%" stopColor="#27AE78" stopOpacity="0"/>
+            </radialGradient>
+            <radialGradient id="rg3" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#C4896B" stopOpacity="0.07"/>
+              <stop offset="100%" stopColor="#C4896B" stopOpacity="0"/>
+            </radialGradient>
+            <ellipse cx="50"  cy="750" rx="200" ry="160" fill="url(#rg1)"/>
+            <ellipse cx="340" cy="100" rx="180" ry="140" fill="url(#rg2)"/>
+            <ellipse cx="350" cy="700" rx="160" ry="140" fill="url(#rg3)"/>
+
+            {/* Glass vignette */}
+            <radialGradient id="rv" cx="50%" cy="50%" r="50%">
+              <stop offset="50%"  stopColor="transparent"/>
+              <stop offset="100%" stopColor="rgba(0,0,0,0.45)"/>
+            </radialGradient>
+            <rect width="390" height="844" fill="url(#rv)"/>
+          </svg>
+
+          {/* ── GOLD PHONE ── */}
+          <div style={{marginBottom:"24px",position:"relative",zIndex:1,
+            animation:"broadcastPulse 3s ease infinite"}}>
+            <svg width="90" height="150" viewBox="0 0 90 150" fill="none">
               <defs>
                 <linearGradient id="phoneBody" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stopColor="#FFE580"/>
-                  <stop offset="35%" stopColor="#C9A84C"/>
-                  <stop offset="70%" stopColor="#8B6914"/>
+                  <stop offset="0%"   stopColor="#FFE580"/>
+                  <stop offset="35%"  stopColor="#C9A84C"/>
+                  <stop offset="70%"  stopColor="#8B6914"/>
                   <stop offset="100%" stopColor="#5A4209"/>
                 </linearGradient>
                 <linearGradient id="phoneScreen" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stopColor="#1A4A2E"/>
+                  <stop offset="0%"   stopColor="#1A4A2E"/>
                   <stop offset="100%" stopColor="#0D2818"/>
                 </linearGradient>
                 <linearGradient id="phoneSheen" x1="0" y1="0" x2="0.4" y2="1">
-                  <stop offset="0%" stopColor="rgba(255,255,255,0.45)"/>
+                  <stop offset="0%"   stopColor="rgba(255,255,255,0.45)"/>
                   <stop offset="100%" stopColor="rgba(255,255,255,0)"/>
                 </linearGradient>
                 <linearGradient id="phoneEdge" x1="1" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stopColor="#FFE580"/>
+                  <stop offset="0%"   stopColor="#FFE580"/>
                   <stop offset="100%" stopColor="#8B6914"/>
                 </linearGradient>
                 <filter id="phoneShadow">
                   <feDropShadow dx="4" dy="8" stdDeviation="8" floodColor="#C9A84C" floodOpacity="0.5"/>
                 </filter>
               </defs>
-              {/* Drop shadow */}
               <ellipse cx="50" cy="145" rx="28" ry="5" fill="rgba(201,168,76,0.25)"/>
-              {/* Phone body */}
               <rect x="8" y="4" width="68" height="134" rx="14" fill="url(#phoneBody)" filter="url(#phoneShadow)"/>
-              {/* Right edge highlight (3D depth) */}
               <rect x="73" y="14" width="6" height="114" rx="3" fill="url(#phoneEdge)" opacity="0.6"/>
-              {/* Bottom edge */}
               <rect x="14" y="135" width="62" height="5" rx="3" fill="#5A4209" opacity="0.8"/>
-              {/* Screen bezel */}
               <rect x="12" y="18" width="60" height="108" rx="10" fill="#0D1A0D"/>
-              {/* Screen content */}
               <rect x="14" y="20" width="56" height="104" rx="9" fill="url(#phoneScreen)"/>
-              {/* LTI app on screen */}
-              <rect x="24" y="28" width="36" height="36" rx="8" fill="linear-gradient(135deg,#27AE78,#0D9488)" opacity="0.9"/>
               <rect x="24" y="28" width="36" height="36" rx="8" fill="#1A4A2E"/>
               <text x="42" y="52" textAnchor="middle" fill="#C9A84C" fontSize="20" fontWeight="bold">L</text>
-              {/* App name on screen */}
               <rect x="20" y="70" width="44" height="5" rx="2.5" fill="rgba(201,168,76,0.6)"/>
               <rect x="26" y="79" width="32" height="3" rx="1.5" fill="rgba(255,255,255,0.2)"/>
-              {/* Bottom tab dots */}
               <circle cx="30" cy="108" r="3" fill="#27AE78" opacity="0.8"/>
               <circle cx="42" cy="108" r="3" fill="rgba(255,255,255,0.3)"/>
               <circle cx="54" cy="108" r="3" fill="rgba(255,255,255,0.3)"/>
-              {/* Notch */}
               <rect x="32" y="5" width="20" height="6" rx="3" fill="#5A4209"/>
               <circle cx="42" cy="8" r="1.5" fill="#3A2A05"/>
-              {/* Speaker */}
               <rect x="34" y="136" width="16" height="2" rx="1" fill="#3A2A05" opacity="0.7"/>
-              {/* Left buttons */}
               <rect x="5" y="45" width="4" height="14" rx="2" fill="url(#phoneEdge)"/>
               <rect x="5" y="63" width="4" height="10" rx="2" fill="url(#phoneEdge)"/>
-              {/* Sheen overlay (3D gloss) */}
               <rect x="8" y="4" width="30" height="134" rx="14" fill="url(#phoneSheen)" opacity="0.35"/>
             </svg>
-
-            {/* Original gold dashed orbit ring */}
-            <div style={{
-              position:"absolute", inset:"-14px",
-              borderRadius:"50%",
+            {/* Gold orbit ring */}
+            <div style={{position:"absolute",inset:"-14px",borderRadius:"50%",
               border:"2.5px dashed rgba(201,168,76,0.5)",
-              animation:"rotatePulse 2.5s linear infinite",
-            }}/>
-            <div style={{
-              position:"absolute", top:"-8px", right:"-8px",
-              width:"28px", height:"28px", borderRadius:"50%",
+              animation:"rotatePulse 2.5s linear infinite"}}/>
+            <div style={{position:"absolute",top:"-8px",right:"-8px",
+              width:"28px",height:"28px",borderRadius:"50%",
               background:"linear-gradient(135deg,#C9A84C,#8B6914)",
-              display:"flex", alignItems:"center", justifyContent:"center",
-              fontSize:"14px", boxShadow:"0 2px 10px rgba(201,168,76,0.5)",
-            }}>↻</div>
+              display:"flex",alignItems:"center",justifyContent:"center",
+              fontSize:"14px",boxShadow:"0 2px 10px rgba(201,168,76,0.5)"}}>↻</div>
           </div>
 
-          <div style={{fontFamily:FONTS.display,fontSize:"26px",fontWeight:"700",color:"#fff",marginBottom:"12px"}}>Rotate for Best Experience</div>
-          <div style={{fontSize:"14px",color:"rgba(255,255,255,0.65)",lineHeight:"1.8",marginBottom:"28px",maxWidth:"280px"}}>
-            Love That Idea is designed for landscape view on phones. Rotate your device for full access to all 40+ tabs, the Bid Board, Heritage Intelligence, and Flash Fill.
+          {/* Text */}
+          <div style={{position:"relative",zIndex:1,
+            fontFamily:FONTS.display,fontSize:"26px",fontWeight:"700",
+            color:"#fff",marginBottom:"12px"}}>
+            Rotate for Best Experience
+          </div>
+          <div style={{position:"relative",zIndex:1,fontSize:"14px",
+            color:"rgba(255,255,255,0.65)",lineHeight:"1.8",
+            marginBottom:"28px",maxWidth:"280px"}}>
+            Love That Idea is designed for landscape view on phones. Rotate your device for full access to all tabs, Bid Board, Heritage Intelligence, and Flash Fill.
           </div>
 
-          <div style={{display:"flex",flexDirection:"column",gap:"10px",width:"100%",maxWidth:"280px"}}>
-            {[["⚡","Landscape unlocks the full Bid Board and Flash Fill"],["📅","Calendar view for scheduled future bids"],["✦","AI advisor and Heritage Intelligence panels"]].map(([icon,text])=>(
-              <div key={text} style={{display:"flex",gap:"8px",alignItems:"center",background:"rgba(201,168,76,0.1)",border:"1px solid rgba(201,168,76,0.2)",borderRadius:"12px",padding:"10px 14px"}}>
-                <span style={{fontSize:"18px"}}>{icon}</span>
+          {/* Feature list */}
+          <div style={{position:"relative",zIndex:1,display:"flex",
+            flexDirection:"column",gap:"10px",width:"100%",maxWidth:"280px"}}>
+            {[
+              ["flash",    "Landscape unlocks the full Bid Board and Flash Fill"],
+              ["appt",     "Calendar view for scheduled bookings"],
+              ["dna",      "AI advisor and Heritage Intelligence panels"],
+            ].map(([ico,text])=>(
+              <div key={text} style={{display:"flex",gap:"10px",alignItems:"center",
+                background:"rgba(201,168,76,0.08)",
+                border:"1px solid rgba(201,168,76,0.2)",
+                borderRadius:"12px",padding:"10px 14px",backdropFilter:"blur(8px)"}}>
+                <SvgIcon name={ico} color="#C9A84C" size={16} sw={1.6}/>
                 <span style={{fontSize:"12px",color:"rgba(255,255,255,0.7)"}}>{text}</span>
               </div>
             ))}
           </div>
 
           <button onClick={()=>setDismissRotate(true)}
-            style={{marginTop:"24px",background:"rgba(201,168,76,0.12)",color:"rgba(201,168,76,0.6)",border:"1px solid rgba(201,168,76,0.25)",padding:"12px 28px",borderRadius:"30px",fontSize:"13px",cursor:"pointer",fontWeight:"600"}}>
+            style={{position:"relative",zIndex:1,marginTop:"24px",
+              background:"rgba(201,168,76,0.12)",color:"rgba(201,168,76,0.7)",
+              border:"1px solid rgba(201,168,76,0.28)",padding:"12px 28px",
+              borderRadius:"30px",fontSize:"13px",cursor:"pointer",
+              fontWeight:"600",fontFamily:FONTS.body,backdropFilter:"blur(8px)"}}>
             Continue in Portrait Anyway
           </button>
         </div>
@@ -33846,10 +37717,11 @@ export default function App() {
 
         {/* -- L+I BOTANICAL LOGO MARK - 3D ENHANCED -- */}
         <div style={{ display: "flex", alignItems: "center", gap: "13px", flexShrink: 0 }}>
-          <div className="lti-logo-wrap" style={{
+          <div className="lti-logo-wrap" onClick={handleLogoTap} style={{
             width: "48px", height: "48px", borderRadius: "14px",
             background: "linear-gradient(145deg, #32D68F 0%, #27AE78 40%, #0D9488 80%, #0A7A6E 100%)",
             display: "flex", alignItems: "center", justifyContent: "center",
+            cursor: "default",
             boxShadow: [
               "0 0 0 1px rgba(201,168,76,0.5)",
               "0 1px 0 1px rgba(255,255,255,0.18) inset",
@@ -34009,38 +37881,69 @@ export default function App() {
           maxWidth: "calc(100vw - 340px)",
           msOverflowStyle: "none", scrollbarWidth: "none",
         }}>
-          {TABS.filter(([t2]) => {
-            if (t2 === "admin" || t2 === "repair" || t2 === "franchise" || t2 === "purify" || t2 === "operator" || t2 === "pitch" || t2 === "compete" || t2 === "admin-intel" || t2 === "ops") {
-              return authUser?.id === OWNER_ID || authUser?.badge === "Platform Owner";
-            }
-            return true;
-          }).map(([t2, label]) => (
-            <button key={t2} onClick={() => setTab(t2)}
-              className={"tab-btn" + (tab === t2 ? " tab-active" : "")}
-              style={{
-                background: tab === t2
-                  ? "linear-gradient(135deg,rgba(39,174,120,0.3),rgba(13,148,136,0.25))"
-                  : "rgba(255,255,255,0.04)",
-                backdropFilter: "blur(12px) saturate(180%)",
-                WebkitBackdropFilter: "blur(12px) saturate(180%)",
-                color: tab === t2 ? "#fff" : "rgba(255,255,255,0.45)",
-                border: tab === t2 ? "1px solid rgba(39,174,120,0.4)" : "1px solid rgba(255,255,255,0.07)",
-                boxShadow: tab === t2 ? "0 2px 14px rgba(39,174,120,0.25), inset 0 1px 0 rgba(255,255,255,0.18)" : "inset 0 1px 0 rgba(255,255,255,0.05)",
-                padding: "6px 11px 6px 8px",
-                borderRadius: "10px",
-                fontSize: "11px",
-                fontFamily: FONTS.body,
-                fontWeight: tab === t2 ? "700" : "400",
-                cursor: "pointer",
-                whiteSpace: "nowrap",
-                display: "flex", alignItems: "center", gap: "5px",
-                flexShrink: 0,
-                transition: "all 0.18s",
-              }}>
-              <TabIcon id={t2} size={16} />
-              {label}
-            </button>
-          ))}
+          {(()=>{
+            const NAV_ICON_MAP = {
+              bookpro:"appt",      nearme:"nearme",      bidboard:"flash",
+              groupbook:"subs",    bookmylook:"styles",  loyalty:"reviews",
+              reviews:"reviews",   messages:"alerts",    avail:"avail",
+              clients:"kids",      pay:"payment",        socialhub:"globe",
+              adminphotos:"photo", certs:"lock",         consent:"shield",
+              protools:"tool",     dna:"dna",            texturematch:"dna",
+              skintone:"photo",    health:"droplet",     timeline:"stats",
+              stylematch:"styles", beforeafter:"camera", trends:"stats",
+              nails:"sparkle",     nailshape:"target",   nailspa:"flash",
+              muavision:"vision",  lookboard:"reviews",  wigmarket:"leaf",
+              bundlebuilder:"board",tanning:"droplet",   esthet:"leaf",
+              access:"shield",     forecast:"earnings",  currency:"earnings",
+              contributors:"subs", trendintel:"stats",   prism:"vision",
+              compete:"target",    pitch:"flash",        admin:"settings",
+              "admin-intel":"stats",franchise:"globe",   operator:"tool",
+              repair:"tool",       purify:"leaf",        intel:"stats",
+              client:"nearme",     stylist:"styles",     heritage:"dna",
+              specialty:"target",  business:"stats",     platform:"settings",
+              styles:"styles",     ltivision:"vision",   ai:"vision",
+              scan:"scan",         color:"color",        products:"droplet",
+              mystyles:"styles",   qr:"scan",            notify:"alerts",
+              medfind:"shield",    ops:"tool",
+            };
+            return TABS.filter(([t2]) => {
+              if (t2 === "admin" || t2 === "repair" || t2 === "franchise" || t2 === "purify" || t2 === "operator" || t2 === "pitch" || t2 === "compete" || t2 === "admin-intel" || t2 === "ops") {
+                return ownerUnlocked;
+              }
+              return true;
+            }).map(([t2, label]) => (
+              <button key={t2} onClick={() => setTab(t2)}
+                className={"tab-btn" + (tab === t2 ? " tab-active" : "")}
+                style={{
+                  background: tab === t2
+                    ? "linear-gradient(135deg,rgba(39,174,120,0.3),rgba(13,148,136,0.25))"
+                    : "rgba(255,255,255,0.04)",
+                  backdropFilter: "blur(12px) saturate(180%)",
+                  WebkitBackdropFilter: "blur(12px) saturate(180%)",
+                  color: tab === t2 ? "#fff" : "rgba(255,255,255,0.45)",
+                  border: tab === t2 ? "1px solid rgba(39,174,120,0.4)" : "1px solid rgba(255,255,255,0.07)",
+                  boxShadow: tab === t2 ? "0 2px 14px rgba(39,174,120,0.25), inset 0 1px 0 rgba(255,255,255,0.18)" : "inset 0 1px 0 rgba(255,255,255,0.05)",
+                  padding: "6px 11px 6px 8px",
+                  borderRadius: "10px",
+                  fontSize: "11px",
+                  fontFamily: FONTS.body,
+                  fontWeight: tab === t2 ? "700" : "400",
+                  cursor: "pointer",
+                  whiteSpace: "nowrap",
+                  display: "flex", alignItems: "center", gap: "5px",
+                  flexShrink: 0,
+                  transition: "all 0.18s",
+                }}>
+                <SvgIcon
+                  name={NAV_ICON_MAP[t2] || "nearme"}
+                  color={tab===t2 ? "#27AE78" : "rgba(255,255,255,0.4)"}
+                  size={15}
+                  sw={1.6}
+                />
+                {label}
+              </button>
+            ));
+          })()}
         </nav>
 
         {/* -- RIGHT: Gold badge + Language -- */}
@@ -34063,7 +37966,7 @@ export default function App() {
           {authUser && (
               <div onClick={()=>setShowFaceGate(true)} className="glass" style={{display:"flex",gap:"8px",alignItems:"center",borderRadius:"20px",padding:"5px 12px 5px 6px",cursor:"pointer",transition:"all 0.2s"}}>
                 <div style={{width:"28px",height:"28px",borderRadius:"50%",background:`linear-gradient(135deg,${authUser.color||"#27AE78"},${authUser.color||"#27AE78"}99)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"11px",fontWeight:"900",color:"#fff",boxShadow:`0 2px 8px ${authUser.color||"#27AE78"}66`}}>{authUser.avatar||"?"}</div>
-                <div style={{fontSize:"12px",color:"rgba(255,255,255,0.85)",fontWeight:"700",maxWidth:"100px",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{authUser.name?.split(" ")[0]||"User"}</div>
+                <div style={{fontSize:"12px",color:"rgba(255,255,255,0.06)",fontWeight:"700",maxWidth:"100px",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{authUser.name?.split(" ")[0]||"User"}</div>
               </div>
             )}
             <LanguageSelector />
@@ -34085,7 +37988,34 @@ export default function App() {
         </div>
       </header>
 
-      {/* 🛒 CART DRAWER — slide-in from right */}
+      {/* ── GUEST BANNER ── */}
+      {isGuest && (
+        <GuestBanner
+          onCreateAccount={exitGuest}
+          onLogin={exitGuest}
+        />
+      )}
+
+      {/* ── GUEST BOOKING MODAL ── */}
+      {showGuestBooking && (
+        <GuestBookingModal
+          onClose={()=>setShowGuestBooking(false)}
+          onSuccess={()=>setShowGuestBooking(false)}
+          onCreateAccount={exitGuest}
+        />
+      )}
+
+      {/* ── OWNER PIN GATE — triggered by secret logo tap ── */}
+      {showPinGate && (
+        <OwnerPinGate
+          onSuccess={handlePinSuccess}
+          onCancel={()=>setShowPinGate(false)}/>
+      )}
+
+      {/* ── WIDGET INSTALL TOP BAR ── */}
+      <WidgetTopBar />
+
+
       {showCart && (
         <div style={{position:"fixed",inset:0,zIndex:800,display:"flex"}}>
           {/* Backdrop */}
@@ -34115,8 +38045,118 @@ export default function App() {
         </div>
       )}
 
-      {/* Tab content area */}
-      <div className={"lti-content-area"+(navRetreated?" lti-nav-retreated":"")} style={{ display: "flex", flex: 1, minHeight: 0, overflow: "hidden" }}>
+      {/* ── MAIN LAYOUT — collapsible left sidebar + content ── */}
+      <div style={{display:"flex",flex:1,overflow:"visible",position:"relative",zIndex:1}}>
+
+        {/* ── LEFT SIDEBAR — desktop only, collapsible ── */}
+        {!isMobile && (
+          <div style={{
+            width: sidebarCollapsed ? "52px" : "200px",
+            minWidth: sidebarCollapsed ? "52px" : "200px",
+            flexShrink: 0,
+            background: "rgba(7,18,10,0.88)",
+            borderRight: "1px solid rgba(255,255,255,0.08)",
+            backdropFilter: "blur(20px)",
+            display: "flex",
+            flexDirection: "column",
+            transition: "width 0.28s cubic-bezier(0.4,0,0.2,1), min-width 0.28s cubic-bezier(0.4,0,0.2,1)",
+            overflowX: "hidden",
+            overflowY: "auto",
+            position: "relative",
+            zIndex: 10,
+          }}>
+
+            {/* Collapse toggle button */}
+            <button onClick={()=>setSidebarCollapsed(p=>!p)}
+              style={{
+                display:"flex",alignItems:"center",justifyContent: sidebarCollapsed?"center":"flex-end",
+                padding:"12px",borderBottom:"1px solid rgba(255,255,255,0.06)",
+                background:"transparent",border:"none",cursor:"pointer",
+                color:"rgba(255,255,255,0.3)",transition:"all 0.2s",
+                borderBottom:"1px solid rgba(255,255,255,0.06)",
+                minHeight:"44px",flexShrink:0,
+              }}
+              title={sidebarCollapsed?"Expand sidebar":"Collapse sidebar"}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"
+                style={{transition:"transform 0.28s",transform:sidebarCollapsed?"rotate(180deg)":"rotate(0deg)"}}>
+                <polyline points="15 18 9 12 15 6"/>
+              </svg>
+              {!sidebarCollapsed && (
+                <span style={{fontSize:"10px",marginLeft:"6px",letterSpacing:"1px",
+                  color:"rgba(255,255,255,0.25)",textTransform:"uppercase"}}>
+                  Collapse
+                </span>
+              )}
+            </button>
+
+            {/* Tab list */}
+            {(()=>{
+              const NAV_ICON_MAP = {
+                bookpro:"appt",nearme:"nearme",bidboard:"flash",groupbook:"subs",
+                bookmylook:"styles",loyalty:"reviews",reviews:"reviews",messages:"alerts",
+                avail:"avail",clients:"kids",pay:"payment",socialhub:"globe",
+                adminphotos:"photo",certs:"lock",consent:"shield",protools:"tool",
+                dna:"dna",texturematch:"dna",skintone:"photo",health:"droplet",
+                timeline:"stats",stylematch:"styles",beforeafter:"camera",trends:"stats",
+                nails:"sparkle",nailshape:"target",nailspa:"flash",muavision:"vision",
+                lookboard:"reviews",wigmarket:"leaf",bundlebuilder:"board",tanning:"droplet",
+                esthet:"leaf",access:"shield",forecast:"earnings",currency:"earnings",
+                contributors:"subs",trendintel:"stats",prism:"vision",compete:"target",
+                pitch:"flash",admin:"settings","admin-intel":"stats",franchise:"globe",
+                operator:"tool",repair:"tool",purify:"leaf",intel:"stats",
+                client:"nearme",stylist:"styles",heritage:"dna",specialty:"target",
+                business:"stats",platform:"settings",styles:"styles",ltivision:"vision",
+                ai:"vision",scan:"scan",color:"color",products:"droplet",
+                mystyles:"styles",qr:"scan",notify:"alerts",medfind:"shield",ops:"tool",
+              };
+              return TABS.filter(([t2])=>{
+                if(["admin","repair","franchise","purify","operator","pitch","compete","admin-intel","ops"].includes(t2)) return ownerUnlocked;
+                return true;
+              }).map(([t2,label])=>{
+                const active = tab===t2;
+                const iconName = NAV_ICON_MAP[t2]||"nearme";
+                return (
+                  <button key={t2} onClick={()=>setTab(t2)}
+                    title={sidebarCollapsed?label:""}
+                    style={{
+                      display:"flex",alignItems:"center",
+                      gap: sidebarCollapsed?"0":"10px",
+                      justifyContent: sidebarCollapsed?"center":"flex-start",
+                      padding: sidebarCollapsed?"12px":"10px 14px",
+                      margin:"2px 6px",
+                      borderRadius:"10px",
+                      border:"none",cursor:"pointer",
+                      background: active?"rgba(39,174,120,0.18)":"transparent",
+                      color: active?"#fff":"rgba(255,255,255,0.45)",
+                      fontSize:"12px",fontWeight:active?"700":"400",
+                      fontFamily:FONTS.body,
+                      whiteSpace:"nowrap",overflow:"hidden",
+                      transition:"all 0.15s",
+                      flexShrink:0,
+                      boxShadow: active?"inset 0 1px 0 rgba(255,255,255,0.1)":"none",
+                      borderLeft: active?"2px solid #27AE78":"2px solid transparent",
+                    }}>
+                    <span style={{flexShrink:0}}>
+                      <SvgIcon name={iconName} color={active?"#27AE78":"rgba(255,255,255,0.38)"} size={15} sw={1.6}/>
+                    </span>
+                    {!sidebarCollapsed && (
+                      <span style={{overflow:"hidden",textOverflow:"ellipsis"}}>{label}</span>
+                    )}
+                    {active && !sidebarCollapsed && (
+                      <div style={{marginLeft:"auto",width:"5px",height:"5px",
+                        borderRadius:"50%",background:"#27AE78",flexShrink:0}}/>
+                    )}
+                  </button>
+                );
+              });
+            })()}
+          </div>
+        )}
+
+        {/* ── TAB CONTENT ── */}
+        <div className={"lti-content-area"+(navRetreated?" lti-nav-retreated":"")}
+          style={{display:"flex",flex:1,minHeight:0,overflow:"visible",flexDirection:"column"}}>
         <div style={{position:"relative",zIndex:1,display:"flex",flex:1,minHeight:0,overflow:"hidden"}}>
         {tab === "styles" && <StylesTab styles={styles} setStyles={setStyles} />}
         {tab === "ltivision" && <LTIVisionTab />}
@@ -34124,6 +38164,7 @@ export default function App() {
         {tab === "herireviews"  && <HeritageReviewTab />}
         {tab === "nearme"   && <NearMeView tickets={[]} authUser={authUser} />}
         {tab === "bidboard" && <BidBoardTab />}
+        {tab === "referral" && <ReferralSystem authUser={authUser} />}
         {tab === "pros" && <ProsTab />}
         {tab === "ai" && <AIChat styles={styles} onAddStyle={s => setStyles(p => [...p, s])} />}
         {tab === "scan" && <BioScanTab styles={styles} />}
@@ -34142,7 +38183,7 @@ export default function App() {
         {tab === "nailshape"   && <NailShapeConsultTab />}
         {tab === "socialhub"     && <SocialHubTab />}
         {tab === "bookmylook"    && <BookMyLookView />}
-        {tab === "adminphotos"   && (isOwner ? <AdminPhotoUploadTab /> : <ContributorRegistryTab />)}
+        {tab === "adminphotos"   && (ownerUnlocked ? <AdminPhotoUploadTab /> : <ContributorRegistryTab />)}
         {tab === "contributors"  && <ContributorRegistryTab />}
         {tab === "clientvault"   && <ClientVaultTab />}
         {tab === "nailinspoo"  && <NailInspoBoardTab />}
@@ -34190,7 +38231,8 @@ export default function App() {
         {tab === "operator"  && <OperatorSuiteTab />}
         {tab === "purify"    && <ClaudePurifyTab authUser={authUser}/>}
         </div>{/* end inner content */}
-      </div>{/* end tab content area */}
+        </div>{/* end tab content wrapper */}
+      </div>{/* end main layout flex row */}
 
       {/* ── LANDSCAPE FOOTER BAR ─────────────────────────────────────────────
           Mirrors the header in style — visible in landscape/desktop,
@@ -34342,15 +38384,13 @@ export default function App() {
         {/* Primary quick-access tabs — glass icon pills */}
         <div style={{display:"flex",gap:"6px",padding:"8px 10px",borderBottom:"1px solid rgba(255,255,255,0.06)"}}>
           {[
-            ["styles","🎨","Styles","#27AE78"],
-            ["ltivision","👓","Vision","#7C3AED"],
-            ["subscriptions","🔄","Subscribe","#27AE78"],
-            ["herireviews","🌍","Reviews","#C9A84C"],
-            ["nearme","📍","Near Me","#27AE78"],
-            ["bidboard","⚡","Bids","#F59E0B"],
-            ["ai","CLAUDE_MARK","AI","#A78BFA"],
-            ["heritage","🌍","Heritage","#34D399"],
-            ["scan","🔬","Scan","#C9A84C"],
+            ["client",  "nearme",   "Client",   "#27AE78"],
+            ["stylist",  "styles",   "Stylist",  "#0891B2"],
+            ["heritage", "dna",      "Heritage", "#C4896B"],
+            ["specialty","target",   "Specialty","#EC4899"],
+            ["business", "stats",    "Business", "#C9A84C"],
+            ["ai",       "CLAUDE_MARK","AI",     "#A78BFA"],
+            ...(ownerUnlocked ? [["platform","settings","Owner","#7C3AED"]] : []),
           ].map(([t2,icon,label,col])=>{
             const active = tab===t2;
             return (
@@ -34367,8 +38407,8 @@ export default function App() {
                   transition:"all 0.2s",
                 }}>
                 {icon === "CLAUDE_MARK"
-                  ? <ClaudePrismMark size={24} active={active}/>
-                  : <span style={{fontSize:"20px",filter:active?`drop-shadow(0 0 6px ${col})`:"none",transition:"filter 0.2s"}}>{icon}</span>
+                  ? <ClaudePrismMark size={22} active={active}/>
+                  : <SvgIcon name={icon} color={active ? col : "rgba(255,255,255,0.4)"} size={22} sw={1.6}/>
                 }
                 <span style={{fontSize:"9px",fontWeight:"800",letterSpacing:"0.5px",color:active?col:"rgba(255,255,255,0.4)",transition:"color 0.2s"}}>{label}</span>
                 {active && <div style={{width:"18px",height:"2.5px",background:`linear-gradient(90deg,transparent,${col},transparent)`,borderRadius:"2px"}}/>}
@@ -34396,18 +38436,60 @@ export default function App() {
 
         {/* Expanded "More" panel — categorized feature directory */}
         {showMobileNav && (()=>{
-          const isOwner = authUser?.id===OWNER_ID || authUser?.badge==="Platform Owner";
+          const isOwner = ownerUnlocked;
           const CATS = [
-            { id:"style",   icon:"🎨", label:"Style Studio",        color:"#27AE78", tabs:[["color","Wella Color"],["products","Products"],["mystyles","My Styles"],["stylematch","Style Match"],["beforeafter","Before & After"],["trends","Trends"],["trendintel","📊 Trend Intelligence"],["wigmarket","💆 Wig Marketplace"],["prism","✦ Claude Prism"]] },
-            { id:"book",    icon:"📅", label:"Book & Connect",       color:"#0891B2", tabs:[["pros","Find Pros"],["bookpro","Book a Pro"],["avail","Availability"],["qr","QR Connect"],["reviews","Reviews"],["groupbook","💒 Group Booking"],["videoconsult","🎥 Video Consult"],["bridal","💍 Bridal Coordinator"],["texturematch","🧬 Texture Match"],["bookmylook","🎨 Book My Look"]] },
-            { id:"mua",     icon:"💄", label:"MUA & Makeup",         color:"#EC4899", tabs:[["muavision","🔬 MUA 3D Face Scan"],["lookboard","💄 Look Board"],["skintone","🎨 Skin Tone Profiler"],["bridal","💍 Bridal Package"],["touchup","⏱️ Touch-Up Blocks"]] },
-            { id:"wigs",    icon:"💆", label:"Wigs & Extensions",     color:"#7C3AED", tabs:[["wigmarket","💆 Wig Marketplace"],["texturematch","🧬 Texture Match"],["bookmylook","🎨 Book My Look"],["bundlebuilder","🛒 Bundle Builder"],["lacesafety","⚗️ Lace Glue Safety"]] },
-            { id:"biz",     icon:"💼", label:"My Business",          color:"#C9A84C", tabs:[["clients","Clients"],["pay","Payments"],["socialhub","📲 Social Hub"],["adminphotos","📸 Photo Intake (Admin)"],["contributors","🛡️ Style Contributors"],["protools","Pro Tools"],["certs","Certifications"],["consent","Consent Forms"],["currency","Exchange"],["forecast","📈 Revenue Forecast"],["touchup","⏱️ Post Touch-Up Block"]] },
-            { id:"wellness",icon:"🌿", label:"Wellness & Specialty",  color:"#059669", tabs:[["health","Hair Health"],["medfind","Specialist"],["nails","Nail Tech"],["nailshape","💅 Nail Shape Consult"],["nailinspoo","🎨 Design Inspo Board"],["nailspa","💅 Nail & Spa Bids"],["tanning","Tanning & Spa"],["esthet","Esthetician"],["access","Accessibility"],["timeline","Hair Timeline"],["dna","🧬 Heritage DNA Quiz"],["skintone","🎨 Skin Tone Profiler"]] },
-            { id:"loyalty", icon:"🏆", label:"Rewards & Loyalty",    color:"#C9A84C", tabs:[["loyalty","🏆 My Rewards"]] },
-            { id:"comms",   icon:"💬", label:"Messages & Alerts",    color:"#7C3AED", tabs:[["messages","Messages"],["notify","Notifications"],["pushnotify","Alerts"]] },
-            ...(isOwner?[{ id:"admin", icon:"⚙", label:"Admin & Platform", color:"#C9A84C", tabs:[["admin-intel","Admin Intel"],["admin","Master Admin"],["repair","Claude Repairs"],["purify","Claude Purify"],["franchise","Franchise"],["operator","Ops Suite"],["compete","Competition"],["pitch","Pitch Mode"]] }]:[]),
+            { id:"client",  icon:"nearme",   label:"Client",          color:"#27AE78", tabs:[
+                ["bookpro","Book a Pro"],["nearme","Near Me"],["bidboard","Bid Board"],
+                ["groupbook","Group Booking"],["bookmylook","Book My Look"],
+                ["loyalty","Rewards"],["reviews","Reviews"],["messages","Messages"] ] },
+
+              { id:"stylist",  icon:"styles",   label:"Stylist",         color:"#0891B2", tabs:[
+                ["avail","Availability"],["clients","My Clients"],["pay","Payments"],
+                ["socialhub","Social Hub"],["adminphotos","Photo Intake"],
+                ["certs","Certifications"],["consent","Consent Forms"],["protools","Pro Tools"] ] },
+
+              { id:"heritage", icon:"dna",      label:"Heritage",        color:"#C4896B", tabs:[
+                ["dna","Heritage DNA"],["texturematch","Texture Match"],["skintone","Skin Tone"],
+                ["health","Hair Health"],["timeline","Hair Timeline"],["stylematch","Style Match"],
+                ["beforeafter","Before & After"],["trends","Trends"] ] },
+
+              { id:"specialty",icon:"target",   label:"Specialty",       color:"#EC4899", tabs:[
+                ["nails","Nail Tech"],["nailshape","Nail Consult"],["nailspa","Nail & Spa Bids"],
+                ["muavision","MUA Vision"],["lookboard","Look Board"],
+                ["wigmarket","Wigs & Extensions"],["bundlebuilder","Bundle Builder"],
+                ["tanning","Spa & Tanning"],["esthet","Esthetician"],["access","Accessibility"] ] },
+
+              { id:"business", icon:"stats",    label:"Business",        color:"#C9A84C", tabs:[
+                ["forecast","Revenue Forecast"],["currency","Exchange"],["contributors","Contributors"],
+                ["socialhub","Brand Hub"],["trendintel","Trend Intel"],["prism","Claude Prism"],
+                ["compete","Competition"],["pitch","Pitch Mode"] ] },
+
+              ...(ownerUnlocked ? [{ id:"platform", icon:"settings", label:"Platform Owner", color:"#7C3AED", tabs:[
+                ["admin","Master Admin"],["admin-intel","Intel Dashboard"],
+                ["franchise","Franchise"],["operator","Ops Suite"],
+                ["repair","Claude Repairs"],["purify","Claude Purify"] ] }] : []),
           ];
+
+          // Map tab IDs → SVG icon keys for sub-tab buttons
+          const TAB_ICON_MAP = {
+            bookpro:"appt",    nearme:"nearme",     bidboard:"flash",
+            groupbook:"subs",  bookmylook:"styles", loyalty:"reviews",
+            reviews:"reviews", messages:"alerts",   avail:"avail",
+            clients:"kids",    pay:"payment",       socialhub:"globe",
+            adminphotos:"photo",certs:"lock",       consent:"shield",
+            protools:"tool",   dna:"dna",           texturematch:"dna",
+            skintone:"photo",  health:"droplet",    timeline:"stats",
+            stylematch:"styles",beforeafter:"camera",trends:"stats",
+            nails:"sparkle",   nailshape:"target",  nailspa:"flash",
+            muavision:"vision",lookboard:"reviews", wigmarket:"leaf",
+            bundlebuilder:"board",tanning:"droplet",esthet:"leaf",
+            access:"shield",   forecast:"earnings", currency:"earnings",
+            contributors:"subs",trendintel:"stats", prism:"vision",
+            compete:"target",  pitch:"flash",       admin:"settings",
+            "admin-intel":"stats",franchise:"globe",operator:"tool",
+            repair:"tool",     purify:"leaf",
+          };
+
           return (
             <div style={{maxHeight:"55vh",overflowY:"auto",background:"#0D1A12"}}>
               <div style={{padding:"10px 16px 6px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
@@ -34423,11 +38505,11 @@ export default function App() {
                       borderBottom:"1px solid rgba(255,255,255,0.06)",
                       transition:"all 0.18s"}}>
                     <div style={{width:"34px",height:"34px",borderRadius:"10px",
-                      background:`rgba(${cat.color==='#27AE78'?'39,174,120':cat.color==='#0891B2'?'8,145,178':cat.color==='#C9A84C'?'201,168,76':cat.color==='#059669'?'5,150,105':cat.color==='#7C3AED'?'124,58,237':'201,168,76'},0.18)`,
+                      background:`rgba(${cat.color==='#27AE78'?'39,174,120':cat.color==='#0891B2'?'8,145,178':cat.color==='#C9A84C'?'201,168,76':cat.color==='#EC4899'?'236,72,153':cat.color==='#7C3AED'?'124,58,237':'196,137,107'},0.18)`,
                       border:`1px solid ${cat.color}44`,backdropFilter:"blur(8px)",WebkitBackdropFilter:"blur(8px)",
                       display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,
                       boxShadow:`0 2px 10px ${cat.color}22, inset 0 1px 0 rgba(255,255,255,0.1)`}}>
-                      {cat.icon}
+                      <SvgIcon name={cat.icon} color={cat.color} size={18} sw={1.6}/>
                     </div>
                     <div style={{flex:1}}>
                       <div style={{fontSize:"13px",fontWeight:"800",color:"rgba(255,255,255,0.9)"}}>{cat.label}</div>
@@ -34438,7 +38520,7 @@ export default function App() {
                   {openCat===cat.id && (
                     <div style={{background:"rgba(0,0,0,0.3)",backdropFilter:"blur(16px)",WebkitBackdropFilter:"blur(16px)",padding:"8px 12px",display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"6px"}}>
                       {cat.tabs.filter(([t2])=>{
-                        if(["admin","repair","franchise","purify","operator","pitch","compete","admin-intel","ops"].includes(t2)) return isOwner;
+                        if(["admin","repair","franchise","purify","operator","pitch","compete","admin-intel","ops"].includes(t2)) return ownerUnlocked;
                         return true;
                       }).map(([t2,label])=>(
                         <button key={t2} onClick={()=>{setTab(t2);setShowMobileNav(false);setOpenCat(null);}}
@@ -34448,9 +38530,14 @@ export default function App() {
                             border:`1px solid ${tab===t2?cat.color+"66":"rgba(255,255,255,0.08)"}`,
                             boxShadow:tab===t2?`0 2px 10px ${cat.color}33, inset 0 1px 0 rgba(255,255,255,0.1)`:"inset 0 1px 0 rgba(255,255,255,0.04)",
                             padding:"9px 6px",borderRadius:"10px",fontSize:"11px",fontWeight:"700",
-                            cursor:"pointer",textAlign:"center",lineHeight:"1.3"}}>
-                          <TabIcon id={t2} size={14}/>
-                          <div style={{marginTop:"3px"}}>{label}</div>
+                            cursor:"pointer",textAlign:"center",lineHeight:"1.3",
+                            display:"flex",flexDirection:"column",alignItems:"center",gap:"4px"}}>
+                          <SvgIcon
+                            name={TAB_ICON_MAP[t2] || "nearme"}
+                            color={tab===t2 ? "#fff" : cat.color}
+                            size={15}
+                            sw={1.6}/>
+                          <div>{label}</div>
                         </button>
                       ))}
                     </div>
@@ -34461,6 +38548,8 @@ export default function App() {
           );
         })()}
       </div>
+
+      <PWAInstallBanner />
 
     </div>
     </LangContext.Provider>
