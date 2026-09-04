@@ -1,3 +1,8 @@
+// ═══════════════════════════════════════════════════════════════════════════════
+//  LTI VENTURES — Firebase / FCM Setup
+//  Project: lti-beauty
+// ═══════════════════════════════════════════════════════════════════════════════
+
 import { initializeApp } from "firebase/app";
 import { getMessaging, getToken, onMessage } from "firebase/messaging";
 
@@ -14,9 +19,11 @@ const VAPID_KEY = "BANA3FqgF9Q5ALdGJZC4Gv7tnTKiCsZayiQc0LHv-GW6qtFq5ReyaSMxEPzTC
 
 let app, messaging;
 try {
-  app = initializeApp(firebaseConfig);
+  app       = initializeApp(firebaseConfig);
   messaging = getMessaging(app);
-} catch(e) { console.warn("Firebase init:", e); }
+} catch(e) {
+  console.warn("Firebase init:", e);
+}
 
 export async function requestNotificationPermission() {
   try {
@@ -25,7 +32,10 @@ export async function requestNotificationPermission() {
     if (permission !== "granted") return null;
     const token = await getToken(messaging, { vapidKey: VAPID_KEY });
     return token || null;
-  } catch(e) { return null; }
+  } catch(e) {
+    console.error("FCM token error:", e);
+    return null;
+  }
 }
 
 export function onForegroundMessage(callback) {

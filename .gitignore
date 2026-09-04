@@ -1,2 +1,15 @@
-.vercel
-.env*
+node_modules/
+.npm
+dist/
+dist-ssr/
+*.local
+.env
+.env.local
+.env.*.local
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*
