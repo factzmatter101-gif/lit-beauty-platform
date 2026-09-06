@@ -27847,9 +27847,9 @@ const OWNER_ID     = "u1";
 const OWNER_HASH   = "4055";
 
 // ── MASTER CREDENTIALS — separate from owner PIN ─────────────────────────────
-// Master login: master@ltiventures.com / separate PIN
+// Master login: lovethatidea@ltibeauty.com / separate PIN
 // Grants financial extraction, pricing control, incognito view
-const MASTER_EMAIL = "master@ltiventures.com";
+const MASTER_EMAIL = "lovethatidea@ltibeauty.com";
 const MASTER_HASH  = "4055"; // Master PIN
 
 function verifyOwnerPin(input) {
