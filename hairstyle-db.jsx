@@ -41590,7 +41590,7 @@ export default function App() {
         {tab === "badges"       && <VerifiedBadgeSystem authUser={authUser}/>}
         {tab === "styleconsult" && <AIStyleConsultant authUser={authUser}/>}
         {tab === "feed"         && <StyleInspirationFeed authUser={authUser} setTab={setTab}/>}
-        {tab === "pro"          && <ProPlansTab authUser={authUser}/>}
+        {tab === "pro"          && <SubscriptionProTab authUser={authUser}/>}
         {tab === "messages"     && <InAppMessenger authUser={authUser}/>}
         {tab === "reviews"      && <PostBookingReview authUser={authUser}/>}
         {tab === "search"       && <GlobalSearch setTab={setTab}/>}
