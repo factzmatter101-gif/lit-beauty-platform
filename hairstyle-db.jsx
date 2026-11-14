@@ -38896,7 +38896,7 @@ function StyleInspirationFeed({ authUser, setTab }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 //  SUBSCRIPTION PRO TAB
 // ═══════════════════════════════════════════════════════════════════════════════
-function SubscriptionProTab({ authUser }) {
+function ProPlansTab({ authUser }) {
   const MINT="#27AE78", GOLD="#C9A84C";
   const [selected, setSelected] = useState("pro");
   const [billing, setBilling]   = useState("monthly");
@@ -41590,7 +41590,7 @@ export default function App() {
         {tab === "badges"       && <VerifiedBadgeSystem authUser={authUser}/>}
         {tab === "styleconsult" && <AIStyleConsultant authUser={authUser}/>}
         {tab === "feed"         && <StyleInspirationFeed authUser={authUser} setTab={setTab}/>}
-        {tab === "pro"          && <SubscriptionProTab authUser={authUser}/>}
+        {tab === "pro"          && <ProPlansTab authUser={authUser}/>}
         {tab === "messages"     && <InAppMessenger authUser={authUser}/>}
         {tab === "reviews"      && <PostBookingReview authUser={authUser}/>}
         {tab === "search"       && <GlobalSearch setTab={setTab}/>}
